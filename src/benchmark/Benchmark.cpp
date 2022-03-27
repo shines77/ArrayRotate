@@ -16,6 +16,9 @@
 #include "StopWatch.h"
 
 #include "jstd/ArrayRotate.h"
+#if defined(_MSC_VER) && (_MSC_VER >= 2000)
+#include "kerbal/algorithm/modifier.hpp"
+#endif
 
 template < typename ItemType, std::size_t Length, std::size_t Offset,
            typename Container = std::vector<ItemType> >
@@ -53,6 +56,17 @@ void run_rotate_benchmark(Container & array)
 
     elapsedTime = sw.getElapsedMillisec();
     printf("jstd::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+
+    //////////////////////////////////////////////////////////////
+
+#if defined(_MSC_VER) && (_MSC_VER >= 2000)
+    sw.start();
+    kerbal::algorithm::rotate(array.begin(), array.begin() + offset, array.end());
+    sw.stop();
+
+    elapsedTime = sw.getElapsedMillisec();
+    printf("kerbal::algorithm::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+#endif
 
     //////////////////////////////////////////////////////////////
 }

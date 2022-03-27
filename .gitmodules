@@ -1,0 +1,4 @@
+[submodule "third/Kerbal"]
+	path = third/Kerbal
+	url = https://github.com/WentsingNee/Kerbal.git
+	branch = main
