@@ -37,6 +37,7 @@ struct DivRatio {
     DivRatio & operator = (const DivRatio & rhs) {
         this->ratio = rhs.ratio;
         this->shift = rhs.shift;
+        return *this;
     };
 #endif
 };
