@@ -161,7 +161,7 @@ left_rotate_v1(ForwardIt first, ForwardIt mid, ForwardIt last)
 
 template <typename ForwardIt, typename ItemType = void>
 ForwardIt // void until C++11
-right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
+right_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
 {
     if (first == mid) return last;
     if (mid == last) return first;
@@ -180,44 +180,49 @@ right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
 
     // Rotate the remaining sequence into place
     if (remain0 != 0) {
-        std::size_t length = shift0;
-        std::size_t shift = shift0 - remain0;
-        std::size_t remain;
-        if (shift != 1) {
-            read = write - shift;
-            remain = fast_mod(length, shift);
-            while (read != first) {
-                std::iter_swap(read--, write--);
-            }
-            std::iter_swap(read, write--);
+        if (shift0 / 2 <= remain0 || shift0 < 8) {
+            std::uint32_t length = (std::uint32_t)shift0;
+            std::uint32_t shift = (std::uint32_t)(shift0 - remain0);
+            std::uint32_t remain;
+            if (shift != 1) {
+                read = write - shift;
+                remain = fast_mod_u32(length, shift);
+                while (read != first) {
+                    std::iter_swap(read--, write--);
+                }
+                std::iter_swap(read, write--);
             
-            while (remain != 0) {
-                length = shift;
-                shift = shift - remain;
-                if (true || shift != 1) {
-                    read = write - shift;
-                    remain = fast_mod(length, shift);
-                    while (read != first) {
-                        std::iter_swap(read--, write--);
+                while (remain != 0) {
+                    length = shift;
+                    shift = shift - remain;
+                    if (true || shift != 1) {
+                        read = write - shift;
+                        remain = fast_mod_u32(length, shift);
+                        while (read != first) {
+                            std::iter_swap(read--, write--);
+                        }
+                        std::iter_swap(read, write--);
                     }
-                    std::iter_swap(read, write--);
-                }
-                else {
-                    read = write - shift;
-                    while (read != first) {
-                        std::iter_swap(read--, write--);
+                    else {
+                        read = write - shift;
+                        while (read != first) {
+                            std::iter_swap(read--, write--);
+                        }
+                        std::iter_swap(read, write--);
+                        break;
                     }
-                    std::iter_swap(read, write--);
-                    break;
                 }
+            }
+            else {
+                read = write - shift;
+                while (read != first) {
+                    std::iter_swap(read--, write--);
+                }
+                std::iter_swap(read, write--);
             }
         }
         else {
-            read = write - shift;
-            while (read != first) {
-                std::iter_swap(read--, write--);
-            }
-            std::iter_swap(read, write--);
+            return left_rotate_impl(read, write - remain0, write);
         }
     }
 
@@ -227,14 +232,21 @@ right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
 template <typename ForwardIt, typename ItemType = void>
 inline
 ForwardIt // void until C++11
-rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
+right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
 {
     if (first == mid) return last;
     if (mid == last) return first;
 
-    const std::uint32_t length0 = (std::uint32_t)(last - first);
-    const std::uint32_t shift0 = (std::uint32_t)(mid - first);
-    const std::uint32_t remain0 = length0 % shift0;
+    return right_rotate_impl(first, mid, last);
+}
+
+template <typename ForwardIt, typename ItemType = void>
+ForwardIt // void until C++11
+left_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
+{
+    const std::size_t length0 = last - first;
+    const std::size_t shift0 = mid - first;
+    const std::size_t remain0 = length0 % shift0;
 
     ForwardIt read = mid;
     ForwardIt write = first;
@@ -246,9 +258,9 @@ rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     // Rotate the remaining sequence into place
     if (remain0 != 0) {
         //std::int32_t dir = (shift0 / 2 <= remain0) ? 1 : -1;
-        if (shift0 / 2 <= remain0) {
-            std::uint32_t length = shift0;
-            std::uint32_t shift = shift0 - remain0;
+        if (shift0 / 2 <= remain0 || shift0 < 8) {
+            std::uint32_t length = (std::uint32_t)shift0;
+            std::uint32_t shift = (std::uint32_t)(shift0 - remain0);
             std::uint32_t remain;
             if (shift != 1) {
                 read = write + shift;
@@ -284,11 +296,22 @@ rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
             }
         }
         else {
-            return right_rotate(write, last - remain0, last);
+            return right_rotate_impl(write, last - remain0, last);
         }
     }
 
     return write;
+}
+
+template <typename ForwardIt, typename ItemType = void>
+inline
+ForwardIt // void until C++11
+rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
+{
+    if (first == mid) return last;
+    if (mid == last) return first;
+
+    return left_rotate_impl(first, mid, last);
 }
 
 } // namespace jstd
