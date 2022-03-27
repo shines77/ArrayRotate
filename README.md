@@ -1,11 +1,12 @@
 # ArrayRotate
 
 #### 介绍
+
 对于 std::rotate(first, mid, last) 的深度优化和研究
 
 #### 软件架构
-软件架构说明
 
+软件架构说明
 
 #### 安装教程
 

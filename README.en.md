@@ -1,9 +1,11 @@
 # ArrayRotate
 
 #### Description
-对于 std::rotate(first, mid, last) 的深度优化和研究
+
+Deeply research and optimization about std::rotate(first, mid, last)
 
 #### Software Architecture
+
 Software architecture description
 
 #### Installation
