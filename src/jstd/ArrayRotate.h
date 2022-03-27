@@ -161,6 +161,10 @@ left_rotate_v1(ForwardIt first, ForwardIt mid, ForwardIt last)
 
 template <typename ForwardIt, typename ItemType = void>
 ForwardIt // void until C++11
+left_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last);
+
+template <typename ForwardIt, typename ItemType = void>
+ForwardIt // void until C++11
 right_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
 {
     if (first == mid) return last;
