@@ -4,8 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 #include <cstdlib>
 #include <cstdio>
+#include <string>
+#include <cstring>
 #include <vector>
 #include <algorithm>
 

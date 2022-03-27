@@ -4,8 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 #include <cstdlib>
 #include <cstdio>
+#include <string>
+#include <cstring>
 #include <vector>
 #include <algorithm>
 
@@ -13,7 +16,7 @@
 
 static const char base64_str[65] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=";
 
-template <typename ItemType, typename Container = void>
+template <typename ItemType, typename Container>
 void print_array_impl(Container & container)
 {
     for (auto iter = container.cbegin(); iter != container.cend(); iter++) {
@@ -28,7 +31,7 @@ void print_array_impl(Container & container)
     }
 }
 
-template <typename ItemType, typename Container = void>
+template < typename ItemType, typename Container = std::vector<ItemType> >
 void print_array(const std::string & fmt, std::size_t length, Container & container)
 {
     printf("\n");
@@ -40,7 +43,7 @@ void print_array(const std::string & fmt, std::size_t length, Container & contai
     printf("};\n");
 }
 
-template <typename ItemType, typename Container = void>
+template < typename ItemType, typename Container = std::vector<ItemType> >
 void print_array(const std::string & fmt, std::size_t length, std::size_t offset, Container & container)
 {
     printf("\n");
