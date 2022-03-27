@@ -229,7 +229,66 @@ inline
 ForwardIt // void until C++11
 rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
 {
-    return left_rotate<ForwardIt, ItemType>(first, mid, last);
+    if (first == mid) return last;
+    if (mid == last) return first;
+
+    const std::uint32_t length0 = (std::uint32_t)(last - first);
+    const std::uint32_t shift0 = (std::uint32_t)(mid - first);
+    const std::uint32_t remain0 = length0 % shift0;
+
+    ForwardIt read = mid;
+    ForwardIt write = first;
+
+    do {
+        std::iter_swap(write++, read++);
+    } while (read != last);
+
+    // Rotate the remaining sequence into place
+    if (remain0 != 0) {
+        //std::int32_t dir = (shift0 / 2 <= remain0) ? 1 : -1;
+        if (shift0 / 2 <= remain0) {
+            std::uint32_t length = shift0;
+            std::uint32_t shift = shift0 - remain0;
+            std::uint32_t remain;
+            if (shift != 1) {
+                read = write + shift;
+                remain = fast_mod_u32(length, shift);
+                while (read != last) {
+                    std::iter_swap(write++, read++);
+                }
+            
+                while (remain != 0) {
+                    length = shift;
+                    shift = shift - remain;
+                    if (true || shift != 1) {
+                        read = write + shift;
+                        remain = fast_mod_u32(length, shift);
+                        while (read != last) {
+                            std::iter_swap(write++, read++);
+                        }
+                    }
+                    else {
+                        read = write + shift;
+                        while (read != last) {
+                            std::iter_swap(write++, read++);
+                        }
+                        break;
+                    }
+                }
+            }
+            else {
+                read = write + shift;
+                while (read != last) {
+                    std::iter_swap(write++, read++);
+                }
+            }
+        }
+        else {
+            return right_rotate(write, last - remain0, last);
+        }
+    }
+
+    return write;
 }
 
 } // namespace jstd

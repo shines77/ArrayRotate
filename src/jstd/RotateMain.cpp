@@ -184,6 +184,6 @@ int main(int argn, char * argv[])
     //jstd::genDivRatioTbl();
     //jstd::genModRatioTbl();
     rotate_test();
-    //rotate_unit_test();
+    rotate_unit_test();
     return 0;
 }
