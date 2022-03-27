@@ -99,9 +99,11 @@ left_rotate_v1(ForwardIt first, ForwardIt mid, ForwardIt last)
     return write;
 }
 
-template <typename ForwardIt, typename ItemType>
+#if !defined(_MSC_VER)
+template <typename ForwardIt, typename ItemType = void>
 ForwardIt // void until C++11
 left_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last);
+#endif
 
 template <typename ForwardIt, typename ItemType = void>
 ForwardIt // void until C++11
