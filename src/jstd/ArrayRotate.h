@@ -46,23 +46,26 @@ rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     ForwardIt read = mid;
     ForwardIt write = first;
 
-    while (read != last) {
+    do {
         std::iter_swap(write++, read++);
-    }
+    } while (read != last);
 
     // Rotate the remaining sequence into place
-    std::size_t length = last - first;
-    std::size_t offset = mid - first;
-    std::size_t remain = length % offset;
+    const std::size_t length0 = last - first;
+    const std::size_t offset0 = mid - first;
+    const std::size_t remain0 = length0 % offset0;
 
-    if (remain != 0) {
-        first = write;
-        mid = write + offset - remain;
-        read = mid;
+    if (remain0 != 0) {
+        //first = write;
+        read = write + offset0 - remain0;
+        //read = mid;
         while (read != last) {
             std::iter_swap(write++, read++);
         }
 
+        std::size_t length = length0;
+        std::size_t offset = offset0;
+        std::size_t remain = remain0;
         while (write != last) {
             length = offset;
             offset = remain;
