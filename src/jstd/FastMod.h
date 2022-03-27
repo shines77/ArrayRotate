@@ -371,6 +371,9 @@ uint64_t mul128_u32(uint64_t low_bits, uint32_t divisor) {
 static inline
 std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
 {
+#if 1
+    return (value % divisor);
+#else
     if (divisor >= kMaxModTable) {
         return (value % divisor);
     }
@@ -380,6 +383,7 @@ std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
         std::uint32_t result = (std::uint32_t)mul128_u32(low_bits, divisor);
         return result;
     }
+#endif
 }
 
 } // namespace jstd

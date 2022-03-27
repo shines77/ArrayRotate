@@ -126,7 +126,7 @@ right_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
 
     // Rotate the remaining sequence into place
     if (remain0 != 0) {
-        if (false || shift0 / 2 <= remain0 || shift0 < 8) {
+        if (shift0 / 2 <= remain0 || shift0 < 8) {
             std::uint32_t length = (std::uint32_t)shift0;
             std::uint32_t shift = (std::uint32_t)(shift0 - remain0);
             std::uint32_t remain;
