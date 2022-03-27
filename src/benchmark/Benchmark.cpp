@@ -30,20 +30,20 @@ void run_rotate_benchmark(Container & array)
     //////////////////////////////////////////////////////////////
 
     sw.start();
-    std::rotate(array.begin(), array.begin() + offset, array.end());
-    sw.stop();
-
-    elapsedTime = sw.getElapsedMillisec();
-    printf("std::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
-
-    //////////////////////////////////////////////////////////////
-
-    sw.start();
     jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
     printf("jstd::std_rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+
+    //////////////////////////////////////////////////////////////
+
+    sw.start();
+    std::rotate(array.begin(), array.begin() + offset, array.end());
+    sw.stop();
+
+    elapsedTime = sw.getElapsedMillisec();
+    printf("std::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 
     //////////////////////////////////////////////////////////////
 
@@ -63,8 +63,8 @@ void benchmark()
 
     std::vector<int> array;
     array.resize(test_length);
-    for (int i = 0; i < test_length; i++) {
-        array[i] = i;
+    for (size_t i = 0; i < test_length; i++) {
+        array[i] = (int)i;
     }
 
     run_rotate_benchmark<int, test_length, 32>(array);
