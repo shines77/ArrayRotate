@@ -174,7 +174,7 @@ uint64_t mul128_u32(uint64_t low_bits, uint32_t divisor) {
 
 static inline
 uint64_t mul128_u32(uint64_t low_bits, uint32_t divisor) {
-  return (((__uint128_t)lowbits * divisor) >> 64u);
+  return (((__uint128_t)low_bits * divisor) >> 64u);
 }
 
 #endif // _MSC_VER
