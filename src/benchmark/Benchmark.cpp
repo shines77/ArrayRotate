@@ -16,7 +16,7 @@
 #include "StopWatch.h"
 
 #include "jstd/ArrayRotate.h"
-#if defined(_MSC_VER) && (_MSC_VER >= 2000)
+#if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
 #include "kerbal/algorithm/modifier.hpp"
 #endif
 
@@ -59,7 +59,7 @@ void run_rotate_benchmark(Container & array)
 
     //////////////////////////////////////////////////////////////
 
-#if defined(_MSC_VER) && (_MSC_VER >= 2000)
+#if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
     sw.start();
     kerbal::algorithm::rotate(array.begin(), array.begin() + offset, array.end());
     sw.stop();
