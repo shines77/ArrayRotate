@@ -11,6 +11,9 @@
 #include <cstdbool>
 #include <algorithm>
 
+#include "jstd/FastDiv.h"
+#include "jstd/FastMod.h"
+
 namespace jstd {
 
 template <typename ForwardIt>
@@ -36,11 +39,6 @@ std_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     return write;
 }
 
-static inline std::size_t fast_mod(std::size_t a, std::size_t b)
-{
-    return ((a < b) ? a : ((a < b * 2) ? (a - b) : (a % b)));
-}
-
 template <typename ForwardIt, typename ItemType = void>
 ForwardIt // void until C++11
 left_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
@@ -48,10 +46,9 @@ left_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     if (first == mid) return last;
     if (mid == last) return first;
 
-    // Rotate the remaining sequence into place
-    const std::size_t length0 = last - first;
-    const std::size_t shift0 = mid - first;
-    const std::size_t remain0 = fast_mod(length0, shift0);
+    const std::uint32_t length0 = (std::uint32_t)(last - first);
+    const std::uint32_t shift0 = (std::uint32_t)(mid - first);
+    const std::uint32_t remain0 = length0 % shift0;
 
     ForwardIt read = mid;
     ForwardIt write = first;
@@ -60,6 +57,67 @@ left_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
         std::iter_swap(write++, read++);
     } while (read != last);
 
+    // Rotate the remaining sequence into place
+    if (remain0 != 0) {
+        std::uint32_t length = shift0;
+        std::uint32_t shift = shift0 - remain0;
+        std::uint32_t remain;
+        if (shift != 1) {
+            read = write + shift;
+            remain = fast_mod_u32(length, shift);
+            while (read != last) {
+                std::iter_swap(write++, read++);
+            }
+            
+            while (remain != 0) {
+                length = shift;
+                shift = shift - remain;
+                if (true || shift != 1) {
+                    read = write + shift;
+                    remain = fast_mod_u32(length, shift);
+                    while (read != last) {
+                        std::iter_swap(write++, read++);
+                    }
+                }
+                else {
+                    read = write + shift;
+                    while (read != last) {
+                        std::iter_swap(write++, read++);
+                    }
+                    break;
+                }
+            }
+        }
+        else {
+            read = write + shift;
+            while (read != last) {
+                std::iter_swap(write++, read++);
+            }
+        }
+    }
+
+    return write;
+}
+
+template <typename ForwardIt, typename ItemType = void>
+ForwardIt // void until C++11
+left_rotate_v1(ForwardIt first, ForwardIt mid, ForwardIt last)
+{
+    if (first == mid) return last;
+    if (mid == last) return first;
+
+    const std::size_t length0 = last - first;
+    const std::size_t shift0 = mid - first;
+    const std::size_t remain0 = length0 % shift0;
+
+    ForwardIt read = mid;
+    ForwardIt write = first;
+
+    do {
+        std::iter_swap(write++, read++);
+    } while (read != last);
+
+    // Rotate the remaining sequence into place
     if (remain0 != 0) {
         std::size_t length = shift0;
         std::size_t shift = shift0 - remain0;
@@ -108,12 +166,60 @@ right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     if (first == mid) return last;
     if (mid == last) return first;
 
+    const std::size_t length0 = last - first;
+    const std::size_t shift0 = last - mid;
+    const std::size_t remain0 = length0 % shift0;
+
     ForwardIt read = mid;
     ForwardIt write = last;
 
     do {
         std::iter_swap(--read, --write);
     } while (read != first);
+    write--;
+
+    // Rotate the remaining sequence into place
+    if (remain0 != 0) {
+        std::size_t length = shift0;
+        std::size_t shift = shift0 - remain0;
+        std::size_t remain;
+        if (shift != 1) {
+            read = write - shift;
+            remain = fast_mod(length, shift);
+            while (read != first) {
+                std::iter_swap(read--, write--);
+            }
+            std::iter_swap(read, write--);
+            
+            while (remain != 0) {
+                length = shift;
+                shift = shift - remain;
+                if (true || shift != 1) {
+                    read = write - shift;
+                    remain = fast_mod(length, shift);
+                    while (read != first) {
+                        std::iter_swap(read--, write--);
+                    }
+                    std::iter_swap(read, write--);
+                }
+                else {
+                    read = write - shift;
+                    while (read != first) {
+                        std::iter_swap(read--, write--);
+                    }
+                    std::iter_swap(read, write--);
+                    break;
+                }
+            }
+        }
+        else {
+            read = write - shift;
+            while (read != first) {
+                std::iter_swap(read--, write--);
+            }
+            std::iter_swap(read, write--);
+        }
+    }
 
     return write;
 }

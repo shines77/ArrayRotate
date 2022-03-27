@@ -18,5 +18,11 @@
     <ClInclude Include="..\..\..\src\jstd\msvc_x86intrin.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\jstd\FastMod.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\jstd\FastDiv.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -146,18 +146,43 @@ void jstd_rotate_test()
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
+
+    for (size_t i = 0; i < length; i++) {
+        array[i] = base64_str[i];
+    }
+
+    jstd::right_rotate(array.begin(), array.begin() + offset, array.end());
+    print_array<char>("jstd::right_rotate(%u, %u)", length, (length - offset), array);
+
+    printf("\n");
+    printf("jstd::right_rotate(%u, %u): ", (uint32_t)length, (uint32_t)(length - offset));
+    error_pos = verify_array(array, array_std);
+    if (error_pos == -1)
+        printf("Passed");
+    else
+        printf("Failed (pos = %d)", error_pos);
+    printf("\n\n");
 }
 
 void rotate_test()
 {
-    //jstd_rotate_test<34, 33>();
-    //jstd_rotate_test<10, 3>();
+    printf("-----------------------------------------------------\n");
+    jstd_rotate_test<34, 33>();
+    printf("-----------------------------------------------------\n");
+    jstd_rotate_test<10, 3>();
+    printf("-----------------------------------------------------\n");
+    jstd_rotate_test<10, 7>();
+    printf("-----------------------------------------------------\n");
     jstd_rotate_test<100, 31>();
+    printf("-----------------------------------------------------\n");
     jstd_rotate_test<100, 33>();
+    printf("-----------------------------------------------------\n");
 }
 
 int main(int argn, char * argv[])
-{
+{    
+    //jstd::genDivRatioTbl();
+    //jstd::genModRatioTbl();
     rotate_test();
     //rotate_unit_test();
     return 0;
