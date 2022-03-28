@@ -47,7 +47,83 @@ std_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
 
 template <typename ForwardIter, typename ItemType = void>
 ForwardIter // void until C++11
-rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+{
+    typedef ForwardIter iterator;
+    typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
+    typedef typename std::iterator_traits<iterator>::value_type         value_type;
+
+    std::size_t left_len = mid - first;
+    if (left_len == 0) return first;
+
+    std::size_t right_len = last - mid;
+    if (right_len == 0) return last;
+
+    ForwardIter result = first + right_len;
+
+    do {
+        if (right_len < left_len) {
+            ForwardIter read = mid;
+            ForwardIter write = last;
+            if (right_len != 1) {
+                while (read != first) {
+                    --write;
+                    --read;
+                    std::iter_swap(read, write);
+                }
+                left_len %= right_len;
+                last = write;
+                right_len -= left_len;
+                mid = first + left_len;
+                if (left_len == 0 || right_len == 0)
+                    break;
+            }
+            else {
+                value_type tmp(std::move(*write));
+                while (read != first) {
+                    --write;
+                    --read;
+                    *write = *read;
+                }
+                *write = std::move(tmp);
+                break;
+            }
+        }
+        else {
+            ForwardIter read = mid;
+            ForwardIter write = first;
+            if (left_len != 1) {
+                while (read != last) {
+                    std::iter_swap(write, read);
+                    ++write;
+                    ++read;
+                }
+                right_len %= left_len;
+                first = write;
+                left_len -= right_len;
+                mid = last - right_len;
+                if (right_len == 0 || left_len == 0)
+                    break;
+            }
+            else {
+                value_type tmp(std::move(*write));
+                while (read != last) {
+                    *write = *read;
+                    ++write;
+                    ++read;
+                }
+                *write = std::move(tmp);
+                break;
+            }
+        }
+    } while (1);
+
+    return result;
+}
+
+template <typename ForwardIter, typename ItemType = void>
+ForwardIter // void until C++11
+left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
 {
     typedef ForwardIter iterator;
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
@@ -119,6 +195,14 @@ rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     } while (1);
 
     return result;
+}
+
+template <typename ForwardIter, typename ItemType = void>
+inline
+ForwardIter // void until C++11
+rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+{
+    return left_rotate(first, mid, last);
 }
 
 } // namespace jstd
