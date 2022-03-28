@@ -37,7 +37,7 @@ void print_array_impl(Container & container)
 {
     for (auto iter = container.cbegin(); iter != container.cend(); iter++) {
         if (sizeof(ItemType) == 8)
-            printf("%lld, ", static_cast<int64_t>(*iter));
+            printf("%" PRIu64 ", ", static_cast<int64_t>(*iter));
         else if (sizeof(ItemType) == 4)
             printf("%d, ", static_cast<int>(*iter));
         else if (sizeof(ItemType) == 2)
