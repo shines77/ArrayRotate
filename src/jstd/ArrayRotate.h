@@ -62,7 +62,7 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     ForwardIter result = first + right_len;
 
     do {
-        if (right_len < left_len) {
+        if (right_len <= left_len) {
             ForwardIter read = mid;
             ForwardIter write = last;
             if (right_len != 1) {
@@ -138,7 +138,7 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     ForwardIter result = first + right_len;
 
     do {
-        if (left_len < right_len) {
+        if (left_len <= right_len) {
             ForwardIter read = mid;
             ForwardIter write = first;
             if (left_len != 1) {
