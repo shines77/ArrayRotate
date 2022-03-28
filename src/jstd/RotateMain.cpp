@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <string.h>
 #include <cstdlib>
 #include <cstdio>
@@ -13,6 +14,7 @@
 #include <algorithm>
 
 #include "jstd/ArrayRotate.h"
+#include "jstd/ArrayRotate_v1.h"
 
 static const char base64_str[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=";
 

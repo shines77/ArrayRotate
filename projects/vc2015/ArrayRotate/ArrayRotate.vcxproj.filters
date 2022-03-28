@@ -24,5 +24,8 @@
     <ClInclude Include="..\..\..\src\jstd\FastDiv.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\jstd\ArrayRotate_v1.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
