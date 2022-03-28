@@ -351,6 +351,9 @@ void genModRatioTbl()
     printf("};\n\n");
 }
 
+#if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
+ || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
+
 #if defined(_MSC_VER)
 
 // __umulh() is only available in x64 mode under Visual Studio: don't compile to 32-bit!
@@ -367,6 +370,8 @@ uint64_t mul128_u32(uint64_t low64_bits, uint32_t divisor) {
 }
 
 #endif // _MSC_VER
+
+#else // !__amd64__
 
 /*****************************************************************
 
@@ -385,7 +390,7 @@ uint64_t mul128_u32(uint64_t low64_bits, uint32_t divisor) {
 *****************************************************************/
 
 static inline
-uint32_t mul128_u32_x86(uint64_t low64_bits, uint32_t divisor) {
+uint32_t mul128_u32(uint64_t low64_bits, uint32_t divisor) {
     uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
     uint32_t high0 = (uint32_t)(low64_bits >> 32u);
     uint64_t product00 = (uint64_t)divisor * low0;
@@ -397,6 +402,8 @@ uint32_t mul128_u32_x86(uint64_t low64_bits, uint32_t divisor) {
     uint32_t result = product01_high + carry32;
     return result;
 }
+
+#endif // __amd64__
 
 static inline
 std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
@@ -410,7 +417,7 @@ std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
     else {
         ModRatio ratio = mod_ratio_tbl[divisor];
         std::uint64_t low64_bits = value * ratio.M;
-        std::uint32_t result = (std::uint32_t)mul128_u32_x86(low64_bits, divisor);
+        std::uint32_t result = (std::uint32_t)mul128_u32(low64_bits, divisor);
         return result;
     }
 #endif

@@ -15,6 +15,8 @@
 #include "jstd/FastDiv.h"
 #include "jstd/FastMod.h"
 
+#define ROTATE_USE_FAST_MOD     1
+
 namespace jstd {
 
 //
@@ -71,7 +73,11 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
                     --read;
                     std::iter_swap(read, write);
                 }
+#if ROTATE_USE_FAST_MOD
+                left_len = fast_mod_u32((std::uint32_t)left_len, (std::uint32_t)right_len);
+#else
                 left_len %= right_len;
+#endif
                 last = write;
                 right_len -= left_len;
                 mid = first + left_len;
@@ -98,7 +104,11 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
                     ++write;
                     ++read;
                 }
+#if ROTATE_USE_FAST_MOD
+                right_len = fast_mod_u32((std::uint32_t)right_len, (std::uint32_t)left_len);
+#else
                 right_len %= left_len;
+#endif
                 first = write;
                 left_len -= right_len;
                 mid = last - right_len;
@@ -147,7 +157,11 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
                     ++write;
                     ++read;
                 }
+#if ROTATE_USE_FAST_MOD
+                right_len = fast_mod_u32((std::uint32_t)right_len, (std::uint32_t)left_len);
+#else
                 right_len %= left_len;
+#endif
                 first = write;
                 left_len -= right_len;
                 mid = last - right_len;
@@ -174,7 +188,11 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
                     --read;
                     std::iter_swap(read, write);
                 }
+#if ROTATE_USE_FAST_MOD
+                left_len = fast_mod_u32((std::uint32_t)left_len, (std::uint32_t)right_len);
+#else
                 left_len %= right_len;
+#endif
                 last = write;
                 right_len -= left_len;
                 mid = first + left_len;
