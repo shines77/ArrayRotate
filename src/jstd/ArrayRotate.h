@@ -53,10 +53,10 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
     typedef typename std::iterator_traits<iterator>::value_type         value_type;
 
-    std::size_t left_len = mid - first;
+    std::size_t left_len = (std::size_t)difference_type(mid - first);
     if (left_len == 0) return first;
 
-    std::size_t right_len = last - mid;
+    std::size_t right_len = (std::size_t)difference_type(last - mid);
     if (right_len == 0) return last;
 
     ForwardIter result = first + right_len;
@@ -129,10 +129,10 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
     typedef typename std::iterator_traits<iterator>::value_type         value_type;
 
-    std::size_t left_len = mid - first;
+    std::size_t left_len = (std::size_t)difference_type(mid - first);
     if (left_len == 0) return first;
 
-    std::size_t right_len = last - mid;
+    std::size_t right_len = (std::size_t)difference_type(last - mid);
     if (right_len == 0) return last;
 
     ForwardIter result = first + right_len;
