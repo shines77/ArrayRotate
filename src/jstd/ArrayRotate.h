@@ -39,66 +39,6 @@ std_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     return write;
 }
 
-template <typename ForwardIt, typename ItemType = void>
-ForwardIt // void until C++11
-left_rotate_v1(ForwardIt first, ForwardIt mid, ForwardIt last)
-{
-    if (first == mid) return last;
-    if (mid == last) return first;
-
-    const std::size_t length0 = last - first;
-    const std::size_t shift0 = mid - first;
-    const std::size_t remain0 = length0 % shift0;
-
-    ForwardIt read = mid;
-    ForwardIt write = first;
-
-    do {
-        std::iter_swap(write++, read++);
-    } while (read != last);
-
-    // Rotate the remaining sequence into place
-    if (remain0 != 0) {
-        std::size_t length = shift0;
-        std::size_t shift = shift0 - remain0;
-        std::size_t remain;
-        if (shift != 1) {
-            read = write + shift;
-            remain = fast_mod(length, shift);
-            while (read != last) {
-                std::iter_swap(write++, read++);
-            }
-            
-            while (remain != 0) {
-                length = shift;
-                shift = shift - remain;
-                if (true || shift != 1) {
-                    read = write + shift;
-                    remain = fast_mod(length, shift);
-                    while (read != last) {
-                        std::iter_swap(write++, read++);
-                    }
-                }
-                else {
-                    read = write + shift;
-                    while (read != last) {
-                        std::iter_swap(write++, read++);
-                    }
-                    break;
-                }
-            }
-        }
-        else {
-            read = write + shift;
-            while (read != last) {
-                std::iter_swap(write++, read++);
-            }
-        }
-    }
-
-    return write;
-}
-
 #if !defined(_MSC_VER)
 template <typename ForwardIt, typename ItemType = void>
 ForwardIt // void until C++11
