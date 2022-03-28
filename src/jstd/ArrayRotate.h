@@ -15,7 +15,7 @@
 #include "jstd/FastDiv.h"
 #include "jstd/FastMod.h"
 
-#define ROTATE_USE_FAST_MOD     1
+#define ROTATE_USE_FAST_MOD     0
 
 namespace jstd {
 
