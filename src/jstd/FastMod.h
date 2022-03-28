@@ -355,32 +355,62 @@ void genModRatioTbl()
 
 // __umulh() is only available in x64 mode under Visual Studio: don't compile to 32-bit!
 static inline
-uint64_t mul128_u32(uint64_t low_bits, uint32_t divisor) {
-  return __umulh(low_bits, divisor);
+uint64_t mul128_u32(uint64_t low64_bits, uint32_t divisor) {
+    return __umulh(low64_bits, divisor);
 }
 
 #else // !_MSC_VER
 
 static inline
-uint64_t mul128_u32(uint64_t low_bits, uint32_t divisor) {
-  return (((__uint128_t)low_bits * divisor) >> 64u);
+uint64_t mul128_u32(uint64_t low64_bits, uint32_t divisor) {
+    return (((__uint128_t)low64_bits * divisor) >> 64u);
 }
 
 #endif // _MSC_VER
 
+/*****************************************************************
+
+   low64_bits = low0, high0
+   divisor    = low1, 0
+
+   low64_bits * divisor =
+
+ |           |             |            |           |
+ |           |             |      high0 * 0         |  product03
+ |           |        low0 * 0          |           |  product02
+ |           |        low1 * high0      |           |  product01
+ |      low1 * low0        |            |           |  product00
+ |           |             |            |           |
+
+*****************************************************************/
+
+static inline
+uint32_t mul128_u32_x86(uint64_t low64_bits, uint32_t divisor) {
+    uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
+    uint32_t high0 = (uint32_t)(low64_bits >> 32u);
+    uint64_t product00 = (uint64_t)divisor * low0;
+    uint64_t product01 = (uint64_t)divisor * high0;
+    uint32_t product00_high = (uint32_t)(product00 >> 32u);
+    uint32_t product01_low  = (uint32_t)(product01 & 0xFFFFFFFFull);
+    uint32_t product01_high = (uint32_t)(product01 >> 32u);
+    uint32_t carry32 = (product00_high > ~product01_low) ? 1 : 0;
+    uint32_t result = product01_high + carry32;
+    return result;
+}
+
 static inline
 std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
 {
-#if 1
+#if 0
     return (value % divisor);
 #else
     if (divisor >= kMaxModTable) {
         return (value % divisor);
     }
     else {
-        ModRatio mt = mod_ratio_tbl[divisor];
-        std::uint64_t low_bits = value * mt.M;
-        std::uint32_t result = (std::uint32_t)mul128_u32(low_bits, divisor);
+        ModRatio ratio = mod_ratio_tbl[divisor];
+        std::uint64_t low64_bits = value * ratio.M;
+        std::uint32_t result = (std::uint32_t)mul128_u32_x86(low64_bits, divisor);
         return result;
     }
 #endif
