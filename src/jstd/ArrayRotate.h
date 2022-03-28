@@ -85,13 +85,13 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
                     break;
             }
             else {
-                value_type tmp(std::move(*write));
+                value_type tmp(std::move(*read));
                 while (read != first) {
                     --write;
                     --read;
                     *write = *read;
                 }
-                *write = std::move(tmp);
+                *read = std::move(tmp);
                 break;
             }
         }
@@ -200,13 +200,13 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
                     break;
             }
             else {
-                value_type tmp(std::move(*write));
+                value_type tmp(std::move(*read));
                 while (read != first) {
                     --write;
                     --read;
                     *write = *read;
                 }
-                *write = std::move(tmp);
+                *read = std::move(tmp);
                 break;
             }
         }
