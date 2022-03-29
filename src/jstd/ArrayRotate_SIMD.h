@@ -542,7 +542,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 
 template <typename T>
 static
-void avx_forward_move_4(T * __restrict first, T * __restrict mid, T * __restrict last)
+void avx_forward_move_4(T * first, T * mid, T * last)
 {
     typedef T           value_type;
     typedef T *         pointer;
@@ -676,7 +676,7 @@ void avx_forward_move_4(T * __restrict first, T * __restrict mid, T * __restrict
 
 template <typename T>
 static
-void avx_forward_move_6(T * __restrict first, T * __restrict mid, T * __restrict last)
+void avx_forward_move_6(T * first, T * mid, T * last)
 {
     typedef T           value_type;
     typedef T *         pointer;
@@ -848,7 +848,7 @@ void avx_forward_move_6(T * __restrict first, T * __restrict mid, T * __restrict
 
 template <typename T>
 static
-void avx_forward_move_8(T * __restrict first, T * __restrict mid, T * __restrict last)
+void avx_forward_move_8(T * first, T * mid, T * last)
 {
     typedef T           value_type;
     typedef T *         pointer;
@@ -1027,7 +1027,7 @@ void avx_forward_move_8(T * __restrict first, T * __restrict mid, T * __restrict
 }
 
 template <typename T>
-void left_rotate_sse_1_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_sse_1_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1043,7 +1043,7 @@ void left_rotate_sse_1_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_1_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_1_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1059,7 +1059,7 @@ void left_rotate_avx_1_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_2_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_2_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1076,7 +1076,7 @@ void left_rotate_avx_2_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_3_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_3_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1095,7 +1095,7 @@ void left_rotate_avx_3_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_4_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_4_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     //
@@ -1119,7 +1119,7 @@ void left_rotate_avx_4_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_5_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_5_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1142,7 +1142,7 @@ void left_rotate_avx_5_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_6_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_6_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1167,7 +1167,7 @@ void left_rotate_avx_6_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_7_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_7_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1194,7 +1194,7 @@ void left_rotate_avx_7_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_8_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_8_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1223,7 +1223,7 @@ void left_rotate_avx_8_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_9_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_9_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1254,7 +1254,7 @@ void left_rotate_avx_9_regs(T * __restrict first, T * __restrict mid, T * __rest
 }
 
 template <typename T>
-void left_rotate_avx_10_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_10_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     _mm_prefetch((const char *)mid, _MM_HINT_T0);
@@ -1287,7 +1287,7 @@ void left_rotate_avx_10_regs(T * __restrict first, T * __restrict mid, T * __res
 }
 
 template <typename T>
-void left_rotate_avx_11_regs(T * __restrict first, T * __restrict mid, T * __restrict last,
+void left_rotate_avx_11_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1416,7 +1416,7 @@ T * rotate(T * data, std::size_t length, std::size_t offset)
 
 template <typename T>
 inline
-T * rotate(T * __restrict first, T * __restrict mid, T * __restrict last, void * __restrict void_ptr)
+T * rotate(T * first, T * mid, T * last, void * void_ptr)
 {
     JSTD_ASSERT((last >= mid), "simd::rotate(): (last < mid)");
     JSTD_ASSERT((mid >= first), "simd::rotate(): (mid < first)");
