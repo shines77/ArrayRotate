@@ -105,10 +105,6 @@ T * left_rotate_simple_impl(T * first, T * mid, T * last,
 template <typename T>
 T * left_rotate_simple(T * first, T * mid, T * last)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
-
     std::size_t left_len = std::size_t(mid - first);
     if (left_len == 0) return first;
 
@@ -121,10 +117,6 @@ T * left_rotate_simple(T * first, T * mid, T * last)
 template <typename T>
 T * left_rotate_simple(T * data, std::size_t length, std::size_t offset)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
-
     pointer first = data;
     pointer mid   = data + offset;
     pointer last  = data + length;
@@ -544,10 +536,6 @@ template <typename T>
 static
 void avx_forward_move_4(T * first, T * mid, T * last)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
-
     static const std::size_t kValueSize = sizeof(value_type);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
 
@@ -678,10 +666,6 @@ template <typename T>
 static
 void avx_forward_move_6(T * first, T * mid, T * last)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
-
     static const std::size_t kValueSize = sizeof(value_type);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
 
@@ -850,10 +834,6 @@ template <typename T>
 static
 void avx_forward_move_8(T * first, T * mid, T * last)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
-
     static const std::size_t kValueSize = sizeof(value_type);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
 
@@ -877,6 +857,9 @@ void avx_forward_move_8(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            //
+            // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+            //
             _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
@@ -1030,15 +1013,12 @@ template <typename T>
 void left_rotate_sse_1_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m128i * stash_start = (const __m128i *)first;
     __m128i stash0 = _mm_loadu_si128(stash_start);
 
     avx_forward_move_8(first, mid, last);
 
     __m128i * store_start = (__m128i *)(last - left_len);
-    //_mm_storeu_si128(store_start, stash0);
     _mm_storeu_last<T, 0>(store_start, stash0, left_len);
 }
 
@@ -1046,15 +1026,12 @@ template <typename T>
 void left_rotate_avx_1_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start);
 
     avx_forward_move_8(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
-    //_mm256_storeu_si256(store_start, stash0);
     _mm256_storeu_last<T, 0>(store_start + 0, stash0, left_len);
 }
 
@@ -1062,8 +1039,6 @@ template <typename T>
 void left_rotate_avx_2_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1079,8 +1054,6 @@ template <typename T>
 void left_rotate_avx_3_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1098,11 +1071,6 @@ template <typename T>
 void left_rotate_avx_4_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    //
-    // See: https://blog.csdn.net/qq_43401808/article/details/87360789
-    //
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1122,8 +1090,6 @@ template <typename T>
 void left_rotate_avx_5_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1145,8 +1111,6 @@ template <typename T>
 void left_rotate_avx_6_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1170,8 +1134,6 @@ template <typename T>
 void left_rotate_avx_7_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1197,8 +1159,6 @@ template <typename T>
 void left_rotate_avx_8_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1226,8 +1186,6 @@ template <typename T>
 void left_rotate_avx_9_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1257,8 +1215,6 @@ template <typename T>
 void left_rotate_avx_10_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    _mm_prefetch((const char *)mid, _MM_HINT_T0);
-
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1329,6 +1285,8 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
     pointer first = data;
     pointer mid   = data + offset;
     pointer last  = data + length;
+
+    _mm_prefetch((const char *)mid, _MM_HINT_T1);
 
     std::size_t left_len = offset;
     if (left_len == 0) return first;
