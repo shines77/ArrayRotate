@@ -20,7 +20,12 @@ namespace jstd {
 namespace simd {
 
 static const bool kUsePrefetchHint = true;
+
+#if defined(_MSC_VER)
 static const int  kPrefetchHintLevel = _MM_HINT_T1;
+#else
+static const enum _mm_hint kPrefetchHintLevel = _MM_HINT_T1;
+#endif
 
 static const std::size_t kSSERegBytes = 16;
 static const std::size_t kAVXRegBytes = 32;
