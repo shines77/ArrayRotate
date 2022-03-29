@@ -23,7 +23,7 @@
 namespace jstd {
 namespace simd {
 
-static const bool kUsePrefetchHint = false;
+static const bool kUsePrefetchHint = true;
 
 #if defined(_MSC_VER)
 static const int  kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
