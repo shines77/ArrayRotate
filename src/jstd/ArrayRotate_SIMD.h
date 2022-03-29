@@ -877,7 +877,7 @@ void avx_forward_move_8(T * __restrict first, T * __restrict mid, T * __restrict
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -955,7 +955,7 @@ void avx_forward_move_8(T * __restrict first, T * __restrict mid, T * __restrict
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
