@@ -343,8 +343,7 @@ void genModRatioTbl()
                                      (uint32_t)modRatioTbl[n].M);
         if ((n % 4) == 3) {
             printf("\n");
-        }
-        else {
+        } else {
             printf(" ");
         }
     }
@@ -413,8 +412,7 @@ std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
 #else
     if (divisor >= kMaxModTable) {
         return (value % divisor);
-    }
-    else {
+    } else {
         ModRatio ratio = mod_ratio_tbl[divisor];
         std::uint64_t low64_bits = value * ratio.M;
         std::uint32_t result = (std::uint32_t)mul128_u32(low64_bits, divisor);

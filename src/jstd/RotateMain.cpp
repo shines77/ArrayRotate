@@ -13,6 +13,9 @@
 #include <vector>
 #include <algorithm>
 
+#include "jstd/FastDiv.h"
+#include "jstd/FastMod.h"
+
 #include "jstd/ArrayRotate.h"
 #include "jstd/ArrayRotate_v1.h"
 #include "jstd/ArrayRotate_SIMD.h"

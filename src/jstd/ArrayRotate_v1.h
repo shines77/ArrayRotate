@@ -11,7 +11,6 @@
 #include <cstdbool>
 #include <algorithm>
 
-#include "jstd/FastDiv.h"
 #include "jstd/FastMod.h"
 
 namespace jstd {

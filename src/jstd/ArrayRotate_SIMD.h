@@ -6,8 +6,8 @@
 #pragma once
 #endif
 
-#include "jstd/BitVec.h"
 #include "jstd/stddef.h"
+#include "jstd/BitVec.h"
 
 #include <assert.h>
 #include <cstdint>

@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "jstd/FastDiv.h"
 #include "jstd/FastMod.h"
 
 #ifndef ROTATE_USE_FAST_MOD
