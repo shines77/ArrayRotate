@@ -39,9 +39,8 @@ static inline
 T * left_rotate_simple_impl(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
+    typedef T   value_type;
+    typedef T * pointer;
 
     pointer result = first + right_len;
 
@@ -117,6 +116,8 @@ T * left_rotate_simple(T * first, T * mid, T * last)
 template <typename T>
 T * left_rotate_simple(T * data, std::size_t length, std::size_t offset)
 {
+    typedef T * pointer;
+
     pointer first = data;
     pointer mid   = data + offset;
     pointer last  = data + length;
@@ -536,6 +537,7 @@ template <typename T>
 static
 void avx_forward_move_4(T * first, T * mid, T * last)
 {
+    typedef T value_type;
     static const std::size_t kValueSize = sizeof(value_type);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
 
@@ -666,6 +668,7 @@ template <typename T>
 static
 void avx_forward_move_6(T * first, T * mid, T * last)
 {
+    typedef T value_type;
     static const std::size_t kValueSize = sizeof(value_type);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
 
@@ -834,6 +837,7 @@ template <typename T>
 static
 void avx_forward_move_8(T * first, T * mid, T * last)
 {
+    typedef T value_type;
     static const std::size_t kValueSize = sizeof(value_type);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
 
