@@ -156,6 +156,113 @@ T * rotate_simple(T * first, T * mid, T * last)
 }
 
 template <typename T, std::size_t index>
+void _mm_storeu_last(__m128i * addr, __m128i src, std::size_t left_len)
+{
+    uint8_t * target = (uint8_t *)addr;
+    std::intptr_t left_bytes = left_len * sizeof(T) - index * kSSERegBytes;
+    assert(left_bytes >= 0 && left_bytes <= kSSERegBytes);
+    uint32_t value32_0, value32_1;
+    uint64_t value64_0, value64_1;
+    switch (left_bytes) {
+        case 0:
+            assert(false);
+            break;
+        case 1:
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 0);
+            *target = uint8_t(value32_0 & 0xFFu);
+            break;
+        case 2:
+            value32_0 = (uint32_t)_mm_extract_epi16(src, 0);
+            *(uint16_t *)(target + 0) = value32_0;
+            break;
+        case 3:
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 0);
+            *(uint16_t *)(target + 0) = uint16_t(value32_0 & 0xFFFFu);
+            *(uint8_t  *)(target + 2) = uint8_t(value32_0 >> 16u);
+            break;
+        case 4:
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 0);
+            *(uint32_t *)(target + 0) = value32_0;
+            break;
+        case 5:
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 0);
+            value32_1 = (uint32_t)_mm_extract_epi32(src, 1);
+            *(uint32_t *)(target + 0) = value32_0;
+            *(uint8_t  *)(target + 4) = uint8_t(value32_1 & 0xFFu);
+            break;
+        case 6:
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 0);
+            value32_1 = (uint32_t)_mm_extract_epi16(src, 2);
+            *(uint32_t *)(target + 0) = value32_0;
+            *(uint16_t *)(target + 4) = value32_1;
+            break;
+        case 7:
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 0);
+            value32_1 = (uint32_t)_mm_extract_epi32(src, 1);
+            *(uint32_t *)(target + 0) = value32_0;
+            *(uint16_t *)(target + 4) = uint16_t(value32_1 & 0xFFFFu);
+            *(uint8_t  *)(target + 6) = uint8_t(value32_1 >> 16u);
+            break;
+        case 8:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            *(uint64_t *)(target + 0) = value64_0;
+            break;
+        case 9:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 2);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint8_t  *)(target + 8) = uint8_t(value32_0 & 0xFFu);
+            break;
+        case 10:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value32_0 = (uint32_t)_mm_extract_epi16(src, 2);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint16_t *)(target + 8) = uint16_t(value32_0 & 0xFFFFu);
+            break;
+        case 11:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 2);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint16_t *)(target + 8) = uint16_t(value32_0 & 0xFFFFu);
+            *(uint8_t  *)(target + 10) = uint8_t(value32_0 >> 16u);
+            break;
+        case 12:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value32_0 = (uint32_t)_mm_extract_epi32(src, 2);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint32_t *)(target + 8) = value32_0;
+            break;
+        case 13:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value64_1 = (uint64_t)_mm_extract_epi64(src, 1);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint32_t *)(target + 8) = (uint32_t)(value64_1 & 0xFFFFFFFFu);
+            *(uint8_t  *)(target + 12) = (uint8_t)((value64_1 >> 32u) & 0xFFu);
+            break;
+        case 14:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value64_1 = (uint64_t)_mm_extract_epi64(src, 1);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint32_t *)(target + 8) = (uint32_t)(value64_1 & 0xFFFFFFFFu);
+            *(uint16_t *)(target + 12) = (uint16_t)((value64_1 >> 32u) & 0xFFFFu);
+            break;
+        case 15:
+            value64_0 = (uint64_t)_mm_extract_epi64(src, 0);
+            value64_1 = (uint64_t)_mm_extract_epi64(src, 1);
+            *(uint64_t *)(target + 0) = value64_0;
+            *(uint32_t *)(target + 8) = (uint32_t)(value64_1 & 0xFFFFFFFFu);
+            *(uint16_t *)(target + 12) = (uint16_t)((value64_1 >> 32u) & 0xFFFFu);
+            *(uint8_t  *)(target + 14) = (uint8_t)((value64_1 >> 48u) & 0xFFu);
+            break;
+        case 16:
+            _mm_storeu_si128(addr, src);
+            break;
+        default:
+            break;
+    }
+}
+
+template <typename T, std::size_t index>
 void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 {
     uint8_t * target = (uint8_t *)addr;
@@ -464,6 +571,8 @@ void avx_forward_move_4(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            _mm_prefetch((const char *)(source + 512), _MM_HINT_T0);
+
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
@@ -517,6 +626,8 @@ void avx_forward_move_4(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            _mm_prefetch((const char *)(source + 512), _MM_HINT_T0);
+
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
@@ -594,6 +705,8 @@ void avx_forward_move_6(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            _mm_prefetch((const char *)(source + 512), _MM_HINT_T0);
+
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
@@ -666,6 +779,8 @@ void avx_forward_move_6(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            _mm_prefetch((const char *)(source + 512), _MM_HINT_T0);
+
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
@@ -762,6 +877,8 @@ void avx_forward_move_8(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            _mm_prefetch((const char *)(source + 512), _MM_HINT_T0);
+
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
@@ -838,6 +955,8 @@ void avx_forward_move_8(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
+            _mm_prefetch((const char *)(source + 512), _MM_HINT_T0);
+
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
@@ -911,17 +1030,24 @@ template <typename T>
 void left_rotate_sse_1_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
-    __m128i stash0 = _mm_loadu_si128((const __m128i *)first);
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
+    const __m128i * stash_start = (const __m128i *)first;
+    __m128i stash0 = _mm_loadu_si128(stash_start);
 
     avx_forward_move_8(first, mid, last);
 
-    _mm_storeu_si128((__m128i *)(last - left_len), stash0);
+    __m128i * store_start = (__m128i *)(last - left_len);
+    //_mm_storeu_si128(store_start, stash0);
+    _mm_storeu_last<T, 0>(store_start, stash0, left_len);
 }
 
 template <typename T>
 void left_rotate_avx_1_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     typedef T           value_type;
     typedef T *         pointer;
     typedef const T *   const_pointer;
@@ -940,6 +1066,8 @@ template <typename T>
 void left_rotate_avx_2_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -955,6 +1083,8 @@ template <typename T>
 void left_rotate_avx_3_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -972,6 +1102,11 @@ template <typename T>
 void left_rotate_avx_4_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    //
+    // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+    //
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -991,6 +1126,8 @@ template <typename T>
 void left_rotate_avx_5_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1012,6 +1149,8 @@ template <typename T>
 void left_rotate_avx_6_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1035,6 +1174,8 @@ template <typename T>
 void left_rotate_avx_7_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1060,6 +1201,8 @@ template <typename T>
 void left_rotate_avx_8_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1087,6 +1230,8 @@ template <typename T>
 void left_rotate_avx_9_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
@@ -1116,6 +1261,8 @@ template <typename T>
 void left_rotate_avx_10_regs(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
 {
+    _mm_prefetch((const char *)mid, _MM_HINT_T0);
+
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
     __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
