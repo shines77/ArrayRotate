@@ -16,15 +16,19 @@
 #include <algorithm>
 #include <type_traits>
 
+#ifndef PREFETCH_HINT_LEVEL
+#define PREFETCH_HINT_LEVEL     _MM_HINT_T0
+#endif
+
 namespace jstd {
 namespace simd {
 
-static const bool kUsePrefetchHint = true;
+static const bool kUsePrefetchHint = false;
 
 #if defined(_MSC_VER)
-static const int  kPrefetchHintLevel = _MM_HINT_T1;
+static const int  kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
 #else
-static const enum _mm_hint kPrefetchHintLevel = _MM_HINT_T1;
+static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
 #endif
 
 static const std::size_t kSSERegBytes = 16;
@@ -1682,5 +1686,7 @@ T * rotate(T * first, T * mid, T * last, void * void_ptr)
 
 } // namespace simd
 } // namespace jstd
+
+#undef PREFETCH_HINT_LEVEL
 
 #endif // JSTD_ARRAY_ROTATE_SIMD_H
