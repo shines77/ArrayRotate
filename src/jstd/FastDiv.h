@@ -521,7 +521,7 @@ DivRatio64 getDivRatio_u64(std::uint64_t modulo)
 #if defined(_MSC_VER)
         ratio = (uint64_t)ceil((double)((uint64_t)1 << (32 + shift)) * (double)((uint64_t)1 << 32) / modulo);
 #else
-        ratio = (uint64_t)(((__uint128_t))((uint64_t)1 << (32 + shift)) * ((uint64_t)1 << 32) / modulo);
+        ratio = (uint64_t)((__uint128_t)((uint64_t)1 << (32 + shift)) * ((uint64_t)1 << 32) / modulo);
 #endif
     }
     divRatio.ratio = ratio;
