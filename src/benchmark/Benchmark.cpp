@@ -107,7 +107,7 @@ void validate_test()
 
     printf("--------------------------------------------------------------\n\n");
 
-    run_rotate_test<int, test_length, 32>(array_std, array);
+    run_rotate_test<int, test_length, 33>(array_std, array);
 
     printf("--------------------------------------------------------------\n\n");
 

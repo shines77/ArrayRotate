@@ -280,9 +280,9 @@ void simd_rotate_test()
     printf("-----------------------------------------------------\n");
     //*/
 #ifdef _DEBUG
-    jstd_simd_rotate_test<1000000, 32>();
+    jstd_simd_rotate_test<1000000, 33>();
 #else
-    jstd_simd_rotate_test<100000000, 32>();
+    jstd_simd_rotate_test<100000000, 33>();
 #endif
     printf("-----------------------------------------------------\n");
 }

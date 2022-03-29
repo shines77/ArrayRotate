@@ -447,7 +447,7 @@ int mm256_extract_epi32(__m256i src)
     }
     else if (index >= 6 && index < 8) {
         __m128i m128 = _mm256_extractf128_si256(src, index >> 2);
-        return _mm_extract_epi64(m128, index % 4);
+        return _mm_extract_epi32(m128, index % 4);
     }
     else {
         assert(false);
