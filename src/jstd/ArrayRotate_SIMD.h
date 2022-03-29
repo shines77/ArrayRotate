@@ -19,6 +19,9 @@
 namespace jstd {
 namespace simd {
 
+static const bool kUsePrefetchHint = true;
+static const int  kPrefetchHintLevel = _MM_HINT_T1;
+
 static const std::size_t kSSERegBytes = 16;
 static const std::size_t kAVXRegBytes = 32;
 
@@ -561,7 +564,9 @@ void avx_forward_move_4(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 4), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 4), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -616,7 +621,9 @@ void avx_forward_move_4(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 4), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 4), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -692,7 +699,9 @@ void avx_forward_move_6(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 3), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -766,7 +775,9 @@ void avx_forward_move_6(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 3), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -864,7 +875,9 @@ void avx_forward_move_8(T * first, T * mid, T * last)
             //
             // See: https://blog.csdn.net/qq_43401808/article/details/87360789
             //
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -942,7 +955,9 @@ void avx_forward_move_8(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -1044,7 +1059,9 @@ void avx_forward_move_8x2(T * first, T * mid, T * last)
             //
             // See: https://blog.csdn.net/qq_43401808/article/details/87360789
             //
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -1064,7 +1081,9 @@ void avx_forward_move_8x2(T * first, T * mid, T * last)
             _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
             _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
 
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+            }
 
             ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 8));
             ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 9));
@@ -1165,7 +1184,9 @@ void avx_forward_move_8x2(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+            }
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -1185,7 +1206,9 @@ void avx_forward_move_8x2(T * first, T * mid, T * last)
             _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
             _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
 
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            if (kUsePrefetchHint) {
+                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+            }
 
             ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 8));
             ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 9));
@@ -1347,7 +1370,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last,
     __m256i stash2 = _mm256_loadu_si256(stash_start + 2);
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
 
-    avx_forward_move_8x2(first, mid, last);
+    avx_forward_move_8(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -1367,7 +1390,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last,
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
     __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
 
-    avx_forward_move_8x2(first, mid, last);
+    avx_forward_move_8(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -1555,7 +1578,9 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
     pointer mid   = data + offset;
     pointer last  = data + length;
 
-    _mm_prefetch((const char *)mid, _MM_HINT_T1);
+    if (kUsePrefetchHint) {
+        _mm_prefetch((const char *)mid, _MM_HINT_T1);
+    }
 
     std::size_t left_len = offset;
     if (left_len == 0) return first;
