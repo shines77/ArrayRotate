@@ -17,14 +17,14 @@ namespace jstd {
 namespace v1 {
 
 #if !defined(_MSC_VER)
-template <typename ForwardIt, typename ItemType = void>
-ForwardIt // void until C++11
-left_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last);
+template <typename RandomAccessIterator>
+RandomAccessIterator
+left_rotate_impl(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last);
 #endif
 
-template <typename ForwardIt, typename ItemType = void>
-ForwardIt // void until C++11
-right_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
+template <typename RandomAccessIterator>
+RandomAccessIterator
+right_rotate_impl(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
     if (first == mid) return last;
     if (mid == last) return first;
@@ -33,8 +33,8 @@ right_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
     const std::size_t shift0 = last - mid;
     const std::size_t remain0 = length0 % shift0;
 
-    ForwardIt read = mid;
-    ForwardIt write = last;
+    RandomAccessIterator read = mid;
+    RandomAccessIterator write = last;
 
     do {
         std::iter_swap(--read, --write);
@@ -92,10 +92,10 @@ right_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
     return write;
 }
 
-template <typename ForwardIt, typename ItemType = void>
+template <typename RandomAccessIterator>
 inline
-ForwardIt // void until C++11
-right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
+RandomAccessIterator
+right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
     if (first == mid) return last;
     if (mid == last) return first;
@@ -103,16 +103,16 @@ right_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     return right_rotate_impl(first, mid, last);
 }
 
-template <typename ForwardIt, typename ItemType = void>
-ForwardIt // void until C++11
-left_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
+template <typename RandomAccessIterator>
+RandomAccessIterator
+left_rotate_impl(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
     const std::size_t length0 = last - first;
     const std::size_t shift0 = mid - first;
     const std::size_t remain0 = length0 % shift0;
 
-    ForwardIt read = mid;
-    ForwardIt write = first;
+    RandomAccessIterator read = mid;
+    RandomAccessIterator write = first;
 
     do {
         std::iter_swap(write++, read++);
@@ -166,10 +166,10 @@ left_rotate_impl(ForwardIt first, ForwardIt mid, ForwardIt last)
     return write;
 }
 
-template <typename ForwardIt, typename ItemType = void>
+template <typename RandomAccessIterator>
 inline
-ForwardIt // void until C++11
-left_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
+RandomAccessIterator
+left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
     if (first == mid) return last;
     if (mid == last) return first;
@@ -177,10 +177,10 @@ left_rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
     return left_rotate_impl(first, mid, last);
 }
 
-template <typename ForwardIt, typename ItemType = void>
+template <typename RandomAccessIterator>
 inline
-ForwardIt // void until C++11
-rotate(ForwardIt first, ForwardIt mid, ForwardIt last)
+RandomAccessIterator
+rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
     return left_rotate(first, mid, last);
 }

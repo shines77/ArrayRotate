@@ -48,11 +48,62 @@ std_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     return write;
 }
 
-template <typename ForwardIter, typename ItemType = void>
-ForwardIter // void until C++11
-right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+template <typename _Integral>
+inline
+_Integral __gcd(_Integral __x, _Integral __y)
 {
-    typedef ForwardIter iterator;
+    do {
+        _Integral __t = __x % __y;
+        __x = __y;
+        __y = __t;
+    } while (__y);
+    return __x;
+}
+
+//
+// When left_len is much smaller than right_len, it's too slow.
+//
+template <typename _RandomAccessIterator>
+_RandomAccessIterator
+libgxx_rotate_gcd(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last)
+{
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type   difference_type;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type        value_type;
+
+    const difference_type __m1 = __middle - __first;
+    const difference_type __m2 = __last - __middle;
+    if (__m1 == __m2) {
+        std::swap_ranges(__first, __middle, __middle);
+        return __middle;
+    }
+
+    const difference_type __g = __gcd(__m1, __m2);
+    for (_RandomAccessIterator __p = __first + __g; __p != __first;) {
+        value_type __t(std::move(*--__p));
+        _RandomAccessIterator __p1 = __p;
+        _RandomAccessIterator __p2 = __p1 + __m1;
+
+        do {
+            *__p1 = std::move(*__p2);
+            __p1 = __p2;
+            const difference_type __d = __last - __p2;
+            if (__m1 < __d)
+                __p2 += __m1;
+            else
+                __p2 = __first + (__m1 - __d);
+        } while (__p2 != __p);
+
+        *__p1 = std::move(__t);
+    }
+
+    return __first + __m2;
+}
+
+template <typename RandomAccessIterator>
+RandomAccessIterator
+right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
+{
+    typedef RandomAccessIterator iterator;
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
     typedef typename std::iterator_traits<iterator>::value_type         value_type;
 
@@ -62,12 +113,12 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     std::size_t right_len = (std::size_t)difference_type(last - mid);
     if (right_len == 0) return last;
 
-    ForwardIter result = first + right_len;
+    RandomAccessIterator result = first + right_len;
 
     do {
         if (right_len <= left_len) {
-            ForwardIter read = mid;
-            ForwardIter write = last;
+            RandomAccessIterator read = mid;
+            RandomAccessIterator write = last;
             if (right_len != 1) {
                 while (read != first) {
                     --write;
@@ -97,8 +148,8 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
             }
         }
         else {
-            ForwardIter read = mid;
-            ForwardIter write = first;
+            RandomAccessIterator read = mid;
+            RandomAccessIterator write = first;
             if (left_len != 1) {
                 while (read != last) {
                     std::iter_swap(write, read);
@@ -132,11 +183,11 @@ right_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     return result;
 }
 
-template <typename ForwardIter, typename ItemType = void>
-ForwardIter // void until C++11
-left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+template <typename RandomAccessIterator>
+RandomAccessIterator
+left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
-    typedef ForwardIter iterator;
+    typedef RandomAccessIterator iterator;
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
     typedef typename std::iterator_traits<iterator>::value_type         value_type;
 
@@ -146,12 +197,12 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     std::size_t right_len = (std::size_t)difference_type(last - mid);
     if (right_len == 0) return last;
 
-    ForwardIter result = first + right_len;
+    RandomAccessIterator result = first + right_len;
 
     do {
         if (left_len <= right_len) {
-            ForwardIter read = mid;
-            ForwardIter write = first;
+            RandomAccessIterator read = mid;
+            RandomAccessIterator write = first;
             if (left_len != 1) {
                 while (read != last) {
                     std::iter_swap(write, read);
@@ -181,8 +232,8 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
             }
         }
         else {
-            ForwardIter read = mid;
-            ForwardIter write = last;
+            RandomAccessIterator read = mid;
+            RandomAccessIterator write = last;
             if (right_len != 1) {
                 while (read != first) {
                     --write;
@@ -216,10 +267,10 @@ left_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
     return result;
 }
 
-template <typename ForwardIter, typename ItemType = void>
+template <typename RandomAccessIterator>
 inline
-ForwardIter // void until C++11
-rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+RandomAccessIterator
+rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
 {
     return left_rotate(first, mid, last);
 }
