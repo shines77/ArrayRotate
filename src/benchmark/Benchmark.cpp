@@ -12,6 +12,8 @@
 #include <vector>
 #include <algorithm>
 
+#define USE_KERBAL_ROTATE   1
+
 #include "CPUWarmUp.h"
 #include "StopWatch.h"
 
@@ -19,9 +21,11 @@
 #include "jstd/ArrayRotate_v1.h"
 #include "jstd/ArrayRotate_SIMD.h"
 
+#if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
 #include "kerbal/algorithm/modifier.hpp"
 #endif
+#endif // USE_KERBAL_ROTATE
 
 template <typename Container>
 int verify_array(Container & container1, Container & container2)
@@ -43,6 +47,7 @@ void run_rotate_test(Container & array_std, Container & array)
 {
     static const std::size_t length = (Length <= 0) ? 100000000 : Length;
     static const std::size_t offset = Offset % length;
+    int error_pos;
 
     for (size_t i = 0; i < length; i++) {
         array_std[i] = (int)i;
@@ -57,7 +62,7 @@ void run_rotate_test(Container & array_std, Container & array)
     jstd::rotate(array.begin(), array.begin() + offset, array.end());
 
     printf(" jstd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)offset);
-    int error_pos = verify_array(array, array_std);
+    error_pos = verify_array(array, array_std);
     if (error_pos == -1)
         printf("Passed");
     else
@@ -78,6 +83,7 @@ void run_rotate_test(Container & array_std, Container & array)
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
 
+#if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
     for (size_t i = 0; i < length; i++) {
         array[i] = (int)i;
@@ -93,6 +99,7 @@ void run_rotate_test(Container & array_std, Container & array)
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
 #endif
+#endif // USE_KERBAL_ROTATE
 }
 
 void validate_test()
@@ -131,15 +138,6 @@ void run_rotate_benchmark(Container & array)
     double elapsedTime;
 
     //////////////////////////////////////////////////////////////
-#if 0
-    sw.start();
-    jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
-    sw.stop();
-
-    elapsedTime = sw.getElapsedMillisec();
-    printf(" jstd::std_rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
-#endif
-    //////////////////////////////////////////////////////////////
 
     sw.start();
     std::rotate(array.begin(), array.begin() + offset, array.end());
@@ -168,6 +166,7 @@ void run_rotate_benchmark(Container & array)
 
     //////////////////////////////////////////////////////////////
 
+#if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
     sw.start();
     kerbal::algorithm::rotate(array.begin(), array.begin() + offset, array.end());
@@ -176,6 +175,7 @@ void run_rotate_benchmark(Container & array)
     elapsedTime = sw.getElapsedMillisec();
     printf(" kerbal::algorithm::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 #endif
+#endif // USE_KERBAL_ROTATE
 
     //////////////////////////////////////////////////////////////
 }
