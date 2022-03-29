@@ -561,7 +561,7 @@ void avx_forward_move_4(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 4), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 4), _MM_HINT_T1);
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -616,7 +616,7 @@ void avx_forward_move_4(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 4), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 4), _MM_HINT_T1);
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -692,7 +692,7 @@ void avx_forward_move_6(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T1);
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -766,7 +766,7 @@ void avx_forward_move_6(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 3), _MM_HINT_T1);
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -864,7 +864,7 @@ void avx_forward_move_8(T * first, T * mid, T * last)
             //
             // See: https://blog.csdn.net/qq_43401808/article/details/87360789
             //
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T1);
 
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
@@ -942,7 +942,7 @@ void avx_forward_move_8(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         while (source < limit) {
-            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T0);
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T1);
 
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
@@ -968,6 +968,272 @@ void avx_forward_move_8(T * first, T * mid, T * last)
 
         lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
         limit = end - lastUnalignedBytes;
+
+        if (source + (4 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+            __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+            __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+
+            source += 4 * kAVXRegBytes;
+            target += 4 * kAVXRegBytes;
+        }
+
+        if (source + (2 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+
+            source += 2 * kAVXRegBytes;
+            target += 2 * kAVXRegBytes;
+        }
+
+        if (source + (1 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+
+            source += 1 * kAVXRegBytes;
+            target += 1 * kAVXRegBytes;
+        }
+
+        while (lastUnalignedBytes != 0) {
+            *target = *source;
+            source += kValueSize;
+            target += kValueSize;
+            lastUnalignedBytes -= kValueSize;
+        }
+    }
+}
+
+template <typename T>
+static
+void avx_forward_move_8x2(T * first, T * mid, T * last)
+{
+    typedef T value_type;
+    static const std::size_t kValueSize = sizeof(value_type);
+    static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
+
+    static const std::size_t kPerStepBytes = 16 * kAVXRegBytes;
+
+    std::size_t unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
+    bool sourceAddrCanAlign = (((unAlignedBytes / kValueSize) * kValueSize) == unAlignedBytes);
+    if (kValueSizeIsPower2 && sourceAddrCanAlign) {
+        unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
+        while (unAlignedBytes != 0) {
+            *first++ = *mid++;
+            unAlignedBytes -= kValueSize;
+        }
+
+        char * target = (char *)first;
+        char * source = (char *)mid;
+        char * end = (char *)last;
+
+        std::size_t lastUnalignedBytes = (std::size_t)last % kPerStepBytes;
+        std::size_t totalBytes = (last - first) * kValueSize;
+        const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
+
+        while (source < limit) {
+            //
+            // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+            //
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T1);
+
+            __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+            __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+            __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+            __m256i ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+            __m256i ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+            __m256i ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+            __m256i ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T1);
+
+            ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 8));
+            ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 9));
+            ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 10));
+            ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 11));
+            ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 12));
+            ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 13));
+            ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 14));
+            ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 15));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 8),  ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 9),  ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 10), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 11), ymm3);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 12), ymm4);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 13), ymm5);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 14), ymm6);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 15), ymm7);
+
+            source += kPerStepBytes;
+            target += kPerStepBytes;
+        }
+
+        lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
+        limit = end - lastUnalignedBytes;
+
+        if (source + (8 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+            __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+            __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+            __m256i ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+            __m256i ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+            __m256i ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+            __m256i ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+
+            source += 8 * kAVXRegBytes;
+            target += 8 * kAVXRegBytes;
+        }
+
+        if (source + (4 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+            __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+            __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+
+            source += 4 * kAVXRegBytes;
+            target += 4 * kAVXRegBytes;
+        }
+
+        if (source + (2 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+
+            source += 2 * kAVXRegBytes;
+            target += 2 * kAVXRegBytes;
+        }
+
+        if (source + (1 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+
+            source += 1 * kAVXRegBytes;
+            target += 1 * kAVXRegBytes;
+        }
+
+        while (source < end) {
+            *target = *source;
+            source += kValueSize;
+            target += kValueSize;
+        }
+    }
+    else {
+        char * target = (char *)first;
+        char * source = (char *)mid;
+        char * end = (char *)last;
+
+        std::size_t lastUnalignedBytes = (std::size_t)last % kPerStepBytes;
+        std::size_t totalBytes = (last - first) * kValueSize;
+        const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
+
+        while (source < limit) {
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T1);
+
+            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+            __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+            __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+            __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+            __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+            __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+            __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+
+            _mm_prefetch((const char *)(source + kPerStepBytes * 2), _MM_HINT_T1);
+
+            ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 8));
+            ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 9));
+            ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 10));
+            ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 11));
+            ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 12));
+            ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 13));
+            ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 14));
+            ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 15));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 8),  ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 9),  ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 10), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 11), ymm3);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 12), ymm4);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 13), ymm5);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 14), ymm6);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 15), ymm7);
+
+            source += kPerStepBytes;
+            target += kPerStepBytes;
+        }
+
+        lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
+        limit = end - lastUnalignedBytes;
+
+        if (source + (8 * kAVXRegBytes) <= limit) {
+            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+            __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+            __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+            __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+            __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+            __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+            __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+            __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+
+            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+            _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+
+            source += 8 * kAVXRegBytes;
+            target += 8 * kAVXRegBytes;
+        }
 
         if (source + (4 * kAVXRegBytes) <= limit) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
@@ -1081,7 +1347,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last,
     __m256i stash2 = _mm256_loadu_si256(stash_start + 2);
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
 
-    avx_forward_move_8(first, mid, last);
+    avx_forward_move_8x2(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -1101,7 +1367,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last,
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
     __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
 
-    avx_forward_move_8(first, mid, last);
+    avx_forward_move_8x2(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
