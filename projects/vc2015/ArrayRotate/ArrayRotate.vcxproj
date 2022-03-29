@@ -158,10 +158,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\jstd\ArrayRotate.h" />
+    <ClInclude Include="..\..\..\src\jstd\ArrayRotate_SIMD.h" />
     <ClInclude Include="..\..\..\src\jstd\ArrayRotate_v1.h" />
+    <ClInclude Include="..\..\..\src\jstd\BitVec.h" />
     <ClInclude Include="..\..\..\src\jstd\FastDiv.h" />
     <ClInclude Include="..\..\..\src\jstd\FastMod.h" />
     <ClInclude Include="..\..\..\src\jstd\msvc_x86intrin.h" />
+    <ClInclude Include="..\..\..\src\jstd\stddef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

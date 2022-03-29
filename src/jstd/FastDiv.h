@@ -2,7 +2,7 @@
 #ifndef JSTD_FAST_DIV_H
 #define JSTD_FAST_DIV_H
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
 #endif
 

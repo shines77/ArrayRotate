@@ -2,7 +2,7 @@
 #ifndef JSTD_ARRAY_ROTATE_H
 #define JSTD_ARRAY_ROTATE_H
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
 #endif
 
@@ -15,7 +15,9 @@
 #include "jstd/FastDiv.h"
 #include "jstd/FastMod.h"
 
+#ifndef ROTATE_USE_FAST_MOD
 #define ROTATE_USE_FAST_MOD     0
+#endif
 
 namespace jstd {
 
@@ -224,5 +226,9 @@ rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
 }
 
 } // namespace jstd
+
+#ifdef ROTATE_USE_FAST_MOD
+#undef ROTATE_USE_FAST_MOD
+#endif
 
 #endif // JSTD_ARRAY_ROTATE_H
