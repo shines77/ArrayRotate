@@ -1282,9 +1282,8 @@ void left_rotate_avx_11_regs(T * first, T * mid, T * last,
 template <typename T>
 T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 {
-    typedef T           value_type;
-    typedef T *         pointer;
-    typedef const T *   const_pointer;
+    //typedef T   value_type;
+    typedef T * pointer;
 
     pointer first = data;
     pointer mid   = data + offset;
