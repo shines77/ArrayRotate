@@ -16,6 +16,20 @@
 #include <algorithm>
 #include <type_traits>
 
+//
+// _mm_prefetch()
+//
+// See: https://stackoverflow.com/questions/46521694/what-are-mm-prefetch-locality-hints
+// See: https://gist.github.com/simonhf/caaa33ccb87c0bf0775a863c0d6843c2
+//
+// See: https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+//
+//   void __builtin_prefetch(const void * addr, int rw, int locality);
+//
+//   rw: (1) is preparing for a write, or (0) is preparing for a read;
+//   locality: prefetch hint level, default value is 3 (_MM_HINT_T2).
+//
+
 #ifndef PREFETCH_HINT_LEVEL
 #define PREFETCH_HINT_LEVEL     _MM_HINT_T0
 #endif
