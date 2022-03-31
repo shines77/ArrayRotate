@@ -297,9 +297,12 @@ void fast_div_verify()
     for (uint32_t d = 1; d < 32; d++) {
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
-            for (uint32_t n = 0x7FFFFFFFul - 1000; n != 0; n++) {
+            uint32_t first_n = 0x7FFFFFFFul - 1000;
+            // Round to N times of d
+            first_n = first_n - first_n % d;
+            uint32_t q0 = first_n / d;
+            for (uint32_t n = first_n; n < 0x00FFFFFFul; n += d) {
                 uint32_t q = jstd::fast_div_u32(n, d);
-                uint32_t q0 = n / d;
                 if (q != q0) {
                     if (first_err == 0) {
                         first_err = n;
@@ -309,6 +312,7 @@ void fast_div_verify()
                 else if (first_err != 0) {
                     no_errors++;
                 }
+                q0++;
             }
             if (errors != 0) {
                 printf("d = %-4u : first_err = 0x%08X, errors = %u, no_errors = %u\n",
