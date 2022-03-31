@@ -165,6 +165,7 @@
     <ClInclude Include="..\..\..\src\jstd\ArrayRotate_SIMD.h" />
     <ClInclude Include="..\..\..\src\jstd\ArrayRotate_v1.h" />
     <ClInclude Include="..\..\..\src\jstd\BitVec.h" />
+    <ClInclude Include="..\..\..\src\jstd\DivUtils.h" />
     <ClInclude Include="..\..\..\src\jstd\FastDiv.h" />
     <ClInclude Include="..\..\..\src\jstd\FastMod.h" />
     <ClInclude Include="..\..\..\src\jstd\msvc_x86intrin.h" />

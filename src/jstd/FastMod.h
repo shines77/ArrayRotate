@@ -17,13 +17,13 @@
 #include <cstdbool>
 #include <algorithm>
 
-#ifdef _MSC_VER
-#include <intrin.h>     // For __umulh(), available only in x64 mode
-#endif
+#include "jstd/DivUtils.h"
 
 //
 // See: https://github.com/lemire/fastmod
 // See: https://github.com/pcjentsch/FastModulo.jl
+//
+// See: https://github.com/ridiculousfish/libdivide/blob/master/libdivide.h
 //
 
 namespace jstd {
@@ -31,22 +31,7 @@ namespace jstd {
 static const std::uint32_t kMaxModTable = 1024;
 
 struct ModRatio {
-    uint64_t M;
-#if 0
-    ModRatio(uint64_t _M = 0)
-        : M(_M) {}
-
-    ModRatio(int64_t _M)
-        : M((uint64_t)_M) {}
-
-    ModRatio(const ModRatio & src)
-        : : M(src.M) {}
-
-    ModRatio & operator = (const ModRatio & rhs) {
-        this->M = rhs.M;
-        return *this;
-    };
-#endif
+    uint64_t mul;
 };
 
 static const ModRatio mod_ratio_tbl32[kMaxModTable] = {
@@ -326,7 +311,7 @@ static inline
 ModRatio getModRatio_u32(std::uint32_t divisor)
 {
     ModRatio modRatio;
-    modRatio.M = computeM_u32(divisor);
+    modRatio.mul = computeM_u32(divisor);
     return modRatio;
 }
 
@@ -344,8 +329,8 @@ void genModRatioTbl()
         if ((n % 4) == 0) {
             printf("    ");
         }
-        printf("{ 0x%08X%08Xull },", (uint32_t)(modRatioTbl[n].M >> 32u),
-                                     (uint32_t)(modRatioTbl[n].M & 0xFFFFFFFFul));
+        printf("{ 0x%08X%08Xull },", (uint32_t)(modRatioTbl[n].mul >> 32u),
+                                     (uint32_t)(modRatioTbl[n].mul & 0xFFFFFFFFul));
         if ((n % 4) == 3) {
             printf("\n");
         } else {
@@ -355,187 +340,6 @@ void genModRatioTbl()
     printf("};\n\n");
 }
 
-#if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
- || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
-
-#if defined(_MSC_VER)
-
-//
-// See: https://github.com/lemire/fastmod
-//
-// __umulh() is only available in x64 mode under Visual Studio: don't compile to 32-bit!
-//           but, I write a version for x86 (32bit) mode: see below.
-//
-static inline
-uint64_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
-    return __umulh(low64_bits, divisor);
-}
-
-static inline
-uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
-    return __umulh(low64_bits, divisor);
-}
-
-#else // !_MSC_VER
-
-static inline
-uint64_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
-    return (((__uint128_t)low64_bits * divisor) >> 64u);
-}
-
-static inline
-uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
-    return (((__uint128_t)low64_bits * divisor) >> 64u);
-}
-
-#endif // _MSC_VER
-
-static inline
-uint64_t mul128_high_u64_ex(uint64_t low64_bits, uint64_t divisor) {
-    return mul128_high_u64(low64_bits, divisor);
-}
-
-#else // !__amd64__
-
-/*****************************************************************
-
-   low64_bits = low0, high0
-   divisor32  = low1, 0
-
-   low64_bits * divisor32 =
-
- |           |             |            |           |
- |           |             |      high0 * 0         |  product03
- |           |       low0  * 0          |           |  product02
- |           |       high0 * low1       |           |  product01
- |      low0 * low1        |            |           |  product00
- |           |             |            |           |
-
-*****************************************************************/
-
-static inline
-uint32_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
-    uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
-    uint32_t high0 = (uint32_t)(low64_bits >> 32u);
-    if (high0 == 0)
-        return 0;
-
-    uint64_t product00 = (uint64_t)divisor * low0;
-    uint64_t product01 = (uint64_t)divisor * high0;
-
-    uint32_t product00_high = (uint32_t)(product00 >> 32u);
-    uint32_t product01_low  = (uint32_t)(product01 & 0xFFFFFFFFull);
-    uint32_t product01_high = (uint32_t)(product01 >> 32u);
-
-    uint32_t carry32 = (product00_high > ~product01_low) ? 1 : 0;
-    uint32_t result = product01_high + carry32;
-    return result;
-}
-
-/*****************************************************************
-
-   low64_bits = low0, high0
-   divisor64  = low1, high1
-
-   low64_bits * divisor64 =
-
- |           |             |            |           |
- |           |             |      high0 * high1     |  product03
- |           |       low0  * high1      |           |  product02
- |           |       high0 * low1       |           |  product01
- |      low0 * low1        |            |           |  product00
- |           |             |            |           |
-
-*****************************************************************/
-
-static inline
-uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
-    uint32_t low1  = (uint32_t)(divisor & 0xFFFFFFFFull);
-    uint32_t high1 = (uint32_t)(divisor >> 32u);
-    if (high1 == 0) {
-        return mul128_high_u32(low64_bits, low1);
-    }
-
-    uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
-    uint32_t high0 = (uint32_t)(low64_bits >> 32u);
-
-    if (high0 == 0) {
-        uint64_t product00 = (uint64_t)low0 * low1;
-        uint64_t product02 = (uint64_t)low0 * high1;
-
-        uint32_t product00_high = (uint32_t)(product00 >> 32u);
-        uint32_t product02_low  = (uint32_t)(product02 & 0xFFFFFFFFull);
-        uint32_t product02_high = (uint32_t)(product02 >> 32u);
-
-        uint64_t product_mid64 = product00_high + product02_low;
-        uint32_t carry32 = (uint32_t)(product_mid64 >> 32u);
-
-        uint64_t result = product02_high + carry32;
-        return result;
-    }
-    else {
-        uint64_t product00 = (uint64_t)low0 * low1;
-        uint64_t product01 = (uint64_t)high0 * low1;
-        uint64_t product02 = (uint64_t)low0 * high1;
-        uint64_t product03 = (uint64_t)high0 * high1;
-
-        uint32_t product00_high = (uint32_t)(product00 >> 32u);
-        uint32_t product01_low  = (uint32_t)(product01 & 0xFFFFFFFFull);
-        uint32_t product02_low  = (uint32_t)(product02 & 0xFFFFFFFFull);
-        uint32_t product01_high = (uint32_t)(product01 >> 32u);
-        uint32_t product02_high = (uint32_t)(product02 >> 32u);
-
-        uint64_t product_mid64 = product00_high + product01_low + product02_low;
-        uint32_t carry32 = (uint32_t)(product_mid64 >> 32u);
-
-        uint64_t result = product01_high + product02_high + carry32 + product03;
-        return result;
-    }
-}
-
-static inline
-uint64_t mul128_high_u64_ex(uint64_t low64_bits, uint64_t divisor) {
-    uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
-    uint32_t high0 = (uint32_t)(low64_bits >> 32u);
-    uint32_t low1  = (uint32_t)(divisor & 0xFFFFFFFFull);
-    uint32_t high1 = (uint32_t)(divisor >> 32u);
-
-    if (high0 == 0) {
-        uint64_t product00 = (uint64_t)low0 * low1;
-        uint64_t product02 = (uint64_t)low0 * high1;
-
-        uint32_t product00_high = (uint32_t)(product00 >> 32u);
-        uint32_t product02_low  = (uint32_t)(product02 & 0xFFFFFFFFull);
-        uint32_t product02_high = (uint32_t)(product02 >> 32u);
-
-        uint64_t product_mid64 = product00_high + product02_low;
-        uint32_t carry32 = (uint32_t)(product_mid64 >> 32u);
-
-        uint64_t result = product02_high + carry32;
-        return result;
-    }
-    else {
-        uint64_t product00 = (uint64_t)low0 * low1;
-        uint64_t product01 = (uint64_t)high0 * low1;
-        uint64_t product02 = (uint64_t)low0 * high1;
-        uint64_t product03 = (uint64_t)high0 * high1;
-
-        uint32_t product00_high = (uint32_t)(product00 >> 32u);
-        uint32_t product01_low  = (uint32_t)(product01 & 0xFFFFFFFFull);
-        uint32_t product02_low  = (uint32_t)(product02 & 0xFFFFFFFFull);
-        uint32_t product01_high = (uint32_t)(product01 >> 32u);
-        uint32_t product02_high = (uint32_t)(product02 >> 32u);
-
-        uint64_t product_mid64 = product00_high + product01_low + product02_low;
-        uint32_t carry32 = (uint32_t)(product_mid64 >> 32u);
-
-        uint64_t result = product01_high + product02_high + carry32 + product03;
-        return result;
-    }
-}
-
-#endif // __amd64__
-
 static inline
 std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
 {
@@ -543,7 +347,7 @@ std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
         return (value % divisor);
     } else {
         ModRatio ratio = mod_ratio_tbl32[divisor];
-        std::uint64_t low64_bits = (std::uint64_t)value * ratio.M;
+        std::uint64_t low64_bits = (std::uint64_t)value * ratio.mul;
         std::uint32_t result = (std::uint32_t)mul128_high_u32(low64_bits, divisor);
         return result;
     }
@@ -557,7 +361,7 @@ std::uint64_t fast_mod_u64(std::uint64_t value, std::uint64_t divisor)
     } else {
         std::uint32_t divisor32 = (std::uint32_t)(divisor & 0xFFFFFFFFul);
         ModRatio ratio = mod_ratio_tbl32[divisor32];
-        std::uint64_t low64_bits = value * ratio.M;
+        std::uint64_t low64_bits = value * ratio.mul;
         std::uint32_t result = (std::uint32_t)mul128_high_u32(low64_bits, divisor32);
         return result;
     }

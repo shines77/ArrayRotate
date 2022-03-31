@@ -290,12 +290,52 @@ void simd_rotate_test()
     printf("-----------------------------------------------------\n");
 }
 
+void fast_div_verify()
+{
+    printf("fast_div_verify():\n\n");
+    //for (uint32_t d = 1; d < (uint32_t)jstd::kMaxDivTable; d++) {
+    for (uint32_t d = 1; d < 32; d++) {
+        if ((d & (d - 1)) != 0) {
+            uint32_t first_err = 0, errors = 0, no_errors = 0;
+            for (uint32_t n = 0x7FFFFFFFul; n != 0; n++) {
+                uint32_t q = jstd::fast_div_u32(n, d);
+                uint32_t q0 = n / d;
+                if (q != q0) {
+                    if (first_err == 0) {
+                        first_err = n;
+                    }
+                    errors++;
+                }
+                else if (first_err != 0) {
+                    no_errors++;
+                }
+            }
+            if (errors != 0) {
+                printf("d = %-4u : first_err = 0x%08X, errors = %u, no_errors = %u\n",
+                       d, first_err, errors, no_errors);
+            }
+            else {
+                printf("d = %-4u : no errors\n", d);
+            }
+        } else {
+            printf("d = %-4u : skip\n", d);
+        }
+
+    }
+    printf("\n\n");
+}
+
 int main(int argn, char * argv[])
-{    
+{
+#ifdef _DEBUG
     jstd::genDivRatioTbl();
+#endif
     //jstd::genModRatioTbl();
     //rotate_test();
     //rotate_unit_test();
-    simd_rotate_test();
+#ifndef _DEBUG
+    fast_div_verify();
+#endif
+    //simd_rotate_test();
     return 0;
 }

@@ -36,5 +36,8 @@
     <ClInclude Include="..\..\..\src\jstd\BitVec.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\jstd\DivUtils.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
