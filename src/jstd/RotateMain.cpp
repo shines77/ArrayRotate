@@ -297,7 +297,7 @@ void fast_div_verify()
     for (uint32_t d = 1; d < 32; d++) {
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
-            for (uint32_t n = 0x7FFFFFFFul; n != 0; n++) {
+            for (uint32_t n = 0x7FFFFFFFul - 1000; n != 0; n++) {
                 uint32_t q = jstd::fast_div_u32(n, d);
                 uint32_t q0 = n / d;
                 if (q != q0) {
