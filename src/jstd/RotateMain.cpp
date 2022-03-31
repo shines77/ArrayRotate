@@ -294,14 +294,14 @@ void fast_div_verify()
 {
     printf("fast_div_verify():\n\n");
     //for (uint32_t d = 1; d < (uint32_t)jstd::kMaxDivTable; d++) {
-    for (uint32_t d = 1; d < 32; d++) {
+    for (uint32_t d = 1; d < 64; d++) {
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
-            // Round to N times of d
-            first_n = first_n - first_n % d;
+            // Round to N times of d and sub 1
+            first_n = first_n - first_n % d - 1;
             uint32_t q0 = first_n / d;
-            for (uint32_t n = first_n; n < 0x00FFFFFFul; n += d) {
+            for (uint32_t n = first_n; n >= first_n; n += d) {
                 uint32_t q = jstd::fast_div_u32(n, d);
                 if (q != q0) {
                     if (first_err == 0) {
