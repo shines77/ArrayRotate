@@ -63,9 +63,11 @@ _Integral __gcd(_Integral __x, _Integral __y)
 //
 // When left_len is much smaller than right_len, it's too slow.
 //
+// See: https://www.zhihu.com/question/35500094
+//
 template <typename _RandomAccessIterator>
 _RandomAccessIterator
-libgxx_rotate_gcd(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last)
+libcxx_rotate_gcd(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last)
 {
     typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type   difference_type;
     typedef typename std::iterator_traits<_RandomAccessIterator>::value_type        value_type;

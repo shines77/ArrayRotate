@@ -20,6 +20,14 @@
 #include "jstd/FastMod.h"
 
 //
+// https://github.com/rubenvannieuwpoort/division-by-constant-integers/
+// 
+// PDF: Integer Division by Constants: Optimal Bounds
+//      https://arxiv.org/abs/2012.12369
+//
+// PDF: Division by Invariant Integers using Multiplication
+//      http://gmplib.org/~tege/divcnst-pldi94.pdf
+//
 // See: https://www.cnblogs.com/shines77/p/4189074.html
 //
 
@@ -29,45 +37,15 @@ static const std::uint32_t kMaxDivTable = 512;
 
 struct DivRatio32 {
     uint32_t ratio;
+    //uint32_t add;
     uint32_t shift;
-#if 0
-    DivRatio32(uint32_t _ratio = 0, uint32_t _shift = 0)
-        : ratio(_ratio), shift(_shift) {}
-
-    DivRatio32(int _ratio, int _shift)
-        : ratio((uint32_t)_ratio), shift((uint32_t)_shift) {}
-
-    DivRatio32(const DivRatio32 & src)
-        : ratio(src.ratio), shift(src.shift) {}
-
-    DivRatio32 & operator = (const DivRatio32 & rhs) {
-        this->ratio = rhs.ratio;
-        this->shift = rhs.shift;
-        return *this;
-    };
-#endif
+    //uint32_t reseve;
 };
 
 struct DivRatio64 {
     uint64_t ratio;
     uint32_t shift;
     uint32_t reserve;
-#if 0
-    DivRatio64(uint64_t _ratio = 0, uint32_t _shift = 0)
-        : ratio(_ratio), shift(_shift), reserve(0) {}
-
-    DivRatio64(int64_t _ratio, int32_t _shift)
-        : ratio((uint64_t)_ratio), shift((uint32_t)_shift), reserve(0) {}
-
-    DivRatio64(const DivRatio64 & src)
-        : ratio(src.ratio), shift(src.shift), shift(src.reserve) {}
-
-    DivRatio64 & operator = (const DivRatio64 & rhs) {
-        this->ratio = rhs.ratio;
-        this->shift = rhs.shift;
-        return *this;
-    };
-#endif
 };
 
 static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
@@ -462,7 +440,7 @@ static const DivRatio64 div_ratio_tbl64[kMaxDivTable] = {
 
 template <typename Integal>
 static inline
-std::uint32_t getIntLog2(Integal val)
+std::uint32_t floorLog2(Integal val)
 {
     std::uint32_t kMaxByteLen = sizeof(Integal) * 8;
     std::uint32_t log2_i = 0;
@@ -488,44 +466,73 @@ std::uint32_t getIntLog2(Integal val)
 }
 
 static inline
-DivRatio32 getDivRatio_u32(std::uint32_t modulo)
+DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
 {
     DivRatio32 divRatio;
-    std::uint32_t shift = getIntLog2<std::uint32_t>(modulo);
-    std::uint32_t ratio;
-    if ((modulo & (modulo - 1)) == 0) {
-        if (modulo != 0)
+    std::uint32_t shift = floorLog2<std::uint32_t>(divisor);
+    std::uint32_t ratio, ratio_down, addition = 0;
+    if ((divisor & (divisor - 1)) == 0) {
+        if (divisor != 0)
             ratio = 0xFFFFFFFFul;
         else
             ratio = 0;
     } else {
-        ratio = (uint32_t)ceil((double)((uint64_t)1u << (32 + shift)) / modulo);
+        // m = 2^(32+k)
+        std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
+        // f = m / d
+        double f_m_div_d = (double)m_64 / divisor;
+        // M = |f| + 1;
+        ratio = (std::uint32_t)ceil(f_m_div_d);
+        ratio_down = ratio - 1;
+        // err = M - f
+        double f_err = (double)ratio - f_m_div_d;
+        // maxN = m / (d * err)
+        double max_N = (double)m_64 / (f_err * divisor);
+        bool fail01 = (max_N < (double)0xFFFFFFFFul);
+
+        // p_up = M * d
+        std::uint32_t product_up = ratio * divisor;
+        bool fail02 = (product_up > (1u << shift));
+        // r = m - M_down * d
+        std::uint32_t remainder = static_cast<std::uint32_t>(m_64) - ratio_down * divisor;
+        // p_err == product_up
+        std::int32_t p_err = divisor - remainder;
+        bool fail03 = (p_err > (1u << shift));
+        
+        if (fail01 && fail02 && fail03) {
+            ratio = ratio_down;
+            addition = ratio_down;
+        }
+        else if (fail01 || fail02 || fail03) {
+            assert(false);
+        }
     }
     divRatio.ratio = ratio;
+    //divRatio.add = 0;
     divRatio.shift = shift;
     return divRatio;
 }
 
 static inline
-DivRatio64 getDivRatio_u64(std::uint64_t modulo)
+DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
 {
     DivRatio64 divRatio;
-    std::uint32_t shift = getIntLog2<std::uint64_t>(modulo);
+    std::uint32_t shift = floorLog2<std::uint64_t>(divisor);
     std::uint64_t ratio;
-    if ((modulo & (modulo - 1)) == 0) {
-        if (modulo != 0)
+    if ((divisor & (divisor - 1)) == 0) {
+        if (divisor != 0)
             ratio = 0xFFFFFFFFFFFFFFFFull;
         else
             ratio = 0;
     } else {
 #if defined(_MSC_VER)
-        ratio = (uint64_t)ceil((double)((uint64_t)1 << (32 + shift)) * (double)((uint64_t)1 << 32) / modulo);
+        ratio = (uint64_t)ceil((double)((uint64_t)1 << (32 + shift)) * (double)((uint64_t)1 << 32) / divisor);
 #else
-        __uint128_t shift_64 = (__uint128_t)((uint64_t)1 << (32 + shift)) * ((uint64_t)1 << 32);
-        if ((shift_64 % modulo) != 0)
-            ratio = (uint64_t)(shift_64 / modulo) + 1;
+        __uint128_t shift_128 = (__uint128_t)((uint64_t)1 << (32 + shift)) * ((uint64_t)1 << 32);
+        if ((shift_128 % divisor) != 0)
+            ratio = (uint64_t)(shift_128 / divisor) + 1;
         else
-            ratio = (uint64_t)(shift_64 / modulo);
+            ratio = (uint64_t)(shift_128 / divisor);
 #endif
     }
     divRatio.ratio = ratio;
@@ -539,7 +546,7 @@ void genDivRatioTbl_u32()
 {
     DivRatio32 divRatioTbl[kMaxDivTable];
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
-        divRatioTbl[n] = getDivRatio_u32(n);
+        divRatioTbl[n] = preComputeDiv_u32(n);
     }
 
     printf("\n");
@@ -563,7 +570,7 @@ void genDivRatioTbl_u64()
 {
     DivRatio64 divRatioTbl[kMaxDivTable];
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
-        divRatioTbl[n] = getDivRatio_u64(n);
+        divRatioTbl[n] = preComputeDiv_u64(n);
     }
 
     printf("\n");
