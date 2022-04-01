@@ -1027,27 +1027,40 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
         // Mul = |f| + 1;
         multi = (std::uint32_t)ceil(f);
         multi_down = multi - 1;
+
+        //
+        // See: https://bbs.emath.ac.cn/thread-521-3-1.html
+        //
+
         // err = Mul - f
         double f_err = (double)multi - f;
         // maxN = | m / (d * err) |
         double max_N = (double)m_64 / divisor / f_err;
         uint32_t maxN = (uint32_t)max_N;
-        bool fail01 = (max_N < (double)0xFFFFFFFFul);
+        bool failed01 = (max_N < (double)0xFFFFFFFFul);
+
+        //
+        // See: https://github.com/rubenvannieuwpoort/division-by-constant-integers/blob/master/unsigned/runtime/unsigned_division.h
+        //
 
         // product_up = Mul * d
         std::uint32_t product_up = multi * divisor;
-        bool fail02 = (product_up > (1u << shift));
+        bool failed02 = (product_up > (1u << shift));
+
+        //
+        // See: https://stackoverflow.com/questions/45353629/repeated-integer-division-by-a-runtime-constant-value
+        //
 
         // r = m - Mul_down * d
         std::uint32_t remainder = static_cast<std::uint32_t>(m_64) - multi_down * divisor;
         assert(divisor > remainder);
         // err == product_up
         std::uint32_t err = divisor - remainder;
-        bool fail03 = (err > (1u << shift));
+        bool failed03 = (err > (1u << shift));
 
         static const double kEpsilon = 0.005;
         
-        if (fail01 && fail02 && fail03) {
+        if (failed01 && failed02 && failed03) {
             multi = multi_down;
             if (version == 2) {
                 add = multi_down;
@@ -1064,7 +1077,7 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
                 add = (std::uint32_t)((double)multi_down * fix_f_err);
             }
         }
-        else if (fail01 || fail02 || fail03) {
+        else if (failed01 || failed02 || failed03) {
             assert(false);
             printf("divisor = %u have errors.\n\n", divisor);
         }
