@@ -462,7 +462,7 @@ void fast_div_verify_test()
 
 int main(int argn, char * argv[])
 {
-#ifndef _DEBUG
+#ifdef _DEBUG
     jstd::genDivRatioTbl();
     //jstd::genModRatioTbl();
 #endif
@@ -470,7 +470,7 @@ int main(int argn, char * argv[])
     //rotate_test();
     //rotate_unit_test();
 
-#ifdef _DEBUG
+#ifndef _DEBUG
     //fast_div_verify_test();
 #if 1
     fast_div_verify_fast();
