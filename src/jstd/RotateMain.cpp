@@ -366,7 +366,7 @@ void fast_div_verify()
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
-            // Round to N times of d and sub 1
+            // Round to N times of d
             first_n = first_n - first_n % d;
             uint32_t q0 = first_n / d;
             for (uint32_t n = first_n; n >= first_n; n += d) {
@@ -410,7 +410,7 @@ void fast_div_verify_msvc()
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
-            // Round to N times of d and sub 1
+            // Round to N times of d and
             first_n = first_n - first_n % d;
             uint32_t q0 = first_n / d;
             for (uint32_t n = first_n; n >= first_n; n += d) {
@@ -464,6 +464,64 @@ void fast_div_verify_test()
     printf("fast_div_verify(): %0.2f ms\n\n", elapsedTime);
 }
 
+void fast_mod_verify()
+{
+    printf("fast_mod_verify():\n\n");
+    //for (uint32_t d = 0; d < (uint32_t)jstd::kMaxDivTable; d++) {
+    for (uint32_t d = 0; d < 32; d++) {
+        //if ((d & (d - 1)) != 0) {
+        if (d != 0) {
+            uint32_t first_err = 0, errors = 0, no_errors = 0;
+            uint32_t first_n = 0;
+            for (uint32_t n = first_n; n < 0x80000u; n += d) {
+                for (uint32_t i = 0; i < d; i++) {
+                    uint32_t q = jstd::fast_mod_u32(n + i, d);
+                    if (q != i) {
+                        if (first_err == 0) {
+                            first_err = n;
+                        }
+                        errors++;
+                    }
+                    else if (first_err != 0) {
+                        no_errors++;
+                    }
+                }
+            }
+
+            first_n = 0x7FFFFFFFul - 1000;
+            // Round to N times of d
+            first_n = first_n - first_n % d;
+            for (uint32_t n = first_n; n >= first_n; n += d) {
+                uint32_t max_i = ((n + d) >= first_n) ? d : ((0xFFFFFFFFul - n) + 1);
+                for (uint32_t i = 0; i < max_i; i++) {
+                    uint32_t q = jstd::fast_mod_u32(n + i, d);
+                    if (q != i) {
+                        if (first_err == 0) {
+                            first_err = n;
+                        }
+                        errors++;
+                    }
+                    else if (first_err != 0) {
+                        no_errors++;
+                    }
+                }
+            }
+
+            if (errors != 0) {
+                printf("d = %-4u : first_err = 0x%08X, errors = %u, no_errors = %u\n",
+                       d, first_err, errors, no_errors);
+            }
+            else {
+                printf("d = %-4u : no errors\n", d);
+            }
+        } else {
+            printf("d = %-4u : skip\n", d);
+        }
+
+    }
+    printf("\n\n");
+}
+
 int main(int argn, char * argv[])
 {
 #ifdef _DEBUG
@@ -474,10 +532,12 @@ int main(int argn, char * argv[])
     //rotate_test();
     //rotate_unit_test();
 
+    fast_mod_verify();
+
 #ifndef _DEBUG
-    //fast_div_verify_test();
+    fast_div_verify_test();
 #if 1
-    fast_div_verify_fast();
+    //fast_div_verify_fast();
 #else
 #ifdef _MSC_VER
     fast_div_verify_msvc();
@@ -486,6 +546,8 @@ int main(int argn, char * argv[])
 #endif // _MSC_VER
 #endif // 1
 #endif // _DEBUG
+
+    //fast_mod_verify();
 
     //simd_rotate_test();
     return 0;

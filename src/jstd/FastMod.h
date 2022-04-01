@@ -361,8 +361,8 @@ std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
     if (divisor >= kMaxModTable) {
         return (value % divisor);
     } else {
-        ModRatio ratio = mod_ratio_tbl32[divisor];
-        std::uint64_t low64_bits = (std::uint64_t)value * ratio.mul;
+        ModRatio rt = mod_ratio_tbl32[divisor];
+        std::uint64_t low64_bits = (std::uint64_t)value * rt.mul;
         std::uint32_t result = (std::uint32_t)mul128_high_u32(low64_bits, divisor);
         return result;
     }
@@ -375,8 +375,8 @@ std::uint64_t fast_mod_u64(std::uint64_t value, std::uint64_t divisor)
         return (value % divisor);
     } else {
         std::uint32_t divisor32 = (std::uint32_t)(divisor & 0xFFFFFFFFul);
-        ModRatio ratio = mod_ratio_tbl32[divisor32];
-        std::uint64_t low64_bits = value * ratio.mul;
+        ModRatio rt = mod_ratio_tbl32[divisor32];
+        std::uint64_t low64_bits = value * rt.mul;
         std::uint32_t result = (std::uint32_t)mul128_high_u32(low64_bits, divisor32);
         return result;
     }
