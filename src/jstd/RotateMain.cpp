@@ -323,9 +323,29 @@ void fast_div_verify_fast()
                 printf("d = %-4u : no errors\n", d);
             }
         } else {
-            printf("d = %-4u : skip\n", d);
+            uint32_t first_err = 0, errors = 0, no_errors = 0;
+            uint32_t first_n = 0x7FFFFFFFul - 1000;
+            for (uint32_t n = first_n; n < first_n + (1u << 20); n++) {
+                uint32_t q = jstd::fast_div_u32(n, d);
+                uint32_t q0 = n / d;
+                if (q != q0) {
+                    if (first_err == 0) {
+                        first_err = n;
+                    }
+                    errors++;
+                }
+                else if (first_err != 0) {
+                    no_errors++;
+                }
+            }
+            if (errors != 0) {
+                printf("d = %-4u : first_err = 0x%08X, errors = %u, no_errors = %u\n",
+                       d, first_err, errors, no_errors);
+            }
+            else {
+                printf("d = %-4u : no errors\n", d);
+            }
         }
-
     }
     printf("\n\n");
 }

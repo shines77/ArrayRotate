@@ -38,11 +38,11 @@ std::uint32_t floorLog2(Integal val)
     std::uint32_t log2_i = 0;
 
     if ((val & (val - 1)) == 0) {
-        while (val != 0) {
+        while (val > 1) {
             val >>= 1;
             log2_i++;
         }
-        return ((log2_i > 0) ? (log2_i - 1) : 0);
+        return log2_i;
     }
 
     std::size_t power2 = 1;
