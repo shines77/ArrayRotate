@@ -323,6 +323,10 @@ void fast_div_verify_fast()
                 printf("d = %-4u : no errors\n", d);
             }
         } else {
+            if (d == 0) {
+                printf("d = %-4u : skip\n", d);
+                continue;
+            }
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
             for (uint32_t n = first_n; n < first_n + (1u << 20); n++) {
