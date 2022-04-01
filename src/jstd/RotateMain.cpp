@@ -293,11 +293,11 @@ void simd_rotate_test()
     printf("-----------------------------------------------------\n");
 }
 
-void fast_div_verify_v0()
+void fast_div_verify_fast()
 {
-    printf("fast_div_verify():\n\n");
-    for (uint32_t d = 1; d < (uint32_t)jstd::kMaxDivTable; d++) {
-    //for (uint32_t d = 1; d < 64; d++) {
+    printf("fast_div_verify_fast():\n\n");
+    for (uint32_t d = 0; d < (uint32_t)jstd::kMaxDivTable; d++) {
+    //for (uint32_t d = 0; d < 64; d++) {
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
@@ -313,11 +313,6 @@ void fast_div_verify_v0()
                     errors++;
                     no_errors += (d - 1);
                 }
-                /*
-                else if (first_err != 0) {
-                    no_errors++;
-                }
-                //*/
                 q0++;
             }
             if (errors != 0) {
@@ -338,8 +333,8 @@ void fast_div_verify_v0()
 void fast_div_verify()
 {
     printf("fast_div_verify():\n\n");
-    //for (uint32_t d = 1; d < (uint32_t)jstd::kMaxDivTable; d++) {
-    for (uint32_t d = 1; d < 32; d++) {
+    //for (uint32_t d = 0; d < (uint32_t)jstd::kMaxDivTable; d++) {
+    for (uint32_t d = 0; d < 32; d++) {
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
@@ -379,11 +374,11 @@ void fast_div_verify()
     printf("\n\n");
 }
 
-void fast_div_verify_v1()
+void fast_div_verify_msvc()
 {
-    printf("fast_div_verify_v1():\n\n");
-    //for (uint32_t d = 1; d < (uint32_t)jstd::kMaxDivTable; d++) {
-    for (uint32_t d = 1; d < 32; d++) {
+    printf("fast_div_verify_msvc():\n\n");
+    //for (uint32_t d = 0; d < (uint32_t)jstd::kMaxDivTable; d++) {
+    for (uint32_t d = 0; d < 32; d++) {
         if ((d & (d - 1)) != 0) {
             uint32_t first_err = 0, errors = 0, no_errors = 0;
             uint32_t first_n = 0x7FFFFFFFul - 1000;
@@ -427,31 +422,43 @@ void fast_div_verify_test()
     double elapsedTime;
 
     sw.start();
-    fast_div_verify_v1();
+    fast_div_verify_msvc();
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" fast_div_verify_v1(): %0.2f ms\n\n", elapsedTime);
+    printf("fast_div_verify_msvc(): %0.2f ms\n\n", elapsedTime);
 
     sw.start();
     fast_div_verify();
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" fast_div_verify(): %0.2f ms\n\n", elapsedTime);
+    printf("fast_div_verify(): %0.2f ms\n\n", elapsedTime);
 }
 
 int main(int argn, char * argv[])
 {
 #ifdef _DEBUG
     jstd::genDivRatioTbl();
-#endif
     //jstd::genModRatioTbl();
+#endif
+
     //rotate_test();
     //rotate_unit_test();
+
 #ifndef _DEBUG
-    fast_div_verify_test();
-#endif
+    //fast_div_verify_test();
+#if 1
+    fast_div_verify_fast();
+#else
+#ifdef _MSC_VER
+    fast_div_verify_msvc();
+#else
+    fast_div_verify();
+#endif // _MSC_VER
+#endif // 1
+#endif // _DEBUG
+
     //simd_rotate_test();
     return 0;
 }
