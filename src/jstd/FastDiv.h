@@ -196,7 +196,6 @@ static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
     { 0x81020409,  8 }, { 0x80C121B3,  8 }, { 0x80808081,  8 }, { 0x80402011,  8 },
 };
 
-
 static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
     { 0x00000000, 0x00000000,  0, 0 }, { 0xFFFFFFFF, 0xFFFFFFFF,  0, 0 },
     { 0x80000000, 0x00000000,  0, 0 }, { 0xAAAAAAAB, 0x00000000,  1, 0 },
@@ -1046,18 +1045,23 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
         std::uint32_t err = divisor - remainder;
         bool fail03 = (err > (1u << shift));
 
-        static const double kEpsilon = 0.01;
+        static const double kEpsilon = 0.005;
         
         if (fail01 && fail02 && fail03) {
             multi = multi_down;
             if (version == 2) {
                 add = multi_down;
             } else {
-                // In order to avoid the error of double precision floating-point
+                // In order to avoid the error of double precision floating-point.
+                // In fact, due to the precision of double, most of the time,
+                // f_err is a little larger than (err / divisor),
+                // so, there is no problem without correcting this error.
+                // However, we still fxied it here.
                 double fix_f_err = f_err + kEpsilon;
+                // The maximum value is 1.0 times.
                 if (fix_f_err > 1.0)
                     fix_f_err = 1.0;
-                add = (std::uint32_t)((double)multi_down * fix_f_err + 0.5);
+                add = (std::uint32_t)((double)multi_down * fix_f_err);
             }
         }
         else if (fail01 || fail02 || fail03) {
