@@ -1627,8 +1627,8 @@ static inline
 std::uint32_t fast_div_u32_v1(std::uint32_t value, std::uint32_t divisor)
 {
     if (divisor < kMaxDivTable) {
-        DivRatio32_v1 dt = div_ratio_tbl32_v1[divisor];
-        std::uint32_t result = ((std::uint32_t)(((std::uint64_t)value * dt.mul) >> 32u) >> dt.shift);
+        DivRatio32_v1 rt = div_ratio_tbl32_v1[divisor];
+        std::uint32_t result = ((std::uint32_t)(((std::uint64_t)value * rt.mul) >> 32u) >> rt.shift);
         return result;
     } else {
         return (value / divisor);
@@ -1639,8 +1639,8 @@ static inline
 std::uint32_t fast_div_u32_v2(std::uint32_t value, std::uint32_t divisor)
 {
     if (divisor < kMaxDivTable) {
-        DivRatio32 dt = div_ratio_tbl32_v2[divisor];
-        std::uint32_t result = ((std::uint32_t)(((std::uint64_t)value * dt.mul + dt.add) >> 32u) >> dt.shift);
+        DivRatio32 rt = div_ratio_tbl32_v2[divisor];
+        std::uint32_t result = ((std::uint32_t)(((std::uint64_t)value * rt.mul + rt.add) >> 32u) >> rt.shift);
         return result;
     } else {
         return (value / divisor);
@@ -1654,8 +1654,8 @@ static inline
 std::uint32_t fast_div_u32(std::uint32_t value, std::uint32_t divisor)
 {
     if (divisor < kMaxDivTable) {
-        DivRatio32 dt = div_ratio_tbl32_64[divisor];
-        std::uint32_t result = (std::uint32_t)(((std::uint64_t)value * dt.mul + dt.add) >> dt.shift);
+        DivRatio32 rt = div_ratio_tbl32_64[divisor];
+        std::uint32_t result = (std::uint32_t)(((std::uint64_t)value * rt.mul + rt.add) >> rt.shift);
         return result;
     } else {
         return (value / divisor);
@@ -1668,8 +1668,8 @@ static inline
 std::uint32_t fast_div_u32(std::uint32_t value, std::uint32_t divisor)
 {
     if (divisor < kMaxDivTable) {
-        DivRatio32 dt = div_ratio_tbl32[divisor];
-        std::uint32_t result = ((std::uint32_t)(((std::uint64_t)value * dt.mul + dt.add) >> 32u) >> dt.shift);
+        DivRatio32 rt = div_ratio_tbl32[divisor];
+        std::uint32_t result = ((std::uint32_t)(((std::uint64_t)value * rt.mul + rt.add) >> 32u) >> rt.shift);
         return result;
     } else {
         return (value / divisor);
@@ -1682,8 +1682,8 @@ static inline
 std::uint64_t fast_div_u64(std::uint64_t value, std::uint64_t divisor)
 {
     if (divisor < kMaxDivTable) {
-        DivRatio64 dt = div_ratio_tbl64[divisor];
-        std::uint64_t result = (mul128_high_u64_ex(value, dt.mul) >> dt.shift);
+        DivRatio64 rt = div_ratio_tbl64[divisor];
+        std::uint64_t result = (mul128_high_u64_ex(value, rt.mul) >> rt.shift);
         return result;
     } else {
         return (value / divisor);
