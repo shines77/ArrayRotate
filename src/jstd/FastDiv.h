@@ -456,7 +456,6 @@ static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
     { 0x80808081, 0x00000000,  8, 0 }, { 0x80402010, 0x80402010,  8, 0 },
 };
 
-
 static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
     { 0x00000000, 0x00000000,  0, 0 }, { 0xFFFFFFFF, 0xFFFFFFFF,  0, 0 },
     { 0x80000000, 0x00000000,  0, 0 }, { 0xAAAAAAAB, 0x00000000,  1, 0 },
