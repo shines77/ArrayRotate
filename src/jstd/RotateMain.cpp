@@ -358,9 +358,9 @@ void fast_div_verify_fast()
     printf("\n\n");
 }
 
-void fast_div_verify()
+void fast_div_verify_msvc()
 {
-    printf("fast_div_verify():\n\n");
+    printf("fast_div_verify_msvc():\n\n");
     //for (uint32_t d = 0; d < (uint32_t)jstd::kMaxDivTable; d++) {
     for (uint32_t d = 0; d < 32; d++) {
         if ((d & (d - 1)) != 0) {
@@ -402,9 +402,9 @@ void fast_div_verify()
     printf("\n\n");
 }
 
-void fast_div_verify_msvc()
+void fast_div_verify()
 {
-    printf("fast_div_verify_msvc():\n\n");
+    printf("fast_div_verify():\n\n");
     //for (uint32_t d = 0; d < (uint32_t)jstd::kMaxDivTable; d++) {
     for (uint32_t d = 0; d < 32; d++) {
         if ((d & (d - 1)) != 0) {
@@ -487,7 +487,15 @@ void fast_mod_verify()
                     }
                 }
             }
+            if (errors != 0) {
+                printf("d = %-4u : first_err = 0x%08X, errors = %u, no_errors = %u\n",
+                       d, first_err, errors, no_errors);
+            }
+            else {
+                printf("d = %-4u : no errors\n", d);
+            }
 
+            first_err = 0; errors = 0; no_errors = 0;
             first_n = 0x7FFFFFFFul - 1000;
             // Round to N times of d
             first_n = first_n - first_n % d;
