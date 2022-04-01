@@ -1,4 +1,8 @@
 
+#if defined(_MSC_VER)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -464,7 +468,7 @@ int main(int argn, char * argv[])
 {
 #ifdef _DEBUG
     jstd::genDivRatioTbl();
-    //jstd::genModRatioTbl();
+    jstd::genModRatioTbl();
 #endif
 
     //rotate_test();

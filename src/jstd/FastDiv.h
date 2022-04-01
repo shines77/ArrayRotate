@@ -6,6 +6,10 @@
 #pragma once
 #endif
 
+#if defined(_MSC_VER)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -714,6 +718,265 @@ static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
     { 0x80808081, 0x00000000,  8, 0 }, { 0x80402010, 0x7D84704D,  8, 0 },
 };
 
+static const DivRatio32 div_ratio_tbl32_64[kMaxDivTable] = {
+    { 0x00000000, 0x00000000, 32, 0 }, { 0xFFFFFFFF, 0xFFFFFFFF, 32, 0 },
+    { 0x80000000, 0x00000000, 32, 0 }, { 0xAAAAAAAB, 0x00000000, 33, 0 },
+    { 0x40000000, 0x00000000, 32, 0 }, { 0xCCCCCCCD, 0x00000000, 34, 0 },
+    { 0xAAAAAAAB, 0x00000000, 34, 0 }, { 0x92492492, 0x6938A379, 34, 0 },
+    { 0x20000000, 0x00000000, 32, 0 }, { 0xE38E38E4, 0x00000000, 35, 0 },
+    { 0xCCCCCCCD, 0x00000000, 35, 0 }, { 0xBA2E8BA3, 0x00000000, 35, 0 },
+    { 0xAAAAAAAB, 0x00000000, 35, 0 }, { 0x9D89D89E, 0x00000000, 35, 0 },
+    { 0x92492492, 0x6938A379, 35, 0 }, { 0x88888889, 0x00000000, 35, 0 },
+    { 0x10000000, 0x00000000, 32, 0 }, { 0xF0F0F0F1, 0x00000000, 36, 0 },
+    { 0xE38E38E4, 0x00000000, 36, 0 }, { 0xD79435E5, 0xCD4F851E, 36, 0 },
+    { 0xCCCCCCCD, 0x00000000, 36, 0 }, { 0xC30C30C3, 0xBABC231B, 36, 0 },
+    { 0xBA2E8BA3, 0x00000000, 36, 0 }, { 0xB21642C9, 0x00000000, 36, 0 },
+    { 0xAAAAAAAB, 0x00000000, 36, 0 }, { 0xA3D70A3E, 0x00000000, 36, 0 },
+    { 0x9D89D89E, 0x00000000, 36, 0 }, { 0x97B425ED, 0x92D7F561, 36, 0 },
+    { 0x92492492, 0x6938A379, 36, 0 }, { 0x8D3DCB09, 0x00000000, 36, 0 },
+    { 0x88888889, 0x00000000, 36, 0 }, { 0x84210842, 0x7C43E63C, 36, 0 },
+    { 0x08000000, 0x00000000, 32, 0 }, { 0xF83E0F84, 0x00000000, 37, 0 },
+    { 0xF0F0F0F1, 0x00000000, 37, 0 }, { 0xEA0EA0EA, 0xDDDA4EB3, 37, 0 },
+    { 0xE38E38E4, 0x00000000, 37, 0 }, { 0xDD67C8A6, 0xD28B661F, 37, 0 },
+    { 0xD79435E5, 0xCD4F851E, 37, 0 }, { 0xD20D20D2, 0xC8546773, 37, 0 },
+    { 0xCCCCCCCD, 0x00000000, 37, 0 }, { 0xC7CE0C7D, 0x00000000, 37, 0 },
+    { 0xC30C30C3, 0xBABC231B, 37, 0 }, { 0xBE82FA0C, 0x00000000, 37, 0 },
+    { 0xBA2E8BA3, 0x00000000, 37, 0 }, { 0xB60B60B6, 0xAEDD20C4, 37, 0 },
+    { 0xB21642C9, 0x00000000, 37, 0 }, { 0xAE4C415D, 0x00000000, 37, 0 },
+    { 0xAAAAAAAB, 0x00000000, 37, 0 }, { 0xA72F053A, 0x00000000, 37, 0 },
+    { 0xA3D70A3E, 0x00000000, 37, 0 }, { 0xA0A0A0A1, 0x00000000, 37, 0 },
+    { 0x9D89D89E, 0x00000000, 37, 0 }, { 0x9A90E7D9, 0x63EDACBA, 37, 0 },
+    { 0x97B425ED, 0x92D7F561, 37, 0 }, { 0x94F2094F, 0x82BBC707, 37, 0 },
+    { 0x92492492, 0x6938A379, 37, 0 }, { 0x8FB823EE, 0x8B652757, 37, 0 },
+    { 0x8D3DCB09, 0x00000000, 37, 0 }, { 0x8AD8F2FC, 0x00000000, 37, 0 },
+    { 0x88888889, 0x00000000, 37, 0 }, { 0x864B8A7E, 0x00000000, 37, 0 },
+    { 0x84210842, 0x7C43E63C, 37, 0 }, { 0x82082082, 0x7E8DCE43, 37, 0 },
+    { 0x04000000, 0x00000000, 32, 0 }, { 0xFC0FC0FD, 0x00000000, 38, 0 },
+    { 0xF83E0F84, 0x00000000, 38, 0 }, { 0xF4898D60, 0x00000000, 38, 0 },
+    { 0xF0F0F0F1, 0x00000000, 38, 0 }, { 0xED7303B6, 0x00000000, 38, 0 },
+    { 0xEA0EA0EA, 0xDDDA4EB3, 38, 0 }, { 0xE6C2B449, 0x00000000, 38, 0 },
+    { 0xE38E38E4, 0x00000000, 38, 0 }, { 0xE070381C, 0xD54339EE, 38, 0 },
+    { 0xDD67C8A6, 0xD28B661F, 38, 0 }, { 0xDA740DA8, 0x00000000, 38, 0 },
+    { 0xD79435E5, 0xCD4F851E, 38, 0 }, { 0xD4C77B04, 0x00000000, 38, 0 },
+    { 0xD20D20D2, 0xC8546773, 38, 0 }, { 0xCF6474A9, 0x00000000, 38, 0 },
+    { 0xCCCCCCCD, 0x00000000, 38, 0 }, { 0xCA4587E7, 0x00000000, 38, 0 },
+    { 0xC7CE0C7D, 0x00000000, 38, 0 }, { 0xC565C87C, 0x00000000, 38, 0 },
+    { 0xC30C30C3, 0xBABC231B, 38, 0 }, { 0xC0C0C0C1, 0x00000000, 38, 0 },
+    { 0xBE82FA0C, 0x00000000, 38, 0 }, { 0xBC52640C, 0x00000000, 38, 0 },
+    { 0xBA2E8BA3, 0x00000000, 38, 0 }, { 0xB81702E1, 0x00000000, 38, 0 },
+    { 0xB60B60B6, 0xAEDD20C4, 38, 0 }, { 0xB40B40B4, 0xAD07B581, 38, 0 },
+    { 0xB21642C9, 0x00000000, 38, 0 }, { 0xB02C0B03, 0x00000000, 38, 0 },
+    { 0xAE4C415D, 0x00000000, 38, 0 }, { 0xAC769184, 0xA6105A53, 38, 0 },
+    { 0xAAAAAAAB, 0x00000000, 38, 0 }, { 0xA8E83F57, 0x9A147822, 38, 0 },
+    { 0xA72F053A, 0x00000000, 38, 0 }, { 0xA57EB503, 0x00000000, 38, 0 },
+    { 0xA3D70A3E, 0x00000000, 38, 0 }, { 0xA237C32B, 0x9492E7F8, 38, 0 },
+    { 0xA0A0A0A1, 0x00000000, 38, 0 }, { 0x9F1165E7, 0x88B2B6BA, 38, 0 },
+    { 0x9D89D89E, 0x00000000, 38, 0 }, { 0x9C09C09C, 0x96DFBA90, 38, 0 },
+    { 0x9A90E7D9, 0x63EDACBA, 38, 0 }, { 0x991F1A51, 0x64F046A0, 38, 0 },
+    { 0x97B425ED, 0x92D7F561, 38, 0 }, { 0x964FDA6C, 0x918C2473, 38, 0 },
+    { 0x94F2094F, 0x82BBC707, 38, 0 }, { 0x939A85C4, 0x8F05C78A, 38, 0 },
+    { 0x92492492, 0x6938A379, 38, 0 }, { 0x90FDBC09, 0x88BBFEE9, 38, 0 },
+    { 0x8FB823EE, 0x8B652757, 38, 0 }, { 0x8E78356D, 0x840838CF, 38, 0 },
+    { 0x8D3DCB09, 0x00000000, 38, 0 }, { 0x8C08C08C, 0x87F26399, 38, 0 },
+    { 0x8AD8F2FC, 0x00000000, 38, 0 }, { 0x89AE408A, 0x00000000, 38, 0 },
+    { 0x88888889, 0x00000000, 38, 0 }, { 0x8767AB5F, 0x6C1B1206, 38, 0 },
+    { 0x864B8A7E, 0x00000000, 38, 0 }, { 0x85340853, 0x644C351D, 38, 0 },
+    { 0x84210842, 0x7C43E63C, 38, 0 }, { 0x83126E98, 0x00000000, 38, 0 },
+    { 0x82082082, 0x7E8DCE43, 38, 0 }, { 0x81020408, 0x7986C493, 38, 0 },
+    { 0x02000000, 0x00000000, 32, 0 }, { 0xFE03F810, 0x00000000, 39, 0 },
+    { 0xFC0FC0FD, 0x00000000, 39, 0 }, { 0xFA232CF3, 0x00000000, 39, 0 },
+    { 0xF83E0F84, 0x00000000, 39, 0 }, { 0xF6603D99, 0x00000000, 39, 0 },
+    { 0xF4898D60, 0x00000000, 39, 0 }, { 0xF2B9D649, 0x00000000, 39, 0 },
+    { 0xF0F0F0F1, 0x00000000, 39, 0 }, { 0xEF2EB720, 0x00000000, 39, 0 },
+    { 0xED7303B6, 0x00000000, 39, 0 }, { 0xEBBDB2A6, 0x00000000, 39, 0 },
+    { 0xEA0EA0EA, 0xDDDA4EB3, 39, 0 }, { 0xE865AC7C, 0x00000000, 39, 0 },
+    { 0xE6C2B449, 0x00000000, 39, 0 }, { 0xE525982B, 0x00000000, 39, 0 },
+    { 0xE38E38E4, 0x00000000, 39, 0 }, { 0xE1FC780F, 0x00000000, 39, 0 },
+    { 0xE070381C, 0xD54339EE, 39, 0 }, { 0xDEE95C4D, 0x00000000, 39, 0 },
+    { 0xDD67C8A6, 0xD28B661F, 39, 0 }, { 0xDBEB61EF, 0x00000000, 39, 0 },
+    { 0xDA740DA8, 0x00000000, 39, 0 }, { 0xD901B204, 0x00000000, 39, 0 },
+    { 0xD79435E5, 0xCD4F851E, 39, 0 }, { 0xD62B80D7, 0x00000000, 39, 0 },
+    { 0xD4C77B04, 0x00000000, 39, 0 }, { 0xD3680D37, 0x00000000, 39, 0 },
+    { 0xD20D20D2, 0xC8546773, 39, 0 }, { 0xD0B69FCC, 0x00000000, 39, 0 },
+    { 0xCF6474A9, 0x00000000, 39, 0 }, { 0xCE168A77, 0xB14E95CC, 39, 0 },
+    { 0xCCCCCCCD, 0x00000000, 39, 0 }, { 0xCB8727C1, 0x00000000, 39, 0 },
+    { 0xCA4587E7, 0x00000000, 39, 0 }, { 0xC907DA4F, 0x00000000, 39, 0 },
+    { 0xC7CE0C7D, 0x00000000, 39, 0 }, { 0xC6980C6A, 0x00000000, 39, 0 },
+    { 0xC565C87C, 0x00000000, 39, 0 }, { 0xC4372F86, 0x00000000, 39, 0 },
+    { 0xC30C30C3, 0xBABC231B, 39, 0 }, { 0xC1E4BBD6, 0x00000000, 39, 0 },
+    { 0xC0C0C0C1, 0x00000000, 39, 0 }, { 0xBFA02FE8, 0xB79E7355, 39, 0 },
+    { 0xBE82FA0C, 0x00000000, 39, 0 }, { 0xBD691047, 0xB8E21937, 39, 0 },
+    { 0xBC52640C, 0x00000000, 39, 0 }, { 0xBB3EE722, 0x00000000, 39, 0 },
+    { 0xBA2E8BA3, 0x00000000, 39, 0 }, { 0xB92143FA, 0x924F6831, 39, 0 },
+    { 0xB81702E1, 0x00000000, 39, 0 }, { 0xB70FBB5A, 0xA5917DE9, 39, 0 },
+    { 0xB60B60B6, 0xAEDD20C4, 39, 0 }, { 0xB509E68B, 0x00000000, 39, 0 },
+    { 0xB40B40B4, 0xAD07B581, 39, 0 }, { 0xB30F6353, 0x00000000, 39, 0 },
+    { 0xB21642C9, 0x00000000, 39, 0 }, { 0xB11FD3B8, 0xAA59B97B, 39, 0 },
+    { 0xB02C0B03, 0x00000000, 39, 0 }, { 0xAF3ADDC7, 0x00000000, 39, 0 },
+    { 0xAE4C415D, 0x00000000, 39, 0 }, { 0xAD602B58, 0xA6E766FE, 39, 0 },
+    { 0xAC769184, 0xA6105A53, 39, 0 }, { 0xAB8F69E3, 0x00000000, 39, 0 },
+    { 0xAAAAAAAB, 0x00000000, 39, 0 }, { 0xA9C84A48, 0x00000000, 39, 0 },
+    { 0xA8E83F57, 0x9A147822, 39, 0 }, { 0xA80A80A8, 0xA1FCBBC9, 39, 0 },
+    { 0xA72F053A, 0x00000000, 39, 0 }, { 0xA655C439, 0x899D6569, 39, 0 },
+    { 0xA57EB503, 0x00000000, 39, 0 }, { 0xA4A9CF1E, 0x00000000, 39, 0 },
+    { 0xA3D70A3E, 0x00000000, 39, 0 }, { 0xA3065E40, 0x00000000, 39, 0 },
+    { 0xA237C32B, 0x9492E7F8, 39, 0 }, { 0xA16B312F, 0x00000000, 39, 0 },
+    { 0xA0A0A0A1, 0x00000000, 39, 0 }, { 0x9FD809FE, 0x00000000, 39, 0 },
+    { 0x9F1165E7, 0x88B2B6BA, 39, 0 }, { 0x9E4CAD24, 0x00000000, 39, 0 },
+    { 0x9D89D89E, 0x00000000, 39, 0 }, { 0x9CC8E161, 0x00000000, 39, 0 },
+    { 0x9C09C09C, 0x96DFBA90, 39, 0 }, { 0x9B4C6F9F, 0x00000000, 39, 0 },
+    { 0x9A90E7D9, 0x63EDACBA, 39, 0 }, { 0x99D722DB, 0x00000000, 39, 0 },
+    { 0x991F1A51, 0x64F046A0, 39, 0 }, { 0x9868C80A, 0x00000000, 39, 0 },
+    { 0x97B425ED, 0x92D7F561, 39, 0 }, { 0x97012E02, 0x617B421C, 39, 0 },
+    { 0x964FDA6C, 0x918C2473, 39, 0 }, { 0x95A02568, 0x90E86F18, 39, 0 },
+    { 0x94F2094F, 0x82BBC707, 39, 0 }, { 0x94458094, 0x6CC213BC, 39, 0 },
+    { 0x939A85C4, 0x8F05C78A, 39, 0 }, { 0x92F11384, 0x910A6ACE, 39, 0 },
+    { 0x92492492, 0x6938A379, 39, 0 }, { 0x91A2B3C5, 0x00000000, 39, 0 },
+    { 0x90FDBC09, 0x88BBFEE9, 39, 0 }, { 0x905A3863, 0x6E19513E, 39, 0 },
+    { 0x8FB823EE, 0x8B652757, 39, 0 }, { 0x8F1779DA, 0x00000000, 39, 0 },
+    { 0x8E78356D, 0x840838CF, 39, 0 }, { 0x8DDA5202, 0x6FDBA647, 39, 0 },
+    { 0x8D3DCB09, 0x00000000, 39, 0 }, { 0x8CA29C04, 0x55CF000B, 39, 0 },
+    { 0x8C08C08C, 0x87F26399, 39, 0 }, { 0x8B70344A, 0x817481AD, 39, 0 },
+    { 0x8AD8F2FC, 0x00000000, 39, 0 }, { 0x8A42F870, 0x5C484869, 39, 0 },
+    { 0x89AE408A, 0x00000000, 39, 0 }, { 0x891AC73B, 0x00000000, 39, 0 },
+    { 0x88888889, 0x00000000, 39, 0 }, { 0x87F78088, 0x00000000, 39, 0 },
+    { 0x8767AB5F, 0x6C1B1206, 39, 0 }, { 0x86D90545, 0x00000000, 39, 0 },
+    { 0x864B8A7E, 0x00000000, 39, 0 }, { 0x85BF3761, 0x6EF112D9, 39, 0 },
+    { 0x85340853, 0x644C351D, 39, 0 }, { 0x84A9F9C8, 0x8107CD41, 39, 0 },
+    { 0x84210842, 0x7C43E63C, 39, 0 }, { 0x83993052, 0x637D2B38, 39, 0 },
+    { 0x83126E98, 0x00000000, 39, 0 }, { 0x828CBFBF, 0x00000000, 39, 0 },
+    { 0x82082082, 0x7E8DCE43, 39, 0 }, { 0x81848DA9, 0x00000000, 39, 0 },
+    { 0x81020408, 0x7986C493, 39, 0 }, { 0x80808081, 0x00000000, 39, 0 },
+    { 0x01000000, 0x00000000, 32, 0 }, { 0xFF00FF01, 0x00000000, 40, 0 },
+    { 0xFE03F810, 0x00000000, 40, 0 }, { 0xFD08E551, 0x00000000, 40, 0 },
+    { 0xFC0FC0FD, 0x00000000, 40, 0 }, { 0xFB188566, 0x00000000, 40, 0 },
+    { 0xFA232CF3, 0x00000000, 40, 0 }, { 0xF92FB222, 0x00000000, 40, 0 },
+    { 0xF83E0F84, 0x00000000, 40, 0 }, { 0xF74E3FC3, 0x00000000, 40, 0 },
+    { 0xF6603D99, 0x00000000, 40, 0 }, { 0xF57403D6, 0x00000000, 40, 0 },
+    { 0xF4898D60, 0x00000000, 40, 0 }, { 0xF3A0D52D, 0x00000000, 40, 0 },
+    { 0xF2B9D649, 0x00000000, 40, 0 }, { 0xF1D48BCF, 0x00000000, 40, 0 },
+    { 0xF0F0F0F1, 0x00000000, 40, 0 }, { 0xF00F00F0, 0xE330853B, 40, 0 },
+    { 0xEF2EB720, 0x00000000, 40, 0 }, { 0xEE500EE5, 0xEE500EE5, 40, 0 },
+    { 0xED7303B6, 0x00000000, 40, 0 }, { 0xEC979119, 0x00000000, 40, 0 },
+    { 0xEBBDB2A6, 0x00000000, 40, 0 }, { 0xEAE56404, 0x00000000, 40, 0 },
+    { 0xEA0EA0EA, 0xDDDA4EB3, 40, 0 }, { 0xE9396520, 0x00000000, 40, 0 },
+    { 0xE865AC7C, 0x00000000, 40, 0 }, { 0xE79372E3, 0x00000000, 40, 0 },
+    { 0xE6C2B449, 0x00000000, 40, 0 }, { 0xE5F36CB0, 0xDA30EB69, 40, 0 },
+    { 0xE525982B, 0x00000000, 40, 0 }, { 0xE45932D8, 0x00000000, 40, 0 },
+    { 0xE38E38E4, 0x00000000, 40, 0 }, { 0xE2C4A689, 0x00000000, 40, 0 },
+    { 0xE1FC780F, 0x00000000, 40, 0 }, { 0xE135A9CA, 0x00000000, 40, 0 },
+    { 0xE070381C, 0xD54339EE, 40, 0 }, { 0xDFAC1F75, 0x00000000, 40, 0 },
+    { 0xDEE95C4D, 0x00000000, 40, 0 }, { 0xDE27EB2D, 0x00000000, 40, 0 },
+    { 0xDD67C8A6, 0xD28B661F, 40, 0 }, { 0xDCA8F159, 0x00000000, 40, 0 },
+    { 0xDBEB61EF, 0x00000000, 40, 0 }, { 0xDB2F171E, 0x00000000, 40, 0 },
+    { 0xDA740DA8, 0x00000000, 40, 0 }, { 0xD9BA4257, 0x00000000, 40, 0 },
+    { 0xD901B204, 0x00000000, 40, 0 }, { 0xD84A598F, 0x00000000, 40, 0 },
+    { 0xD79435E5, 0xCD4F851E, 40, 0 }, { 0xD6DF43FD, 0x00000000, 40, 0 },
+    { 0xD62B80D7, 0x00000000, 40, 0 }, { 0xD578E97D, 0x00000000, 40, 0 },
+    { 0xD4C77B04, 0x00000000, 40, 0 }, { 0xD417328A, 0x00000000, 40, 0 },
+    { 0xD3680D37, 0x00000000, 40, 0 }, { 0xD2BA083C, 0x00000000, 40, 0 },
+    { 0xD20D20D2, 0xC8546773, 40, 0 }, { 0xD161543E, 0xB0FAD4B7, 40, 0 },
+    { 0xD0B69FCC, 0x00000000, 40, 0 }, { 0xD00D00D0, 0xC685FCD0, 40, 0 },
+    { 0xCF6474A9, 0x00000000, 40, 0 }, { 0xCEBCF8BC, 0x00000000, 40, 0 },
+    { 0xCE168A77, 0xB14E95CC, 40, 0 }, { 0xCD712753, 0x00000000, 40, 0 },
+    { 0xCCCCCCCD, 0x00000000, 40, 0 }, { 0xCC29786D, 0x00000000, 40, 0 },
+    { 0xCB8727C1, 0x00000000, 40, 0 }, { 0xCAE5D85F, 0xB5ED2BA7, 40, 0 },
+    { 0xCA4587E7, 0x00000000, 40, 0 }, { 0xC9A633FD, 0x00000000, 40, 0 },
+    { 0xC907DA4F, 0x00000000, 40, 0 }, { 0xC86A7890, 0xBF9C97F0, 40, 0 },
+    { 0xC7CE0C7D, 0x00000000, 40, 0 }, { 0xC73293D8, 0x00000000, 40, 0 },
+    { 0xC6980C6A, 0x00000000, 40, 0 }, { 0xC5FE7403, 0xB470D0E2, 40, 0 },
+    { 0xC565C87C, 0x00000000, 40, 0 }, { 0xC4CE07B0, 0xBC552EF4, 40, 0 },
+    { 0xC4372F86, 0x00000000, 40, 0 }, { 0xC3A13DE6, 0xC11AAB3C, 40, 0 },
+    { 0xC30C30C3, 0xBABC231B, 40, 0 }, { 0xC2780614, 0x00000000, 40, 0 },
+    { 0xC1E4BBD6, 0x00000000, 40, 0 }, { 0xC152500C, 0xB252122F, 40, 0 },
+    { 0xC0C0C0C1, 0x00000000, 40, 0 }, { 0xC0300C03, 0xC0300C03, 40, 0 },
+    { 0xBFA02FE8, 0xB79E7355, 40, 0 }, { 0xBF112A8B, 0x00000000, 40, 0 },
+    { 0xBE82FA0C, 0x00000000, 40, 0 }, { 0xBDF59C92, 0x00000000, 40, 0 },
+    { 0xBD691047, 0xB8E21937, 40, 0 }, { 0xBCDD535E, 0x00000000, 40, 0 },
+    { 0xBC52640C, 0x00000000, 40, 0 }, { 0xBBC8408D, 0x00000000, 40, 0 },
+    { 0xBB3EE722, 0x00000000, 40, 0 }, { 0xBAB65610, 0xB3227A96, 40, 0 },
+    { 0xBA2E8BA3, 0x00000000, 40, 0 }, { 0xB9A7862A, 0xAF031970, 40, 0 },
+    { 0xB92143FA, 0x924F6831, 40, 0 }, { 0xB89BC36D, 0x00000000, 40, 0 },
+    { 0xB81702E1, 0x00000000, 40, 0 }, { 0xB79300B8, 0x00000000, 40, 0 },
+    { 0xB70FBB5A, 0xA5917DE9, 40, 0 }, { 0xB68D3134, 0xAD4B5657, 40, 0 },
+    { 0xB60B60B6, 0xAEDD20C4, 40, 0 }, { 0xB58A4855, 0xA4D8D637, 40, 0 },
+    { 0xB509E68B, 0x00000000, 40, 0 }, { 0xB48A39D4, 0x83B504FE, 40, 0 },
+    { 0xB40B40B4, 0xAD07B581, 40, 0 }, { 0xB38CF9B0, 0xAC93E567, 40, 0 },
+    { 0xB30F6353, 0x00000000, 40, 0 }, { 0xB2927C2A, 0x00000000, 40, 0 },
+    { 0xB21642C9, 0x00000000, 40, 0 }, { 0xB19AB5C5, 0x00000000, 40, 0 },
+    { 0xB11FD3B8, 0xAA59B97B, 40, 0 }, { 0xB0A59B42, 0x00000000, 40, 0 },
+    { 0xB02C0B03, 0x00000000, 40, 0 }, { 0xAFB321A1, 0x7E2D29EB, 40, 0 },
+    { 0xAF3ADDC7, 0x00000000, 40, 0 }, { 0xAEC33E20, 0x00000000, 40, 0 },
+    { 0xAE4C415D, 0x00000000, 40, 0 }, { 0xADD5E632, 0x835C737D, 40, 0 },
+    { 0xAD602B58, 0xA6E766FE, 40, 0 }, { 0xACEB0F89, 0x99406AC6, 40, 0 },
+    { 0xAC769184, 0xA6105A53, 40, 0 }, { 0xAC02B00B, 0x00000000, 40, 0 },
+    { 0xAB8F69E3, 0x00000000, 40, 0 }, { 0xAB1CBDD4, 0x00000000, 40, 0 },
+    { 0xAAAAAAAB, 0x00000000, 40, 0 }, { 0xAA392F36, 0x00000000, 40, 0 },
+    { 0xA9C84A48, 0x00000000, 40, 0 }, { 0xA957FAB5, 0x7FBEBBEA, 40, 0 },
+    { 0xA8E83F57, 0x9A147822, 40, 0 }, { 0xA8791709, 0x00000000, 40, 0 },
+    { 0xA80A80A8, 0xA1FCBBC9, 40, 0 }, { 0xA79C7B17, 0x00000000, 40, 0 },
+    { 0xA72F053A, 0x00000000, 40, 0 }, { 0xA6C21DF7, 0x00000000, 40, 0 },
+    { 0xA655C439, 0x899D6569, 40, 0 }, { 0xA5E9F6ED, 0x84B87B30, 40, 0 },
+    { 0xA57EB503, 0x00000000, 40, 0 }, { 0xA513FD6C, 0x00000000, 40, 0 },
+    { 0xA4A9CF1E, 0x00000000, 40, 0 }, { 0xA4402910, 0x9E7C440F, 40, 0 },
+    { 0xA3D70A3E, 0x00000000, 40, 0 }, { 0xA36E71A3, 0x00000000, 40, 0 },
+    { 0xA3065E40, 0x00000000, 40, 0 }, { 0xA29ECF16, 0x7D808D12, 40, 0 },
+    { 0xA237C32B, 0x9492E7F8, 40, 0 }, { 0xA1D13986, 0x00000000, 40, 0 },
+    { 0xA16B312F, 0x00000000, 40, 0 }, { 0xA105A933, 0x00000000, 40, 0 },
+    { 0xA0A0A0A1, 0x00000000, 40, 0 }, { 0xA03C1689, 0x00000000, 40, 0 },
+    { 0x9FD809FE, 0x00000000, 40, 0 }, { 0x9F747A15, 0x83EE395A, 40, 0 },
+    { 0x9F1165E7, 0x88B2B6BA, 40, 0 }, { 0x9EAECC8D, 0x6B9B44DA, 40, 0 },
+    { 0x9E4CAD24, 0x00000000, 40, 0 }, { 0x9DEB06C9, 0x8F1B2825, 40, 0 },
+    { 0x9D89D89E, 0x00000000, 40, 0 }, { 0x9D2921C4, 0x00000000, 40, 0 },
+    { 0x9CC8E161, 0x00000000, 40, 0 }, { 0x9C69169B, 0x7FB3C69D, 40, 0 },
+    { 0x9C09C09C, 0x96DFBA90, 40, 0 }, { 0x9BAADE8E, 0x6F55E2DC, 40, 0 },
+    { 0x9B4C6F9F, 0x00000000, 40, 0 }, { 0x9AEE72FD, 0x00000000, 40, 0 },
+    { 0x9A90E7D9, 0x63EDACBA, 40, 0 }, { 0x9A33CD67, 0x9A33CD67, 40, 0 },
+    { 0x99D722DB, 0x00000000, 40, 0 }, { 0x997AE76B, 0x69B92D03, 40, 0 },
+    { 0x991F1A51, 0x64F046A0, 40, 0 }, { 0x98C3BAC7, 0x6A2AF5E7, 40, 0 },
+    { 0x9868C80A, 0x00000000, 40, 0 }, { 0x980E4156, 0x85C3D1B7, 40, 0 },
+    { 0x97B425ED, 0x92D7F561, 40, 0 }, { 0x975A7510, 0x00000000, 40, 0 },
+    { 0x97012E02, 0x617B421C, 40, 0 }, { 0x96A8500A, 0x00000000, 40, 0 },
+    { 0x964FDA6C, 0x918C2473, 40, 0 }, { 0x95F7CC73, 0x00000000, 40, 0 },
+    { 0x95A02568, 0x90E86F18, 40, 0 }, { 0x9548E498, 0x00000000, 40, 0 },
+    { 0x94F2094F, 0x82BBC707, 40, 0 }, { 0x949B92DE, 0x00000000, 40, 0 },
+    { 0x94458094, 0x6CC213BC, 40, 0 }, { 0x93EFD1C5, 0x8C53F355, 40, 0 },
+    { 0x939A85C4, 0x8F05C78A, 40, 0 }, { 0x93459BE7, 0x00000000, 40, 0 },
+    { 0x92F11384, 0x910A6ACE, 40, 0 }, { 0x929CEBF5, 0x00000000, 40, 0 },
+    { 0x92492492, 0x6938A379, 40, 0 }, { 0x91F5BCB9, 0x00000000, 40, 0 },
+    { 0x91A2B3C5, 0x00000000, 40, 0 }, { 0x91500915, 0x91500915, 40, 0 },
+    { 0x90FDBC09, 0x88BBFEE9, 40, 0 }, { 0x90ABCC02, 0x6BB5AEAA, 40, 0 },
+    { 0x905A3863, 0x6E19513E, 40, 0 }, { 0x90090090, 0x8BB0BBF7, 40, 0 },
+    { 0x8FB823EE, 0x8B652757, 40, 0 }, { 0x8F67A1E4, 0x00000000, 40, 0 },
+    { 0x8F1779DA, 0x00000000, 40, 0 }, { 0x8EC7AB3A, 0x00000000, 40, 0 },
+    { 0x8E78356D, 0x840838CF, 40, 0 }, { 0x8E2917E1, 0x00000000, 40, 0 },
+    { 0x8DDA5202, 0x6FDBA647, 40, 0 }, { 0x8D8BE340, 0x00000000, 40, 0 },
+    { 0x8D3DCB09, 0x00000000, 40, 0 }, { 0x8CF008CF, 0x8CF008CF, 40, 0 },
+    { 0x8CA29C04, 0x55CF000B, 40, 0 }, { 0x8C55841D, 0x00000000, 40, 0 },
+    { 0x8C08C08C, 0x87F26399, 40, 0 }, { 0x8BBC50C9, 0x00000000, 40, 0 },
+    { 0x8B70344A, 0x817481AD, 40, 0 }, { 0x8B246A88, 0x00000000, 40, 0 },
+    { 0x8AD8F2FC, 0x00000000, 40, 0 }, { 0x8A8DCD20, 0x00000000, 40, 0 },
+    { 0x8A42F870, 0x5C484869, 40, 0 }, { 0x89F8746A, 0x00000000, 40, 0 },
+    { 0x89AE408A, 0x00000000, 40, 0 }, { 0x89645C4F, 0x4F0836C8, 40, 0 },
+    { 0x891AC73B, 0x00000000, 40, 0 }, { 0x88D180CD, 0x6A5E536A, 40, 0 },
+    { 0x88888889, 0x00000000, 40, 0 }, { 0x883FDDF0, 0x8466044C, 40, 0 },
+    { 0x87F78088, 0x00000000, 40, 0 }, { 0x87AF6FD6, 0x00000000, 40, 0 },
+    { 0x8767AB5F, 0x6C1B1206, 40, 0 }, { 0x872032AC, 0x7DC57D23, 40, 0 },
+    { 0x86D90545, 0x00000000, 40, 0 }, { 0x869222B2, 0x00000000, 40, 0 },
+    { 0x864B8A7E, 0x00000000, 40, 0 }, { 0x86053C34, 0x578CE76F, 40, 0 },
+    { 0x85BF3761, 0x6EF112D9, 40, 0 }, { 0x85797B91, 0x47E3DB8B, 40, 0 },
+    { 0x85340853, 0x644C351D, 40, 0 }, { 0x84EEDD36, 0x00000000, 40, 0 },
+    { 0x84A9F9C8, 0x8107CD41, 40, 0 }, { 0x84655D9C, 0x00000000, 40, 0 },
+    { 0x84210842, 0x7C43E63C, 40, 0 }, { 0x83DCF94E, 0x00000000, 40, 0 },
+    { 0x83993052, 0x637D2B38, 40, 0 }, { 0x8355ACE4, 0x00000000, 40, 0 },
+    { 0x83126E98, 0x00000000, 40, 0 }, { 0x82CF7504, 0x00000000, 40, 0 },
+    { 0x828CBFBF, 0x00000000, 40, 0 }, { 0x824A4E61, 0x00000000, 40, 0 },
+    { 0x82082082, 0x7E8DCE43, 40, 0 }, { 0x81C635BC, 0x792C010D, 40, 0 },
+    { 0x81848DA9, 0x00000000, 40, 0 }, { 0x814327E4, 0x00000000, 40, 0 },
+    { 0x81020408, 0x7986C493, 40, 0 }, { 0x80C121B3, 0x00000000, 40, 0 },
+    { 0x80808081, 0x00000000, 40, 0 }, { 0x80402010, 0x7CE0472D, 40, 0 },
+};
+
 static const DivRatio64 div_ratio_tbl64[kMaxDivTable] = {
     { 0x0000000000000000ull,  0, 0 }, { 0xFFFFFFFFFFFFFFFFull,  0, 0 },
     { 0xFFFFFFFFFFFFFFFFull,  1, 0 }, { 0xAAAAAAAAAAAAAAABull,  1, 0 },
@@ -1084,7 +1347,10 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
     }
     divRatio.mul = multi;
     divRatio.add = add;
-    divRatio.shift = shift;
+    if (version == 64)
+        divRatio.shift = 32 + shift;
+    else
+        divRatio.shift = shift;
     divRatio.reserve = 0;
     return divRatio;
 }
@@ -1132,20 +1398,25 @@ void genDivRatioTbl_u32_v1()
         divRatioTbl[n] = preComputeDiv_u32_v1(n);
     }
 
-    printf("\n");
-    printf("static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {\n");
+    FILE * fp = fopen("div_ratio_tbl32_v1.h", "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "\n");
+    fprintf(fp, "static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
         if ((n % 4) == 0) {
-            printf("    ");
+            fprintf(fp, "    ");
         }
-        printf("{ 0x%08X, %2u },", divRatioTbl[n].mul, divRatioTbl[n].shift);
+        fprintf(fp, "{ 0x%08X, %2u },", divRatioTbl[n].mul, divRatioTbl[n].shift);
         if ((n % 4) == 3) {
-            printf("\n");
+            fprintf(fp, "\n");
         } else {
-            printf(" ");
+            fprintf(fp, " ");
         }
     }
-    printf("};\n\n");
+    fprintf(fp, "};\n\n");
+
+    fclose(fp);
 }
 
 static inline
@@ -1156,22 +1427,27 @@ void genDivRatioTbl_u32_v2()
         divRatioTbl[n] = preComputeDiv_u32<2>(n);
     }
 
-    printf("\n");
-    printf("static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {\n");
+    FILE * fp = fopen("div_ratio_tbl32_v2.h", "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "\n");
+    fprintf(fp, "static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
         if ((n % 2) == 0) {
-            printf("    ");
+            fprintf(fp, "    ");
         }
-        printf("{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
-                                              divRatioTbl[n].add,
-                                              divRatioTbl[n].shift);
+        fprintf(fp, "{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
+                                                   divRatioTbl[n].add,
+                                                   divRatioTbl[n].shift);
         if ((n % 2) == 1) {
-            printf("\n");
+            fprintf(fp, "\n");
         } else {
-            printf(" ");
+            fprintf(fp, " ");
         }
     }
-    printf("};\n\n");
+    fprintf(fp, "};\n\n");
+
+    fclose(fp);
 }
 
 static inline
@@ -1182,22 +1458,58 @@ void genDivRatioTbl_u32()
         divRatioTbl[n] = preComputeDiv_u32<0>(n);
     }
 
-    printf("\n");
-    printf("static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {\n");
+    FILE * fp = fopen("div_ratio_tbl32.h", "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "\n");
+    fprintf(fp, "static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
         if ((n % 2) == 0) {
-            printf("    ");
+            fprintf(fp, "    ");
         }
-        printf("{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
-                                              divRatioTbl[n].add,
-                                              divRatioTbl[n].shift);
+        fprintf(fp, "{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
+                                                   divRatioTbl[n].add,
+                                                   divRatioTbl[n].shift);
         if ((n % 2) == 1) {
-            printf("\n");
+            fprintf(fp, "\n");
         } else {
-            printf(" ");
+            fprintf(fp, " ");
         }
     }
-    printf("};\n\n");
+    fprintf(fp, "};\n\n");
+
+    fclose(fp);
+}
+
+static inline
+void genDivRatioTbl_u32_x64()
+{
+    DivRatio32 divRatioTbl[kMaxDivTable];
+    for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
+        divRatioTbl[n] = preComputeDiv_u32<64>(n);
+    }
+
+    FILE * fp = fopen("div_ratio_tbl32_64.h", "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "\n");
+    fprintf(fp, "static const DivRatio32 div_ratio_tbl32_64[kMaxDivTable] = {\n");
+    for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
+        if ((n % 2) == 0) {
+            fprintf(fp, "    ");
+        }
+        fprintf(fp, "{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
+                                                   divRatioTbl[n].add,
+                                                   divRatioTbl[n].shift);
+        if ((n % 2) == 1) {
+            fprintf(fp, "\n");
+        } else {
+            fprintf(fp, " ");
+        }
+    }
+    fprintf(fp, "};\n\n");
+
+    fclose(fp);
 }
 
 static inline
@@ -1208,31 +1520,37 @@ void genDivRatioTbl_u64()
         divRatioTbl[n] = preComputeDiv_u64(n);
     }
 
-    printf("\n");
-    printf("static const DivRatio64 div_ratio_tbl64[kMaxDivTable] = {\n");
+    FILE * fp = fopen("div_ratio_tbl64.h", "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "\n");
+    fprintf(fp, "static const DivRatio64 div_ratio_tbl64[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
         if ((n % 2) == 0) {
-            printf("    ");
+            fprintf(fp, "    ");
         }
-        printf("{ 0x%08X%08Xull, %2u, 0 },", (uint32_t)(divRatioTbl[n].mul >> 32u),
-                                             (uint32_t)(divRatioTbl[n].mul & 0xFFFFFFFFul),
-                                             divRatioTbl[n].shift);
+        fprintf(fp, "{ 0x%08X%08Xull, %2u, 0 },", (uint32_t)(divRatioTbl[n].mul >> 32u),
+                                                  (uint32_t)(divRatioTbl[n].mul & 0xFFFFFFFFul),
+                                                  divRatioTbl[n].shift);
         if ((n % 2) == 1) {
-            printf("\n");
+            fprintf(fp, "\n");
         } else {
-            printf(" ");
+            fprintf(fp, " ");
         }
     }
-    printf("};\n\n");
+    fprintf(fp, "};\n\n");
+
+    fclose(fp);
 }
 
 static inline
 void genDivRatioTbl()
 {
-    //genDivRatioTbl_u32_v1();
-    //genDivRatioTbl_u32_v2();
+    genDivRatioTbl_u32_v1();
+    genDivRatioTbl_u32_v2();
     genDivRatioTbl_u32();
-    //genDivRatioTbl_u64();
+    genDivRatioTbl_u32_x64();
+    genDivRatioTbl_u64();
 }
 
 static inline
@@ -1259,6 +1577,23 @@ std::uint32_t fast_div_u32_v2(std::uint32_t value, std::uint32_t divisor)
     }
 }
 
+#if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
+ || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
+
+static inline
+std::uint32_t fast_div_u32(std::uint32_t value, std::uint32_t divisor)
+{
+    if (divisor < kMaxDivTable) {
+        DivRatio32 dt = div_ratio_tbl32_64[divisor];
+        std::uint32_t result = (std::uint32_t)(((std::uint64_t)value * dt.mul + dt.add) >> dt.shift);
+        return result;
+    } else {
+        return (value / divisor);
+    }
+}
+
+#else // !__amd64__
+
 static inline
 std::uint32_t fast_div_u32(std::uint32_t value, std::uint32_t divisor)
 {
@@ -1270,6 +1605,8 @@ std::uint32_t fast_div_u32(std::uint32_t value, std::uint32_t divisor)
         return (value / divisor);
     }
 }
+
+#endif // __amd64__
 
 static inline
 std::uint64_t fast_div_u64(std::uint64_t value, std::uint64_t divisor)

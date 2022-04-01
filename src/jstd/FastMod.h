@@ -6,6 +6,10 @@
 #pragma once
 #endif
 
+#if defined(_MSC_VER)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -316,28 +320,39 @@ ModRatio getModRatio_u32(std::uint32_t divisor)
 }
 
 static inline
-void genModRatioTbl()
+void genModRatioTbl_u32()
 {
     ModRatio modRatioTbl[kMaxModTable];
     for (std::uint32_t n = 0; n < kMaxModTable; n++) {
         modRatioTbl[n] = getModRatio_u32(n);
     }
 
-    printf("\n");
-    printf("static const ModRatio mod_ratio_tbl32[kMaxModTable] = {\n");
+    FILE * fp = fopen("mod_ratio_tbl32.h", "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "\n");
+    fprintf(fp, "static const ModRatio mod_ratio_tbl32[kMaxModTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxModTable; n++) {
         if ((n % 4) == 0) {
-            printf("    ");
+            fprintf(fp, "    ");
         }
-        printf("{ 0x%08X%08Xull },", (uint32_t)(modRatioTbl[n].mul >> 32u),
-                                     (uint32_t)(modRatioTbl[n].mul & 0xFFFFFFFFul));
+        fprintf(fp, "{ 0x%08X%08Xull },", (uint32_t)(modRatioTbl[n].mul >> 32u),
+                                          (uint32_t)(modRatioTbl[n].mul & 0xFFFFFFFFul));
         if ((n % 4) == 3) {
-            printf("\n");
+            fprintf(fp, "\n");
         } else {
-            printf(" ");
+            fprintf(fp, " ");
         }
     }
-    printf("};\n\n");
+    fprintf(fp, "};\n\n");
+
+    fclose(fp);
+}
+
+static inline
+void genModRatioTbl()
+{
+    genModRatioTbl_u32();
 }
 
 static inline
