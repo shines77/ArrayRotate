@@ -323,7 +323,7 @@ void fast_div_verify_fast()
                 printf("d = %-4u : no errors\n", d);
             }
         } else {
-            if (d == 0) {
+            if (d == 0 || d == 1) {
                 printf("d = %-4u : skip\n", d);
                 continue;
             }

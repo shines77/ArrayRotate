@@ -66,15 +66,15 @@ struct DivRatio64 {
 };
 
 static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
-    { 0x00000000,  0 }, { 0x00000000,  0 }, { 0xFFFFFFFF,  1 }, { 0xAAAAAAAB,  1 },
-    { 0x7FFFFFFF,  2 }, { 0xCCCCCCCD,  2 }, { 0xAAAAAAAB,  2 }, { 0x92492493,  2 },
-    { 0x3FFFFFFF,  3 }, { 0xE38E38E4,  3 }, { 0xCCCCCCCD,  3 }, { 0xBA2E8BA3,  3 },
+    { 0x00000000,  0 }, { 0xFFFFFFFF,  0 }, { 0x80000000,  0 }, { 0xAAAAAAAB,  1 },
+    { 0x40000000,  0 }, { 0xCCCCCCCD,  2 }, { 0xAAAAAAAB,  2 }, { 0x92492493,  2 },
+    { 0x20000000,  0 }, { 0xE38E38E4,  3 }, { 0xCCCCCCCD,  3 }, { 0xBA2E8BA3,  3 },
     { 0xAAAAAAAB,  3 }, { 0x9D89D89E,  3 }, { 0x92492493,  3 }, { 0x88888889,  3 },
-    { 0x1FFFFFFF,  4 }, { 0xF0F0F0F1,  4 }, { 0xE38E38E4,  4 }, { 0xD79435E6,  4 },
+    { 0x10000000,  0 }, { 0xF0F0F0F1,  4 }, { 0xE38E38E4,  4 }, { 0xD79435E6,  4 },
     { 0xCCCCCCCD,  4 }, { 0xC30C30C4,  4 }, { 0xBA2E8BA3,  4 }, { 0xB21642C9,  4 },
     { 0xAAAAAAAB,  4 }, { 0xA3D70A3E,  4 }, { 0x9D89D89E,  4 }, { 0x97B425EE,  4 },
     { 0x92492493,  4 }, { 0x8D3DCB09,  4 }, { 0x88888889,  4 }, { 0x84210843,  4 },
-    { 0x0FFFFFFF,  5 }, { 0xF83E0F84,  5 }, { 0xF0F0F0F1,  5 }, { 0xEA0EA0EB,  5 },
+    { 0x08000000,  0 }, { 0xF83E0F84,  5 }, { 0xF0F0F0F1,  5 }, { 0xEA0EA0EB,  5 },
     { 0xE38E38E4,  5 }, { 0xDD67C8A7,  5 }, { 0xD79435E6,  5 }, { 0xD20D20D3,  5 },
     { 0xCCCCCCCD,  5 }, { 0xC7CE0C7D,  5 }, { 0xC30C30C4,  5 }, { 0xBE82FA0C,  5 },
     { 0xBA2E8BA3,  5 }, { 0xB60B60B7,  5 }, { 0xB21642C9,  5 }, { 0xAE4C415D,  5 },
@@ -82,7 +82,7 @@ static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
     { 0x9D89D89E,  5 }, { 0x9A90E7DA,  5 }, { 0x97B425EE,  5 }, { 0x94F20950,  5 },
     { 0x92492493,  5 }, { 0x8FB823EF,  5 }, { 0x8D3DCB09,  5 }, { 0x8AD8F2FC,  5 },
     { 0x88888889,  5 }, { 0x864B8A7E,  5 }, { 0x84210843,  5 }, { 0x82082083,  5 },
-    { 0x07FFFFFF,  6 }, { 0xFC0FC0FD,  6 }, { 0xF83E0F84,  6 }, { 0xF4898D60,  6 },
+    { 0x04000000,  0 }, { 0xFC0FC0FD,  6 }, { 0xF83E0F84,  6 }, { 0xF4898D60,  6 },
     { 0xF0F0F0F1,  6 }, { 0xED7303B6,  6 }, { 0xEA0EA0EB,  6 }, { 0xE6C2B449,  6 },
     { 0xE38E38E4,  6 }, { 0xE070381D,  6 }, { 0xDD67C8A7,  6 }, { 0xDA740DA8,  6 },
     { 0xD79435E6,  6 }, { 0xD4C77B04,  6 }, { 0xD20D20D3,  6 }, { 0xCF6474A9,  6 },
@@ -98,7 +98,7 @@ static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
     { 0x8D3DCB09,  6 }, { 0x8C08C08D,  6 }, { 0x8AD8F2FC,  6 }, { 0x89AE408A,  6 },
     { 0x88888889,  6 }, { 0x8767AB60,  6 }, { 0x864B8A7E,  6 }, { 0x85340854,  6 },
     { 0x84210843,  6 }, { 0x83126E98,  6 }, { 0x82082083,  6 }, { 0x81020409,  6 },
-    { 0x03FFFFFF,  7 }, { 0xFE03F810,  7 }, { 0xFC0FC0FD,  7 }, { 0xFA232CF3,  7 },
+    { 0x02000000,  0 }, { 0xFE03F810,  7 }, { 0xFC0FC0FD,  7 }, { 0xFA232CF3,  7 },
     { 0xF83E0F84,  7 }, { 0xF6603D99,  7 }, { 0xF4898D60,  7 }, { 0xF2B9D649,  7 },
     { 0xF0F0F0F1,  7 }, { 0xEF2EB720,  7 }, { 0xED7303B6,  7 }, { 0xEBBDB2A6,  7 },
     { 0xEA0EA0EB,  7 }, { 0xE865AC7C,  7 }, { 0xE6C2B449,  7 }, { 0xE525982B,  7 },
@@ -130,7 +130,7 @@ static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
     { 0x864B8A7E,  7 }, { 0x85BF3762,  7 }, { 0x85340854,  7 }, { 0x84A9F9C9,  7 },
     { 0x84210843,  7 }, { 0x83993053,  7 }, { 0x83126E98,  7 }, { 0x828CBFBF,  7 },
     { 0x82082083,  7 }, { 0x81848DA9,  7 }, { 0x81020409,  7 }, { 0x80808081,  7 },
-    { 0x01FFFFFF,  8 }, { 0xFF00FF01,  8 }, { 0xFE03F810,  8 }, { 0xFD08E551,  8 },
+    { 0x01000000,  0 }, { 0xFF00FF01,  8 }, { 0xFE03F810,  8 }, { 0xFD08E551,  8 },
     { 0xFC0FC0FD,  8 }, { 0xFB188566,  8 }, { 0xFA232CF3,  8 }, { 0xF92FB222,  8 },
     { 0xF83E0F84,  8 }, { 0xF74E3FC3,  8 }, { 0xF6603D99,  8 }, { 0xF57403D6,  8 },
     { 0xF4898D60,  8 }, { 0xF3A0D52D,  8 }, { 0xF2B9D649,  8 }, { 0xF1D48BCF,  8 },
@@ -198,15 +198,15 @@ static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
 
 
 static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
-    { 0x00000000, 0x00000000,  0, 0 }, { 0x00000000, 0x00000000,  0, 0 },
-    { 0xFFFFFFFF, 0x00000000,  1, 0 }, { 0xAAAAAAAB, 0x00000000,  1, 0 },
-    { 0x7FFFFFFF, 0x00000000,  2, 0 }, { 0xCCCCCCCD, 0x00000000,  2, 0 },
+    { 0x00000000, 0x00000000,  0, 0 }, { 0xFFFFFFFF, 0xFFFFFFFF,  0, 0 },
+    { 0x80000000, 0x00000000,  0, 0 }, { 0xAAAAAAAB, 0x00000000,  1, 0 },
+    { 0x40000000, 0x00000000,  0, 0 }, { 0xCCCCCCCD, 0x00000000,  2, 0 },
     { 0xAAAAAAAB, 0x00000000,  2, 0 }, { 0x92492492, 0x92492492,  2, 0 },
-    { 0x3FFFFFFF, 0x00000000,  3, 0 }, { 0xE38E38E4, 0x00000000,  3, 0 },
+    { 0x20000000, 0x00000000,  0, 0 }, { 0xE38E38E4, 0x00000000,  3, 0 },
     { 0xCCCCCCCD, 0x00000000,  3, 0 }, { 0xBA2E8BA3, 0x00000000,  3, 0 },
     { 0xAAAAAAAB, 0x00000000,  3, 0 }, { 0x9D89D89E, 0x00000000,  3, 0 },
     { 0x92492492, 0x92492492,  3, 0 }, { 0x88888889, 0x00000000,  3, 0 },
-    { 0x1FFFFFFF, 0x00000000,  4, 0 }, { 0xF0F0F0F1, 0x00000000,  4, 0 },
+    { 0x10000000, 0x00000000,  0, 0 }, { 0xF0F0F0F1, 0x00000000,  4, 0 },
     { 0xE38E38E4, 0x00000000,  4, 0 }, { 0xD79435E5, 0xD79435E5,  4, 0 },
     { 0xCCCCCCCD, 0x00000000,  4, 0 }, { 0xC30C30C3, 0xC30C30C3,  4, 0 },
     { 0xBA2E8BA3, 0x00000000,  4, 0 }, { 0xB21642C9, 0x00000000,  4, 0 },
@@ -214,7 +214,7 @@ static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
     { 0x9D89D89E, 0x00000000,  4, 0 }, { 0x97B425ED, 0x97B425ED,  4, 0 },
     { 0x92492492, 0x92492492,  4, 0 }, { 0x8D3DCB09, 0x00000000,  4, 0 },
     { 0x88888889, 0x00000000,  4, 0 }, { 0x84210842, 0x84210842,  4, 0 },
-    { 0x0FFFFFFF, 0x00000000,  5, 0 }, { 0xF83E0F84, 0x00000000,  5, 0 },
+    { 0x08000000, 0x00000000,  0, 0 }, { 0xF83E0F84, 0x00000000,  5, 0 },
     { 0xF0F0F0F1, 0x00000000,  5, 0 }, { 0xEA0EA0EA, 0xEA0EA0EA,  5, 0 },
     { 0xE38E38E4, 0x00000000,  5, 0 }, { 0xDD67C8A6, 0xDD67C8A6,  5, 0 },
     { 0xD79435E5, 0xD79435E5,  5, 0 }, { 0xD20D20D2, 0xD20D20D2,  5, 0 },
@@ -230,7 +230,7 @@ static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
     { 0x8D3DCB09, 0x00000000,  5, 0 }, { 0x8AD8F2FC, 0x00000000,  5, 0 },
     { 0x88888889, 0x00000000,  5, 0 }, { 0x864B8A7E, 0x00000000,  5, 0 },
     { 0x84210842, 0x84210842,  5, 0 }, { 0x82082082, 0x82082082,  5, 0 },
-    { 0x07FFFFFF, 0x00000000,  6, 0 }, { 0xFC0FC0FD, 0x00000000,  6, 0 },
+    { 0x04000000, 0x00000000,  0, 0 }, { 0xFC0FC0FD, 0x00000000,  6, 0 },
     { 0xF83E0F84, 0x00000000,  6, 0 }, { 0xF4898D60, 0x00000000,  6, 0 },
     { 0xF0F0F0F1, 0x00000000,  6, 0 }, { 0xED7303B6, 0x00000000,  6, 0 },
     { 0xEA0EA0EA, 0xEA0EA0EA,  6, 0 }, { 0xE6C2B449, 0x00000000,  6, 0 },
@@ -262,7 +262,7 @@ static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
     { 0x864B8A7E, 0x00000000,  6, 0 }, { 0x85340853, 0x85340853,  6, 0 },
     { 0x84210842, 0x84210842,  6, 0 }, { 0x83126E98, 0x00000000,  6, 0 },
     { 0x82082082, 0x82082082,  6, 0 }, { 0x81020408, 0x81020408,  6, 0 },
-    { 0x03FFFFFF, 0x00000000,  7, 0 }, { 0xFE03F810, 0x00000000,  7, 0 },
+    { 0x02000000, 0x00000000,  0, 0 }, { 0xFE03F810, 0x00000000,  7, 0 },
     { 0xFC0FC0FD, 0x00000000,  7, 0 }, { 0xFA232CF3, 0x00000000,  7, 0 },
     { 0xF83E0F84, 0x00000000,  7, 0 }, { 0xF6603D99, 0x00000000,  7, 0 },
     { 0xF4898D60, 0x00000000,  7, 0 }, { 0xF2B9D649, 0x00000000,  7, 0 },
@@ -326,7 +326,7 @@ static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
     { 0x83126E98, 0x00000000,  7, 0 }, { 0x828CBFBF, 0x00000000,  7, 0 },
     { 0x82082082, 0x82082082,  7, 0 }, { 0x81848DA9, 0x00000000,  7, 0 },
     { 0x81020408, 0x81020408,  7, 0 }, { 0x80808081, 0x00000000,  7, 0 },
-    { 0x01FFFFFF, 0x00000000,  8, 0 }, { 0xFF00FF01, 0x00000000,  8, 0 },
+    { 0x01000000, 0x00000000,  0, 0 }, { 0xFF00FF01, 0x00000000,  8, 0 },
     { 0xFE03F810, 0x00000000,  8, 0 }, { 0xFD08E551, 0x00000000,  8, 0 },
     { 0xFC0FC0FD, 0x00000000,  8, 0 }, { 0xFB188566, 0x00000000,  8, 0 },
     { 0xFA232CF3, 0x00000000,  8, 0 }, { 0xF92FB222, 0x00000000,  8, 0 },
@@ -458,15 +458,15 @@ static const DivRatio32 div_ratio_tbl32_v2[kMaxDivTable] = {
 
 
 static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
-    { 0x00000000, 0x00000000,  0, 0 }, { 0x00000000, 0x00000000,  0, 0 },
-    { 0xFFFFFFFF, 0x00000000,  1, 0 }, { 0xAAAAAAAB, 0x00000000,  1, 0 },
-    { 0x7FFFFFFF, 0x00000000,  2, 0 }, { 0xCCCCCCCD, 0x00000000,  2, 0 },
+    { 0x00000000, 0x00000000,  0, 0 }, { 0xFFFFFFFF, 0xFFFFFFFF,  0, 0 },
+    { 0x80000000, 0x00000000,  0, 0 }, { 0xAAAAAAAB, 0x00000000,  1, 0 },
+    { 0x40000000, 0x00000000,  0, 0 }, { 0xCCCCCCCD, 0x00000000,  2, 0 },
     { 0xAAAAAAAB, 0x00000000,  2, 0 }, { 0x92492492, 0x687D6492,  2, 0 },
-    { 0x3FFFFFFF, 0x00000000,  3, 0 }, { 0xE38E38E4, 0x00000000,  3, 0 },
+    { 0x20000000, 0x00000000,  0, 0 }, { 0xE38E38E4, 0x00000000,  3, 0 },
     { 0xCCCCCCCD, 0x00000000,  3, 0 }, { 0xBA2E8BA3, 0x00000000,  3, 0 },
     { 0xAAAAAAAB, 0x00000000,  3, 0 }, { 0x9D89D89E, 0x00000000,  3, 0 },
     { 0x92492492, 0x687D6492,  3, 0 }, { 0x88888889, 0x00000000,  3, 0 },
-    { 0x1FFFFFFF, 0x00000000,  4, 0 }, { 0xF0F0F0F1, 0x00000000,  4, 0 },
+    { 0x10000000, 0x00000000,  0, 0 }, { 0xF0F0F0F1, 0x00000000,  4, 0 },
     { 0xE38E38E4, 0x00000000,  4, 0 }, { 0xD79435E5, 0xCC3B9435,  4, 0 },
     { 0xCCCCCCCD, 0x00000000,  4, 0 }, { 0xC30C30C3, 0xB9C279E7,  4, 0 },
     { 0xBA2E8BA3, 0x00000000,  4, 0 }, { 0xB21642C9, 0x00000000,  4, 0 },
@@ -474,7 +474,7 @@ static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
     { 0x9D89D89E, 0x00000000,  4, 0 }, { 0x97B425ED, 0x9215C71C,  4, 0 },
     { 0x92492492, 0x687D6492,  4, 0 }, { 0x8D3DCB09, 0x00000000,  4, 0 },
     { 0x88888889, 0x00000000,  4, 0 }, { 0x84210842, 0x7B9AC631,  4, 0 },
-    { 0x0FFFFFFF, 0x00000000,  5, 0 }, { 0xF83E0F84, 0x00000000,  5, 0 },
+    { 0x08000000, 0x00000000,  0, 0 }, { 0xF83E0F84, 0x00000000,  5, 0 },
     { 0xF0F0F0F1, 0x00000000,  5, 0 }, { 0xEA0EA0EA, 0xDCAEB6DB,  5, 0 },
     { 0xE38E38E4, 0x00000000,  5, 0 }, { 0xDD67C8A6, 0xD16FFFFF,  5, 0 },
     { 0xD79435E5, 0xCC3B9435,  5, 0 }, { 0xD20D20D2, 0xC74789D8,  5, 0 },
@@ -490,7 +490,7 @@ static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
     { 0x8D3DCB09, 0x00000000,  5, 0 }, { 0x8AD8F2FC, 0x00000000,  5, 0 },
     { 0x88888889, 0x00000000,  5, 0 }, { 0x864B8A7E, 0x00000000,  5, 0 },
     { 0x84210842, 0x7B9AC631,  5, 0 }, { 0x82082082, 0x7DE75D75,  5, 0 },
-    { 0x07FFFFFF, 0x00000000,  6, 0 }, { 0xFC0FC0FD, 0x00000000,  6, 0 },
+    { 0x04000000, 0x00000000,  0, 0 }, { 0xFC0FC0FD, 0x00000000,  6, 0 },
     { 0xF83E0F84, 0x00000000,  6, 0 }, { 0xF4898D60, 0x00000000,  6, 0 },
     { 0xF0F0F0F1, 0x00000000,  6, 0 }, { 0xED7303B6, 0x00000000,  6, 0 },
     { 0xEA0EA0EA, 0xDCAEB6DB,  6, 0 }, { 0xE6C2B449, 0x00000000,  6, 0 },
@@ -522,7 +522,7 @@ static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
     { 0x864B8A7E, 0x00000000,  6, 0 }, { 0x85340853, 0x63A1B512,  6, 0 },
     { 0x84210842, 0x7B9AC631,  6, 0 }, { 0x83126E98, 0x00000000,  6, 0 },
     { 0x82082082, 0x7DE75D75,  6, 0 }, { 0x81020408, 0x78E1A346,  6, 0 },
-    { 0x03FFFFFF, 0x00000000,  7, 0 }, { 0xFE03F810, 0x00000000,  7, 0 },
+    { 0x02000000, 0x00000000,  0, 0 }, { 0xFE03F810, 0x00000000,  7, 0 },
     { 0xFC0FC0FD, 0x00000000,  7, 0 }, { 0xFA232CF3, 0x00000000,  7, 0 },
     { 0xF83E0F84, 0x00000000,  7, 0 }, { 0xF6603D99, 0x00000000,  7, 0 },
     { 0xF4898D60, 0x00000000,  7, 0 }, { 0xF2B9D649, 0x00000000,  7, 0 },
@@ -586,7 +586,7 @@ static const DivRatio32 div_ratio_tbl32[kMaxDivTable] = {
     { 0x83126E98, 0x00000000,  7, 0 }, { 0x828CBFBF, 0x00000000,  7, 0 },
     { 0x82082082, 0x7DE75D75,  7, 0 }, { 0x81848DA9, 0x00000000,  7, 0 },
     { 0x81020408, 0x78E1A346,  7, 0 }, { 0x80808081, 0x00000000,  7, 0 },
-    { 0x01FFFFFF, 0x00000000,  8, 0 }, { 0xFF00FF01, 0x00000000,  8, 0 },
+    { 0x01000000, 0x00000000,  0, 0 }, { 0xFF00FF01, 0x00000000,  8, 0 },
     { 0xFE03F810, 0x00000000,  8, 0 }, { 0xFD08E551, 0x00000000,  8, 0 },
     { 0xFC0FC0FD, 0x00000000,  8, 0 }, { 0xFB188566, 0x00000000,  8, 0 },
     { 0xFA232CF3, 0x00000000,  8, 0 }, { 0xF92FB222, 0x00000000,  8, 0 },
@@ -982,10 +982,13 @@ DivRatio32_v1 preComputeDiv_u32_v1(std::uint32_t divisor)
     std::uint32_t shift = floorLog2<std::uint32_t>(divisor);
     std::uint32_t multi;
     if ((divisor & (divisor - 1)) == 0) {
-        if (divisor <= 1)
+        if (divisor == 0)
             multi = 0;
+        else if (divisor == 1)
+            multi = 0xFFFFFFFFul;
         else
-            multi = 0xFFFFFFFFul >> (shift - 1);
+            multi = 1ul << (32 - shift);
+        shift = 0;
     } else {
         // m = 2^(32+k)
         std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
@@ -1007,10 +1010,17 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
     std::uint32_t shift = floorLog2<std::uint32_t>(divisor);
     std::uint32_t multi, multi_down, add = 0;
     if ((divisor & (divisor - 1)) == 0) {
-        if (divisor <= 1)
+        if (divisor == 0) {
             multi = 0;
-        else
-            multi = 0xFFFFFFFFul >> (shift - 1);
+        }
+        else if (divisor == 1) {
+            multi = 0xFFFFFFFFul;
+            add = 0xFFFFFFFFul;
+        }
+        else {
+            multi = 1ul << (32 - shift);
+        }
+        shift = 0;
     } else {
         // m = 2^(32+k)
         std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
@@ -1061,12 +1071,19 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
 {
     DivRatio64 divRatio;
     std::uint32_t shift = floorLog2<std::uint64_t>(divisor);
-    std::uint64_t multi;
+    std::uint64_t multi, add = 0;
     if ((divisor & (divisor - 1)) == 0) {
-        if (divisor != 0)
-            multi = 0xFFFFFFFFFFFFFFFFull;
-        else
+        if (divisor == 0) {
             multi = 0;
+        }
+        else if (divisor == 1) {
+            multi = 0xFFFFFFFFFFFFFFFFull;
+            add = 0xFFFFFFFFFFFFFFFFull;
+        }
+        else {
+            multi = 1ull << (64 - shift);
+        }
+        shift = 0;
     } else {
 #if defined(_MSC_VER)
         multi = (uint64_t)ceil((double)((uint64_t)1 << (32 + shift)) * (double)((uint64_t)1 << 32) / divisor);
@@ -1189,10 +1206,10 @@ void genDivRatioTbl_u64()
 static inline
 void genDivRatioTbl()
 {
-    //genDivRatioTbl_u32_v1();
-    //genDivRatioTbl_u32_v2();
+    genDivRatioTbl_u32_v1();
+    genDivRatioTbl_u32_v2();
     genDivRatioTbl_u32();
-    genDivRatioTbl_u64();
+    //genDivRatioTbl_u64();
 }
 
 static inline
