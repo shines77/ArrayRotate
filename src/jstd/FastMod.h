@@ -304,7 +304,7 @@ std::size_t fast_mod(std::size_t a, std::size_t b)
 }
 
 static inline
-std::uint64_t computeM_u32(uint32_t divisor) {
+std::uint64_t computeMul_u32(uint32_t divisor) {
     if (divisor != 0)
         return (UINT64_C(0xFFFFFFFFFFFFFFFF) / divisor + 1);
     else
@@ -312,10 +312,18 @@ std::uint64_t computeM_u32(uint32_t divisor) {
 }
 
 static inline
-ModRatio getModRatio_u32(std::uint32_t divisor)
+std::uint64_t computeMul_u64(uint64_t divisor) {
+    if (divisor != 0)
+        return (UINT64_C(0xFFFFFFFFFFFFFFFF) / divisor + 1);
+    else
+        return 0;
+}
+
+static inline
+ModRatio preComputeMod_u32(std::uint32_t divisor)
 {
     ModRatio modRatio;
-    modRatio.mul = computeM_u32(divisor);
+    modRatio.mul = computeMul_u32(divisor);
     return modRatio;
 }
 
@@ -324,7 +332,7 @@ void genModRatioTbl_u32()
 {
     ModRatio modRatioTbl[kMaxModTable];
     for (std::uint32_t n = 0; n < kMaxModTable; n++) {
-        modRatioTbl[n] = getModRatio_u32(n);
+        modRatioTbl[n] = preComputeMod_u32(n);
     }
 
     FILE * fp = fopen("mod_ratio_tbl32.h", "w");
