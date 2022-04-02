@@ -20,17 +20,6 @@
 #include <intrin.h>     // For __umulh(), available only in x64 mode
 #endif
 
-//
-// See: https://github.com/ridiculousfish/libdivide/blob/master/libdivide.h
-//
-#if defined(__SIZEOF_INT128__)
-#define HAS_INT128_T
-// clang-cl on Windows does not yet support 128-bit division
-#if !(defined(__clang__) && defined(_MSC_VER))
-#define HAS_INT128_DIV
-#endif
-#endif // __SIZEOF_INT128__
-
 namespace jstd {
 
 template <typename Integal>

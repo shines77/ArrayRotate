@@ -6,6 +6,19 @@
 #pragma once
 #endif
 
+#if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
+ || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
+  #define JSTD_IS_X86       1
+  #define JSTD_X86_64       1
+  #define JSTD_WORD_SIZE    64
+#else
+  #if defined(WIN32) || defined(_WIN32) || defined (_M_IX86) || defined(__i386__)
+    #define JSTD_IS_X86     1
+    #define JSTD_X86_I386   1
+  #endif
+  #define JSTD_WORD_SIZE    32
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Clang Language Extensions
@@ -351,9 +364,9 @@
 //
 // Little-Endian or Big-Endian
 //
-#define GZ_LITTLE_ENDIAN    0
-#define GZ_BIG_ENDIAN       1
+#define JSTD_LITTLE_ENDIAN  0
+#define JSTD_BIG_ENDIAN     1
 
-#define GZ_SUDOKU_ENDIAN    GZ_LITTLE_ENDIAN
+#define JSTD_SUDOKU_ENDIAN  JSTD_LITTLE_ENDIAN
 
 #endif // JSTD_BASIC_STDDEF_H
