@@ -88,6 +88,12 @@ struct _uint128_t {
     typedef uint64_t    unsigned_t;
     typedef int64_t     signed_t;
 
+#ifdef _MSC_VER
+    typedef uint64_t            ull_type;
+#else
+    typedef unsigned long long  ull_type;
+#endif
+
     typedef uint64_t    high_t;
     typedef uint64_t    low_t;
 
@@ -482,48 +488,66 @@ struct _uint128_t {
 
     static inline
     this_type bigint_128_add(const this_type & a, const this_type & b) {
+        ull_type out;
+        unsigned char carry = _addcarry_u64(0, a.low, b.low, &out);
+
         this_type result;
-        unsigned char carry = _addcarry_u64(0, a.low, b.low, (uint64_t *)&result.low);
+        result.low = out;
         result.high = a.high + b.high + carry;
         return result;
     }
 
     static inline
     this_type bigint_128_sub(const this_type & a, const this_type & b) {
+        ull_type out;
+        unsigned char borrow = _subborrow_u64(0, a.low, b.low, &out);
+
         this_type result;
-        unsigned char borrow = _subborrow_u64(0, a.low, b.low, (uint64_t *)&result.low);
+        result.low = out;
         result.high = a.high - b.high - borrow;
         return result;
     }
 
     static inline
     this_type bigint_128_add(const this_type & a, uint64_t b) {
+        ull_type out;
+        unsigned char carry = _addcarry_u64(0, a.low, b, &out);
+
         this_type result;
-        unsigned char carry = _addcarry_u64(0, a.low, b, (uint64_t *)&result.low);
+        result.low = out;
         result.high = a.high + carry;
         return result;
     }
 
     static inline
     this_type bigint_128_sub(const this_type & a, uint64_t b) {
+        ull_type out;
+        unsigned char borrow = _subborrow_u64(0, a.low, b, &out);
+
         this_type result;
-        unsigned char borrow = _subborrow_u64(0, a.low, b, (uint64_t *)&result.low);
+        result.low = out;
         result.high = a.high - borrow;
         return result;
     }
 
     static inline
     this_type bigint_128_add(const this_type & a, int64_t b) {
+        ull_type out;
+        unsigned char carry = _addcarry_u64(0, a.low, b, &out);
+
         this_type result;
-        unsigned char carry = _addcarry_u64(0, a.low, b, (uint64_t *)&result.low);
+        result.low = out;
         result.high = a.high + (b >= 0) ? carry : -carry;
         return result;
     }
 
     static inline
     this_type bigint_128_sub(const this_type & a, int64_t b) {
+        ull_type out;
+        unsigned char borrow = _subborrow_u64(0, a.low, b, &out);
+
         this_type result;
-        unsigned char borrow = _subborrow_u64(0, a.low, b, (uint64_t *)&result.low);
+        result.low = out;
         result.high = a.high - (b >= 0) ? borrow : -borrow;
         return result;
     }
@@ -644,7 +668,7 @@ struct _uint128_t {
         a = (a ^ s_a) - s_a;                                    // negate if s_a == -1
         b = (b ^ s_b) - s_b;                                    // negate if s_b == -1
         s_a ^= s_b;                                             // sign of quotient
-        return (__udivmodti4_64(a, b, nullptr) ^ s_a) - s_a;       // negate if s_a == -1
+        return (__udivmodti4_64(a, b, nullptr) ^ s_a) - s_a;    // negate if s_a == -1
     }
 
 #endif // _MSC_VER || __ICL
