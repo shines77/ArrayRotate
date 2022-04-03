@@ -483,7 +483,7 @@ struct _uint128_t {
     static inline
     this_type bigint_128_add(const this_type & a, const this_type & b) {
         this_type result;
-        unsigned char carry = _addcarry_u64(0, a.low, b.low, &result.low);
+        unsigned char carry = _addcarry_u64(0, a.low, b.low, (uint64_t *)&result.low);
         result.high = a.high + b.high + carry;
         return result;
     }
@@ -491,7 +491,7 @@ struct _uint128_t {
     static inline
     this_type bigint_128_sub(const this_type & a, const this_type & b) {
         this_type result;
-        unsigned char borrow = _subborrow_u64(0, a.low, b.low, &result.low);
+        unsigned char borrow = _subborrow_u64(0, a.low, b.low, (uint64_t *)&result.low);
         result.high = a.high - b.high - borrow;
         return result;
     }
@@ -499,7 +499,7 @@ struct _uint128_t {
     static inline
     this_type bigint_128_add(const this_type & a, uint64_t b) {
         this_type result;
-        unsigned char carry = _addcarry_u64(0, a.low, b, &result.low);
+        unsigned char carry = _addcarry_u64(0, a.low, b, (uint64_t *)&result.low);
         result.high = a.high + carry;
         return result;
     }
@@ -507,7 +507,7 @@ struct _uint128_t {
     static inline
     this_type bigint_128_sub(const this_type & a, uint64_t b) {
         this_type result;
-        unsigned char borrow = _subborrow_u64(0, a.low, b, &result.low);
+        unsigned char borrow = _subborrow_u64(0, a.low, b, (uint64_t *)&result.low);
         result.high = a.high - borrow;
         return result;
     }
@@ -515,7 +515,7 @@ struct _uint128_t {
     static inline
     this_type bigint_128_add(const this_type & a, int64_t b) {
         this_type result;
-        unsigned char carry = _addcarry_u64(0, a.low, b, &result.low);
+        unsigned char carry = _addcarry_u64(0, a.low, b, (uint64_t *)&result.low);
         result.high = a.high + (b >= 0) ? carry : -carry;
         return result;
     }
@@ -523,7 +523,7 @@ struct _uint128_t {
     static inline
     this_type bigint_128_sub(const this_type & a, int64_t b) {
         this_type result;
-        unsigned char borrow = _subborrow_u64(0, a.low, b, &result.low);
+        unsigned char borrow = _subborrow_u64(0, a.low, b, (uint64_t *)&result.low);
         result.high = a.high - (b >= 0) ? borrow : -borrow;
         return result;
     }
@@ -773,11 +773,11 @@ struct _uint128_t {
                 // We have 0 <= d_leading_zeros <= 63
                 uint32_t d_leading_zeros = count_leading_zeros(divisor.high);
 
-                return this_type(0ull, 00ull);
+                return this_type(UINT64_C(0), UINT64_C(0));
             } else {
                 if (divisor.high == 0) {
                     // dividend.high == 0 && divisor.high == 0
-                    return this_type(0ull, dividend.low / divisor.low);
+                    return this_type(UINT64_C(0), dividend.low / divisor.low);
                 } else {
                     // dividend.high == 0 && divisor.high != 0
                     return this_type(0, 0);
@@ -795,10 +795,10 @@ struct _uint128_t {
             this_type quotient = __udivti3(dividend, divisor);
             return quotient;
 #else
-            return this_type(0ull, 0ull);
+            return this_type(UINT64_C(0), UINT64_C(0));
 #endif
         } else {
-            return this_type(dividend.low / divisor, 0ull);
+            return this_type(dividend.low / divisor, UINT64_C(0));
         }
     }
 
@@ -814,7 +814,7 @@ struct _uint128_t {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
                 // TODO: xxxxxx
-                return this_type(0ull, 00ull);
+                return this_type(UINT64_C(0), UINT64_C(0));
             } else {
                 if (divisor.high == 0) {
                     // dividend.high == 0 && divisor.high == 0
