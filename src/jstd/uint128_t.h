@@ -537,7 +537,7 @@ struct _uint128_t {
 
         this_type result;
         result.low = out;
-        result.high = a.high + (b >= 0) ? carry : -carry;
+        result.high = a.high + ((b >= 0) ? carry : -carry);
         return result;
     }
 
@@ -548,7 +548,7 @@ struct _uint128_t {
 
         this_type result;
         result.low = out;
-        result.high = a.high - (b >= 0) ? borrow : -borrow;
+        result.high = a.high - ((b >= 0) ? borrow : -borrow);
         return result;
     }
 
