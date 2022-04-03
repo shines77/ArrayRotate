@@ -198,8 +198,8 @@ _ReSharper*/
 /src/main/jstd/basic/vld_def.h
 
 # Ignore source files under projects folder
-projects/**/*.h
-projects/**/*.hpp
-projects/**/*.cpp
-projects/**/*.cc
-projects/**/*.cxx
+/projects/**/*.h
+/projects/**/*.hpp
+/projects/**/*.cpp
+/projects/**/*.cc
+/projects/**/*.cxx

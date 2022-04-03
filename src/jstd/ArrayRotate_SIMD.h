@@ -6,15 +6,15 @@
 #pragma once
 #endif
 
-#include "jstd/stddef.h"
-#include "jstd/BitVec.h"
-
 #include <assert.h>
 #include <cstdint>
 #include <cstddef>
 #include <cstdbool>
 #include <algorithm>
 #include <type_traits>
+
+#include "jstd/stddef.h"
+#include "jstd/BitVec.h"
 
 //
 // _mm_prefetch()

@@ -133,34 +133,34 @@ struct BitUtils {
     }
 
     static inline
-    unsigned int __internal_clz(unsigned int x) {
+    int __internal_clz(unsigned int x) {
         x |= (x >> 1);
         x |= (x >> 2);
         x |= (x >> 4);
         x |= (x >> 8);
         x |= (x >> 16);
-        return (unsigned int)(32U - __internal_popcnt(x));
+        return (int)(32u - __internal_popcnt(x));
     }
 
     static inline
-    unsigned int __internal_clzll(uint64_t x) {
+    int __internal_clzll(uint64_t x) {
         x |= (x >> 1);
         x |= (x >> 2);
         x |= (x >> 4);
         x |= (x >> 8);
         x |= (x >> 16);
         x |= (x >> 32);
-        return (unsigned int)(64U - __internal_popcnt64(x));
+        return (int)(64u - __internal_popcnt64(x));
     }
 
     static inline
-    unsigned int __internal_ctz(unsigned int x) {
-        return __internal_popcnt((x & -(int)x) - 1);
+    int __internal_ctz(unsigned int x) {
+        return (int)__internal_popcnt((x & -(int)x) - 1);
     }
 
     static inline
-    unsigned int __internal_ctzll(uint64_t x) {
-        return __internal_popcnt64((x & -(int64_t)x) - 1);
+    int __internal_ctzll(uint64_t x) {
+        return (int)__internal_popcnt64((x & -(int64_t)x) - 1);
     }
 
 #ifdef _MSC_VER
@@ -400,25 +400,25 @@ struct BitUtils {
     static inline
     unsigned int bsf32(unsigned int x) {
         assert(x != 0);
-        return BitUtils::__internal_ctz(x);
+        return (unsigned int)BitUtils::__internal_ctz(x);
     }
 
     static inline
     unsigned int bsf64(unsigned long long x) {
         assert(x != 0);
-        return BitUtils::__internal_ctzll(x);
+        return (unsigned int)BitUtils::__internal_ctzll(x);
     }
 
     static inline
     unsigned int bsr32(unsigned int x) {
         assert(x != 0);
-        return BitUtils::__internal_clz(x);
+        return (unsigned int)BitUtils::__internal_clz(x);
     }
 
     static inline
     unsigned int bsr64(unsigned long long x) {
         assert(x != 0);
-        return BitUtils::__internal_clzll(x);
+        return (unsigned int)BitUtils::__internal_clzll(x);
     }
 
     static inline

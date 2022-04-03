@@ -46,4 +46,9 @@
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\src\jstd\udiv128.asm">
+      <Filter>src</Filter>
+    </None>
+  </ItemGroup>
 </Project>

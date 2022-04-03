@@ -19,6 +19,10 @@
   #define JSTD_WORD_SIZE    32
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define JSTD_GCC_STYLE_ASM  1
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Clang Language Extensions

@@ -81,6 +81,8 @@
  *   AVX2         82.28%
  */
 
+#include "jstd/stddef.h"
+
 // For SSE2, SSE3, SSSE3, SSE 4.1, AVX, AVX2
 #if defined(_MSC_VER)
 #include <intrin.h>
@@ -291,6 +293,18 @@ bool check_alignment(void * address, size_t alignment)
     return ((ptr & (alignment - 1)) == 0);
 }
 
+#if defined(JSTD_X86_I386)
+
+#ifndef _mm_extract_epi64
+#define _mm_extract_epi64(src, index)           SSE::mm_extract_epi64<(index)>(src);
+#endif
+
+#ifndef _mm_insert_epi64
+#define _mm_insert_epi64(target, index, value)  SSE::mm_insert_epi64<(index)>((src), (value));
+#endif
+
+#endif // JSTD_X86_I386
+
 struct SSE {
 
 static inline
@@ -307,7 +321,65 @@ uint32_t mm_cvtsi128_si32_high(__m128i m128)
     return (low32 >> 16U);
 }
 
+#if defined(JSTD_X86_I386)
+
+template <int index>
+static inline
+int64_t mm_extract_epi64(__m128i src)
+{
+    uint32_t low  = _mm_extract_epi32(src, index * 2);
+    uint32_t high = _mm_extract_epi32(src, index * 2 + 1);
+    uint64_t result = ((uint64_t)high << 32) | low;
+    return (int64_t)result;
+}
+
+template <int index>
+static inline
+__m128i mm_insert_epi64(__m128i target, int64_t value)
+{
+    uint32_t low  = (uint32_t)((uint64_t)value & 0xFFFFFFFFul)
+    uint32_t high = (uint32_t)((uint64_t)value >> 32);
+    __m128i result;
+    result = _mm_extract_epi32(target, low, index * 2);
+    result = _mm_extract_epi32(result, high, index * 2 + 1);
+    return result;
+}
+
+#endif // JSTD_X86_I386
+
 }; // SSE Wrapper
+
+#if defined(_MSC_VER)
+
+//
+// Missing in MSVC (before 2017)
+//
+
+#ifndef _mm256_extract_epi16
+#define _mm256_extract_epi16(src, index)            AVX::template mm256_extract_epi16<(index)>(src)
+#endif
+
+#ifndef _mm256_insert_epi16
+#define _mm256_insert_epi16(target, value, index)   AVX::template mm256_insert_epi16<(index)>((target), (value))
+#endif
+
+#ifndef _mm256_extract_epi32
+#define _mm256_extract_epi32(src, index)            AVX::template mm256_extract_epi32<(index)>(src)
+#endif
+
+#ifndef _mm256_insert_epi32
+#define _mm256_insert_epi32(target, value, index)   AVX::template mm256_insert_epi32<(index)>((target), (value))
+#endif
+
+#ifndef _mm256_extract_epi64
+#define _mm256_extract_epi64(src, index)            AVX::template mm256_extract_epi64<(index)>(src)
+#endif
+
+#ifndef _mm256_insert_epi64
+#define _mm256_insert_epi64(target, value, index)   AVX::template mm256_insert_epi64<(index)>((target), (value))
+#endif
+
+#endif // _MSC_VER
 
 struct AVX {
 
@@ -533,6 +605,8 @@ __m256i mm256_insert_epi32(__m256i target, int64_t value)
     return result;
 }
 
+#if defined(JSTD_X86_64)
+
 //
 // See: /gcc/config/i386/avxintrin.h   (gcc 9.x)
 //
@@ -653,37 +727,33 @@ __m256i mm256_insert_epi64(__m256i target, int64_t value)
     return result;
 }
 
-#if defined(_MSC_VER)
+#endif // JSTD_X86_64
 
-//
-// Missing in MSVC (before 2017)
-//
+#if defined(JSTD_X86_I386)
 
-#ifndef _mm256_extract_epi16
-#define _mm256_extract_epi16(src, index)            AVX::template mm256_extract_epi16<index>(src)
-#endif
+template <int index>
+static inline
+int64_t mm256_extract_epi64(__m256i src)
+{
+    uint32_t low  = _mm256_extract_epi32(src, index * 2);
+    uint32_t high = _mm256_extract_epi32(src, index * 2 + 1);
+    uint64_t result = ((uint64_t)high << 32) | low;
+    return (int64_t)result;
+}
 
-#ifndef _mm256_insert_epi16
-#define _mm256_insert_epi16(target, value, index)   AVX::template mm256_insert_epi16<index>(target, value)
-#endif
+template <int index>
+static inline
+__m256i mm256_insert_epi64(__m256i target, int64_t value)
+{
+    uint32_t low  = (uint32_t)((uint64_t)value & 0xFFFFFFFFul)
+    uint32_t high = (uint32_t)((uint64_t)value >> 32);
+    __m256i result;
+    result = _mm256_insert_epi32(target, low, index * 2);
+    result = _mm256_insert_epi32(result, high, index * 2 + 1);
+    return result;
+}
 
-#ifndef _mm256_extract_epi32
-#define _mm256_extract_epi32(src, index)            AVX::template mm256_extract_epi32<index>(src)
-#endif
-
-#ifndef _mm256_insert_epi32
-#define _mm256_insert_epi32(target, value, index)   AVX::template mm256_insert_epi32<index>(target, value)
-#endif
-
-#ifndef _mm256_extract_epi64
-#define _mm256_extract_epi64(src, index)            AVX::template mm256_extract_epi64<index>(src)
-#endif
-
-#ifndef _mm256_insert_epi64
-#define _mm256_insert_epi64(target, value, index)   AVX::template mm256_insert_epi64<index>(target, value)
-#endif
-
-#endif // _MSC_VER
+#endif // JSTD_X86_I386
 
 #endif // __AVX__
 
