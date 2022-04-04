@@ -1487,7 +1487,7 @@ void avx_forward_move_8_tailing(char * target, char * source, char * end)
     }
 
     while (source < end) {
-        *target = *source;
+        *(T *)target = *(T *)source;
         source += kValueSize;
         target += kValueSize;
     }
@@ -1499,18 +1499,20 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
+    static const bool kValueSizeIsDivisible = (kValueSize < kAVXRegBytes) ?
+                                              ((kAVXRegBytes % kValueSize) == 0) :
+                                              ((kValueSize % kAVXRegBytes) == 0);
 
     static const std::size_t kPerStepBytes = 8 * kAVXRegBytes;
 
     std::size_t unAlignedBytes = (std::size_t)first & kAVXAlignMask;
-    bool targetAddrCanAlign;
-    if (kValueSize < kAVXRegBytes) {
-        targetAddrCanAlign = (((kAVXRegBytes % kValueSize) == 0) &&
-                              (((unAlignedBytes / kValueSize) * kValueSize) == unAlignedBytes));
-    } else {
-        targetAddrCanAlign = (((kValueSize % kAVXRegBytes) == 0) && (unAlignedBytes == 0));
-    }
-    if (kValueSizeIsPower2 && targetAddrCanAlign) {
+    bool storeAddrCanAlign;
+    if (kValueSize < kAVXRegBytes)
+        storeAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
+    else
+        storeAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
+
+    if (kValueSizeIsDivisible && storeAddrCanAlign) {
         //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
         unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
         while (unAlignedBytes != 0) {
@@ -1526,39 +1528,91 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
         std::size_t totalBytes = (last - first) * kValueSize;
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
-        while (source < limit) {
-            //
-            // See: https://blog.csdn.net/qq_43401808/article/details/87360789
-            //
-            if (kUsePrefetchHint) {
-                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+        bool sourceAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
+        if (!sourceAddrIsAligned) {
+            while (source < limit) {
+                __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+
+                //
+                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+                //
+                if (kUsePrefetchHint) {
+                    _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+                }
+
+                _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+
+                source += kPerStepBytes;
+                target += kPerStepBytes;
             }
 
-            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
-            __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
-            __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
-            __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
-            __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
-            __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
-            __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
-            __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+            avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsAligned>(target, source, end);
+        } else {
+            while (source < limit) {
+                __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                __m256i ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                __m256i ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                __m256i ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                __m256i ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
 
-            _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
-            _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
-            _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
-            _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
-            _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
-            _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
-            _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
-            _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                //
+                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+                //
+                if (kUsePrefetchHint) {
+                    _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+                }
 
-            source += kPerStepBytes;
-            target += kPerStepBytes;
+                _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+
+                source += kPerStepBytes;
+                target += kPerStepBytes;
+            }
+
+            avx_forward_move_8_tailing<T, kLoadIsAligned, kStoreIsAligned>(target, source, end);
         }
-
-        avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsAligned>(target, source, end);
     }
     else {
+        bool loadAddrCanAlign = false;
+        if (kValueSizeIsDivisible) {
+            unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
+            if (kValueSize < kAVXRegBytes)
+                loadAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
+            else 
+                loadAddrCanAlign = (unAlignedBytes == 0);
+
+            if (loadAddrCanAlign) {
+                unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
+                while (unAlignedBytes != 0) {
+                    *first++ = *mid++;
+                    unAlignedBytes -= kValueSize;
+                }
+            }
+        }
+
         char * target = (char *)first;
         char * source = (char *)mid;
         char * end = (char *)last;
@@ -1567,34 +1621,65 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
         std::size_t totalBytes = (last - first) * kValueSize;
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
-        while (source < limit) {
-            if (kUsePrefetchHint) {
-                _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+        if (loadAddrCanAlign) {
+            while (source < limit) {
+                __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                __m256i ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                __m256i ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                __m256i ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                __m256i ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+
+                if (kUsePrefetchHint) {
+                    _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+                }
+
+                _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+
+                source += kPerStepBytes;
+                target += kPerStepBytes;
             }
 
-            __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
-            __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
-            __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
-            __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
-            __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
-            __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
-            __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
-            __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+            avx_forward_move_8_tailing<T, kLoadIsAligned, kStoreIsNotAligned>(target, source, end);
+        } else {
+            while (source < limit) {
+                __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
 
-            _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
-            _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                if (kUsePrefetchHint) {
+                    _mm_prefetch((const char *)(source + kPerStepBytes * 2), kPrefetchHintLevel);
+                }
 
-            source += kPerStepBytes;
-            target += kPerStepBytes;
+                _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+
+                source += kPerStepBytes;
+                target += kPerStepBytes;
+            }
+
+            avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned>(target, source, end);
         }
-
-        avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned>(target, source, end);
     }
 }
 
