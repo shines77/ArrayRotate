@@ -572,14 +572,14 @@ void avx_forward_move_N_tailing_nt(char * target, char * source, char * end)
             __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
             __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
 
-            _mm256_stream_si256((__m256i *)(target + 32 * 0), ymm0);
-            _mm256_stream_si256((__m256i *)(target + 32 * 1), ymm1);
-            _mm256_stream_si256((__m256i *)(target + 32 * 2), ymm2);
-            _mm256_stream_si256((__m256i *)(target + 32 * 3), ymm3);
-            _mm256_stream_si256((__m256i *)(target + 32 * 4), ymm4);
-            _mm256_stream_si256((__m256i *)(target + 32 * 5), ymm5);
-            _mm256_stream_si256((__m256i *)(target + 32 * 6), ymm6);
-            _mm256_stream_si256((__m256i *)(target + 32 * 7), ymm7);
+            _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+            _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+            _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+            _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+            _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
 
             source += 8 * kAVXRegBytes;
             target += 8 * kAVXRegBytes;
@@ -591,10 +591,10 @@ void avx_forward_move_N_tailing_nt(char * target, char * source, char * end)
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
             __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
 
-            _mm256_stream_si256((__m256i *)(target + 32 * 0), ymm0);
-            _mm256_stream_si256((__m256i *)(target + 32 * 1), ymm1);
-            _mm256_stream_si256((__m256i *)(target + 32 * 2), ymm2);
-            _mm256_stream_si256((__m256i *)(target + 32 * 3), ymm3);
+            _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+            _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
 
             source += 4 * kAVXRegBytes;
             target += 4 * kAVXRegBytes;
@@ -604,8 +604,8 @@ void avx_forward_move_N_tailing_nt(char * target, char * source, char * end)
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
 
-            _mm256_stream_si256((__m256i *)(target + 32 * 0), ymm0);
-            _mm256_stream_si256((__m256i *)(target + 32 * 1), ymm1);
+            _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
 
             source += 2 * kAVXRegBytes;
             target += 2 * kAVXRegBytes;
@@ -614,7 +614,7 @@ void avx_forward_move_N_tailing_nt(char * target, char * source, char * end)
         if (((source + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
 
-            _mm256_stream_si256((__m256i *)(target + 32 * 0), ymm0);
+            _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
 
             source += 1 * kAVXRegBytes;
             target += 1 * kAVXRegBytes;
@@ -1346,22 +1346,22 @@ void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
-                    _mm256_stream_si256((__m256i *)(target + 32 * 0), ymm0);
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
                 if (N >= 2)
-                    _mm256_stream_si256((__m256i *)(target + 32 * 1), ymm1);
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
                 if (N >= 3)
-                    _mm256_stream_si256((__m256i *)(target + 32 * 2), ymm2);
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
                 if (N >= 4)
-                    _mm256_stream_si256((__m256i *)(target + 32 * 3), ymm3);
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
                 if (N >= 5)
-                    _mm256_stream_si256((__m256i *)(target + 32 * 4), ymm4);
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
                 if (N >= 6)
-                    _mm256_stream_si256((__m256i *)(target + 32 * 5), ymm5);
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
                 if (N >= 7)
-                    _mm256_stream_si256((__m256i *)(target + 32 * 6), ymm6);
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
-                    _mm256_stream_si256((__m256i *)(target + 32 * 7), ymm7);
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
                 }
 
                 source += kPerStepBytes;
@@ -1424,6 +1424,8 @@ void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
             }
 
             avx_forward_move_N_tailing_nt<T, kLoadIsAligned, kStoreIsAligned, N - 1>(target, source, end);
+
+            _mm_sfence();
         }
     }
     else {
@@ -2293,12 +2295,12 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
     __m256i stash2 = _mm256_loadu_si256(stash_start + 2);
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
 
-    _mm_lfence();
+    //_mm_lfence();
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
+    avx_forward_move_N_store_aligned_nt<T, 8>(first, mid, last);
 
-    _mm_sfence();
+    //_mm_sfence();
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -2318,12 +2320,12 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
     __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
 
-    _mm_lfence();
+    //_mm_lfence();
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
+    avx_forward_move_N_store_aligned_nt<T, 8>(first, mid, last);
 
-    _mm_sfence();
+    //_mm_sfence();
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
