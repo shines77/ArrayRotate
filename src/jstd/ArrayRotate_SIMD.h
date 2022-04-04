@@ -501,6 +501,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
                 if (N >= 7)
                     ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
                 }
@@ -518,6 +519,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
                 if (N >= 7)
                     _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
                 }
@@ -554,6 +556,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
                 if (N >= 7)
                     ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
                 }
@@ -571,6 +574,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
                 if (N >= 7)
                     _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
                 }
@@ -635,6 +639,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
                 if (N >= 7)
                     ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
                 }
@@ -652,6 +657,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
                 if (N >= 7)
                     _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
                 }
@@ -688,6 +694,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
                 if (N >= 7)
                     ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
                 }
@@ -705,6 +712,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                     _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
                 if (N >= 7)
                     _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
                 }
