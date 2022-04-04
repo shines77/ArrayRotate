@@ -38,7 +38,7 @@ namespace jstd {
 namespace simd {
 
 static const bool kUsePrefetchHint = true;
-static const std::size_t kPrefetchOffset = 512;
+static const std::size_t kPrefetchOffset = 768;
 
 #if defined(__GNUC__) && !defined(__clang__)
 static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
@@ -436,6 +436,7 @@ void avx_forward_move_N_tailing(char * target, char * source, char * end)
 
 template <typename T, std::size_t N = 8>
 static
+JSTD_NO_INLINE
 void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
 {
     static const std::size_t kValueSize = sizeof(T);
@@ -728,6 +729,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
 
 template <typename T, std::size_t N = 8>
 static
+JSTD_NO_INLINE
 void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
 {
     static const std::size_t kValueSize = sizeof(T);
