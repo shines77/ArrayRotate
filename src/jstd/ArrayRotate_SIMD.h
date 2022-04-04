@@ -473,20 +473,6 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
         bool storeAddrIsAligned = (((std::size_t)target & kAVXAlignMask) == 0);
         if (likely(!storeAddrIsAligned)) {
             while (source < limit) {
-                //
-                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
-                //
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -504,6 +490,20 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                //
+                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+                //
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -531,17 +531,6 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -559,6 +548,17 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -614,17 +614,6 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
 
         if (likely(storeAddrCanAlign)) {
             while (source < limit) {
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -642,6 +631,17 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -669,17 +669,6 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -697,6 +686,17 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -765,20 +765,6 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
             while (source < limit) {
-                //
-                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
-                //
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -796,6 +782,20 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                //
+                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+                //
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -823,17 +823,6 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -851,6 +840,17 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -906,17 +906,6 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
 
         if (likely(loadAddrCanAlign)) {
             while (source < limit) {
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -934,6 +923,17 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
@@ -961,17 +961,6 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                     ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
                 if (N >= 2)
@@ -989,6 +978,17 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
                     _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
