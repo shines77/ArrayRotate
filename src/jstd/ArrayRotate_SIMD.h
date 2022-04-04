@@ -2554,11 +2554,11 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
 
     ////////////////////////////////////////////////////////////////////////
 
-    if (N <= 6)
+    if (N <= 6)         // 1 -- 6,
         avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    else if (N <= 8)
+    else if (N <= 8)    // 7, 8
         avx_forward_move_N_load_aligned<T, 6>(first, mid, last);
-    else
+    else                // 9, 10, 11, 12
         avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
 
     ////////////////////////////////////////////////////////////////////////
@@ -2682,7 +2682,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
     //avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
-    avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
+    avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -2704,7 +2704,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
     //avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
-    avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
+    avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
