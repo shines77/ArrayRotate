@@ -40,7 +40,7 @@ namespace simd {
 static const bool kUsePrefetchHint = true;
 static const std::size_t kPrefetchOffset = 512;
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
 #else
 static const int kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
