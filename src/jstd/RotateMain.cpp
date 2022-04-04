@@ -539,15 +539,15 @@ int main(int argn, char * argv[])
 
     //jstd::genModRatioTbl_u64();
 
-    //rotate_test();
-    //rotate_unit_test();
+    rotate_test();
+    rotate_unit_test();
 
     //fast_mod_verify();
 
 #ifndef _DEBUG
     //fast_div_verify_test();
 #if 1
-    fast_div_verify_fast();
+    //fast_div_verify_fast();
 #else
 #ifdef _MSC_VER
     fast_div_verify_msvc();

@@ -444,8 +444,8 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                                               ((kAVXRegBytes % kValueSize) == 0) :
                                               ((kValueSize % kAVXRegBytes) == 0);
     // minimum AVX regs = 1, maximum AVX regs = 8
-    static const std::size_t kAVXRegCount = (N == 0) ? 1 : ((N <= 8) ? N : 8);
-    static const std::size_t kPerStepBytes = kAVXRegCount * kAVXRegBytes;
+    static const std::size_t kAVXRegUnits = (N == 0) ? 1 : ((N <= 8) ? N : 8);
+    static const std::size_t kPerStepBytes = kAVXRegUnits * kAVXRegBytes;
 
     std::size_t unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
     bool loadAddrCanAlign;
