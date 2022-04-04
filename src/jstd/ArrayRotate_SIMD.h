@@ -1368,7 +1368,7 @@ void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_N_tailing_nt<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
