@@ -2296,7 +2296,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
     _mm_lfence();
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_N_store_aligned_nt<T, 8>(first, mid, last);
+    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
 
     _mm_sfence();
 
@@ -2321,7 +2321,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
     _mm_lfence();
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_N_store_aligned_nt<T, 8>(first, mid, last);
+    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
 
     _mm_sfence();
 
