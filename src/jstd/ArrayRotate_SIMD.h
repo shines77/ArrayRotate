@@ -1801,7 +1801,7 @@ void left_rotate_avx_6_regs(T * first, T * mid, T * last,
     __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
     __m256i stash5 = _mm256_loadu_si256(stash_start + 5);
 
-    avx_forward_move_8<T>(first, mid, last);
+    avx_forward_move_8_load_aligned<T>(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
