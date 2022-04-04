@@ -592,7 +592,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
             unAlignedBytes = (std::size_t)first & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
                 storeAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
-            else 
+            else
                 storeAddrCanAlign = (unAlignedBytes == 0);
 
             if (storeAddrCanAlign) {
@@ -884,7 +884,7 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
             unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
                 loadAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
-            else 
+            else
                 loadAddrCanAlign = (unAlignedBytes == 0);
 
             if (loadAddrCanAlign) {
@@ -1508,7 +1508,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_0 = (uint64_t)AVX::mm256_extract_epi64<0>(src);
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<4>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint8_t  *)(target + 16) = uint8_t(value32_0 & 0xFFu);
@@ -1517,7 +1517,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_0 = (uint64_t)AVX::mm256_extract_epi64<0>(src);
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi16<8>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint16_t *)(target + 16) = uint16_t(value32_0);
@@ -1526,7 +1526,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_0 = (uint64_t)AVX::mm256_extract_epi64<0>(src);
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<4>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint16_t *)(target + 16) = uint16_t(value32_0 & 0xFFFFu);
@@ -1536,7 +1536,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_0 = (uint64_t)AVX::mm256_extract_epi64<0>(src);
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<4>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint32_t *)(target + 16) = value32_0;
@@ -1546,7 +1546,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<4>(src);
             value32_1 = (uint32_t)AVX::mm256_extract_epi32<5>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint32_t *)(target + 16) = value32_0;
@@ -1557,7 +1557,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<4>(src);
             value32_1 = (uint32_t)AVX::mm256_extract_epi16<10>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint32_t *)(target + 16) = value32_0;
@@ -1568,7 +1568,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<4>(src);
             value32_1 = (uint32_t)AVX::mm256_extract_epi32<5>(src);
-            
+
             *(uint64_t *)(target + 0) = value64_0;
             *(uint64_t *)(target + 8) = value64_1;
             *(uint32_t *)(target + 16) = value32_0;
@@ -1579,7 +1579,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_0 = (uint64_t)AVX::mm256_extract_epi64<0>(src);
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1589,7 +1589,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<6>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1600,7 +1600,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi16<12>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1611,7 +1611,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<6>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1623,7 +1623,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_1 = (uint64_t)AVX::mm256_extract_epi64<1>(src);
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<6>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1635,7 +1635,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<6>(src);
             value32_1 = (uint32_t)AVX::mm256_extract_epi32<7>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1648,7 +1648,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<6>(src);
             value32_1 = (uint32_t)AVX::mm256_extract_epi16<14>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
@@ -1661,7 +1661,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
             value64_2 = (uint64_t)AVX::mm256_extract_epi64<2>(src);
             value32_0 = (uint32_t)AVX::mm256_extract_epi32<6>(src);
             value32_1 = (uint32_t)AVX::mm256_extract_epi32<7>(src);
-            
+
             *(uint64_t *)(target + 0)  = value64_0;
             *(uint64_t *)(target + 8)  = value64_1;
             *(uint64_t *)(target + 16) = value64_2;
