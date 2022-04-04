@@ -104,6 +104,7 @@ struct _uint128_t {
 
     static const uint64_t kSignMask64   = 0x8000000000000000ull;
     static const uint64_t kBodyMask64   = 0x7FFFFFFFFFFFFFFFull;
+    static const uint64_t kFullMask64   = 0xFFFFFFFFFFFFFFFFull;
     static const uint64_t kHighMask     = 0x7FFFFFFFFFFFFFFFull;
     static const uint64_t kLowMask      = 0xFFFFFFFFFFFFFFFFull;
 
@@ -416,25 +417,25 @@ struct _uint128_t {
     }
 
     static inline
-    int __count_leading_zeros(integral_t val) {
+    int _count_leading_zeros(integral_t val) {
         assert(val != 0);
         return (63 - (int)BitUtils::bsr64(val));
     }
 
     static inline
-    int __count_tail_zeros(integral_t val) {
+    int _count_tail_zeros(integral_t val) {
         assert(val != 0);
         return (int)BitUtils::bsf64(val);
     }
 
     static inline
     int count_leading_zeros(integral_t val) {
-        return (val == 0) ? 0 : __count_leading_zeros(val);
+        return (val == 0) ? 0 : _count_leading_zeros(val);
     }
 
     static inline
     int count_tail_zeros(integral_t val) {
-        return (val == 0) ? 0 : __count_tail_zeros(val);
+        return (val == 0) ? 0 : _count_tail_zeros(val);
     }
 
     static inline
@@ -444,9 +445,9 @@ struct _uint128_t {
         }
         int leading_zeros;
         if (u128.high == 0)
-            leading_zeros = (u128.low == 0) ? 0 : (__count_leading_zeros(u128.low) + 64);
+            leading_zeros = (u128.low == 0) ? 0 : (_count_leading_zeros(u128.low) + 64);
         else
-            leading_zeros = __count_leading_zeros(u128.high);
+            leading_zeros = _count_leading_zeros(u128.high);
         return leading_zeros;
     }
 
@@ -457,9 +458,9 @@ struct _uint128_t {
         }
         int tail_zeros;
         if (u128.low == 0)
-            tail_zeros = (u128.high == 0) ? 0 : (__count_tail_zeros(u128.high) + 64);
+            tail_zeros = (u128.high == 0) ? 0 : (_count_tail_zeros(u128.high) + 64);
         else
-            tail_zeros = __count_tail_zeros(u128.low);
+            tail_zeros = _count_tail_zeros(u128.low);
         return tail_zeros;
     }
 
@@ -633,23 +634,23 @@ struct _uint128_t {
 #if defined(_MSC_VER) || defined(__ICL)
 
     static inline
-    int u64_distance(uint64_t dividend, const uint64_t divisor) {
+    int bigint_64_distance(uint64_t dividend, const uint64_t divisor) {
         int n_leading_zeros = count_leading_zeros(dividend);
         int d_leading_zeros = count_leading_zeros(divisor);
         return (d_leading_zeros - n_leading_zeros);
     }
 
     static inline
-    int u128_distance(const _uint128_t & dividend, const _uint128_t & divisor) {
+    int bigint_128_distance(const _uint128_t & dividend, const _uint128_t & divisor) {
         int n_leading_zeros = count_leading_zeros(dividend);
         int d_leading_zeros = count_leading_zeros(divisor);
         return (d_leading_zeros - n_leading_zeros);
     }
 
     static inline
-    int u128_distance(const _uint128_t & dividend, uint64_t divisor) {
+    int bigint_128_distance(const _uint128_t & dividend, uint64_t divisor) {
         int n_leading_zeros = count_leading_zeros(dividend);
-        int d_leading_zeros = 64 + count_leading_zeros(divisor);
+        int d_leading_zeros = count_leading_zeros(divisor) + 64;
         return (d_leading_zeros - n_leading_zeros);
     }
 
@@ -663,7 +664,7 @@ struct _uint128_t {
         }
 
         // Calculate the distance between most significant bits, 128 > shift >= 0.
-        int shift = u64_distance(dividend, divisor);
+        int shift = bigint_64_distance(dividend, divisor);
         divisor <<= shift;
 
         uint64_t quotient = 0;
@@ -699,7 +700,7 @@ struct _uint128_t {
 
         if (divisor != 0) {
             // Calculate the distance between most significant bits, 128 > shift >= 0.
-            int shift = u128_distance(dividend, divisor);
+            int shift = bigint_128_distance(dividend, divisor);
             divisor <<= shift;
 
             _uint128_t quotient = 0;
@@ -717,7 +718,7 @@ struct _uint128_t {
             }
             return quotient;
         } else {
-            return _uint128_t(INT64_C(-1), INT64_C(-1));
+            return _uint128_t(kFullMask64, kFullMask64);
         }
     }
 
@@ -738,7 +739,7 @@ struct _uint128_t {
 
         if (divisor != 0) {
             // Calculate the distance between most significant bits, 128 > shift >= 0.
-            int shift = u128_distance(dividend, divisor);
+            int shift = bigint_128_distance(dividend, divisor);
             divisor <<= shift;
 
             _uint128_t quotient = 0;
@@ -756,7 +757,7 @@ struct _uint128_t {
             }
             return quotient;
         } else {
-            return _uint128_t(INT64_C(-1), INT64_C(-1));
+            return _uint128_t(kFullMask64, kFullMask64);
         }
     }
 
@@ -949,7 +950,7 @@ struct _uint128_t {
     this_type bigint_128_div_64_to_128(const this_type & dividend, integral_t divisor) {
         if (dividend.high != 0) {
             // TODO: xxxxxx
-            int distance = u128_distance(dividend, divisor);
+            int distance = bigint_128_distance(dividend, divisor);
             if (distance < 64) {
                 integral_t quotient = bigint_128_div_64_to_64(dividend, divisor);
                 return this_type((high_t)0ull, quotient);
