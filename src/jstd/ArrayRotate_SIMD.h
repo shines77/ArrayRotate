@@ -38,7 +38,7 @@ namespace jstd {
 namespace simd {
 
 static const bool kUsePrefetchHint = true;
-static const std::size_t kPrefetchOffset = 768;
+static const std::size_t kPrefetchOffset = 256;
 
 #if defined(__GNUC__) && !defined(__clang__)
 static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
@@ -1680,6 +1680,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m128i * stash_start = (const __m128i *)first;
@@ -1692,6 +1693,7 @@ void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1704,6 +1706,7 @@ void left_rotate_avx_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_2_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1718,6 +1721,7 @@ void left_rotate_avx_2_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_3_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1734,6 +1738,7 @@ void left_rotate_avx_3_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1753,6 +1758,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1774,6 +1780,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_6_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1796,6 +1803,7 @@ void left_rotate_avx_6_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_7_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1820,6 +1828,7 @@ void left_rotate_avx_7_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_8_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1846,6 +1855,7 @@ void left_rotate_avx_8_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_9_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1874,6 +1884,7 @@ void left_rotate_avx_9_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_10_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1904,6 +1915,7 @@ void left_rotate_avx_10_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_11_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
@@ -1936,6 +1948,7 @@ void left_rotate_avx_11_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T>
+JSTD_FORCE_INLINE
 void left_rotate_avx_12_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
