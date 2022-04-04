@@ -9,6 +9,7 @@
 #include <stdint.h>     // For __uint128_t
 #include <stddef.h>
 #include <stdbool.h>
+#include <limits.h>     // For CHAR_BIT
 #include <math.h>
 #include <assert.h>
 
@@ -653,6 +654,10 @@ struct _uint128_t {
     }
 
 #if (defined(_MSC_VER) || defined(__ICL)) || 1
+
+    #ifndef CHAR_BIT
+    #define CHAR_BIT    sizeof(unsigned char)
+    #endif
 
     static inline
     uint64_t __udivmodti4_64(uint64_t dividend, uint64_t divisor, uint64_t * remainder) {
