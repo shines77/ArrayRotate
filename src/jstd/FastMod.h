@@ -845,7 +845,7 @@ _uint128_t computeMul_u64(uint64_t divisor) {
 #else
     if (divisor != 0) {
         _uint128_t N128(0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFFFFFFFFFFull);
-        _uint128_t mul128 = _uint128_t::unsigned_128_div_128_to_128(N128, divisor) + 1;
+        _uint128_t mul128 = _uint128_t::bigint_128_div(N128, divisor) + 1;
         return mul128;
     } else {
         return 0;

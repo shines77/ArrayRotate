@@ -102,6 +102,20 @@ struct _uint128_t {
 
     static const bool kIsSigned = false;
 
+    static const uint64_t kSignMask64   = 0x8000000000000000ull;
+    static const uint64_t kBodyMask64   = 0x7FFFFFFFFFFFFFFFull;
+    static const uint64_t kHighMask     = 0x7FFFFFFFFFFFFFFFull;
+    static const uint64_t kLowMask      = 0xFFFFFFFFFFFFFFFFull;
+
+    static const uint32_t kSignMask32   = 0x80000000ul;
+    static const uint32_t kBodyMask32   = 0x7FFFFFFFul;
+    static const uint32_t kFullMask32   = 0xFFFFFFFFul;
+
+    static const integral_t kZero64     = (integral_t)0ull;
+    static const uint32_t   kZero32     = (uint32_t)0ull;
+    static const high_t     kHighZero   = (high_t)0ull;
+    static const low_t      kLowZero    = (low_t)0ull;    
+
     _uint128_t() noexcept
         : low((low_t)0ull), high((high_t)0ull) {}
 
@@ -176,13 +190,6 @@ struct _uint128_t {
         return *this;
     }
 
-    template <typename Integral>
-    this_type & operator = (Integral rhs) {
-        this->low = reinterpret_cast<low_t>(rhs);
-        this->high = reinterpret_cast<high_t>(0);
-        return *this;
-    }
-
     bool is_zero() const {
         return (this->low == (low_t)0 && this->high == (high_t)0);
     }
@@ -219,6 +226,44 @@ struct _uint128_t {
         return (!this->is_zero() || !rhs.is_zero());
     }
 
+#define INTEGRAL_LOGICAL_OPERATOR(integral_type) \
+    bool operator > (integral_type rhs) const { \
+        return ((this->high > (high_t)0) || ((this->high == (high_t)0) && (this->low > (low_t)rhs))); \
+    } \
+    \
+    bool operator >= (integral_type rhs) const { \
+        return ((this->high > (high_t)0) || ((this->high == (high_t)0) && (this->low >= (low_t)rhs))); \
+    } \
+    \
+    bool operator < (integral_type rhs) const { \
+        return ((this->high < (high_t)0) || ((this->high == (high_t)0) && (this->low < (low_t)rhs))); \
+    } \
+    \
+    bool operator <= (integral_type rhs) const { \
+        return ((this->high < (high_t)0) || ((this->high == (high_t)0) && (this->low <= (low_t)rhs))); \
+    } \
+    \
+    bool operator == (integral_type rhs) const { \
+        return ((this->high == (high_t)0) && (this->low == (low_t)rhs)); \
+    } \
+    \
+    bool operator != (integral_type rhs) const { \
+        return ((this->high != (high_t)0) || (this->low != (low_t)rhs)); \
+    } \
+    \
+    bool operator && (integral_type rhs) const { \
+        return (!this->is_zero() && (rhs != (integral_type)0)); \
+    } \
+    \
+    bool operator || (integral_type rhs) const { \
+        return (!this->is_zero() || (rhs != (integral_type)0)); \
+    }
+
+    INTEGRAL_LOGICAL_OPERATOR(int32_t)
+    INTEGRAL_LOGICAL_OPERATOR(uint32_t)
+    INTEGRAL_LOGICAL_OPERATOR(int64_t)
+    INTEGRAL_LOGICAL_OPERATOR(uint64_t)
+
     bool operator ! () const {
         return this->is_zero();
     }
@@ -227,12 +272,20 @@ struct _uint128_t {
         return !this->is_zero();
     }
 
-    operator uint64_t () const {
-        return (uint64_t)this->low;
+    operator int32_t () const {
+        return (int32_t)((uint32_t)(((uint64_t)this->high & kSignMask64) >> 32) | (uint32_t)(this->low & kBodyMask32));
+    }
+
+    operator uint32_t () const {
+        return (uint32_t)this->low;
     }
 
     operator int64_t () const {
-        return (int64_t)((this->high & 0x800000000000000ull) | (uint64_t)this->low);
+        return (int64_t)(((uint64_t)this->high & kSignMask64) | (uint64_t)(this->low & kBodyMask64));
+    }
+
+    operator uint64_t () const {
+        return (uint64_t)this->low;
     }
 
     this_type operator & (const this_type & rhs) const {
@@ -292,11 +345,11 @@ struct _uint128_t {
     }
 
     this_type operator * (const this_type & rhs) const {
-        return unsigned_128_mul_128_to_128(*this, rhs);
+        return bigint_128_mul(*this, rhs);
     }
 
     this_type operator / (const this_type & rhs) const {
-        return unsigned_128_div_128_to_128(*this, rhs);
+        return bigint_128_div(*this, rhs);
     }
 
     this_type operator >> (const int shift) const {
@@ -306,6 +359,8 @@ struct _uint128_t {
     this_type operator << (const int shift) const {
         return left_shift(*this, shift);
     }
+
+#define INTEGRAL_ARITHMETIC_OPERATOR(integral_type)
 
     this_type & operator &= (const this_type & rhs) {
         this->low &= rhs.low;
@@ -356,33 +411,56 @@ struct _uint128_t {
     }
 
     static inline
-    int count_tail_zeros(integral_t val) {
+    void remove_sign(this_type & u128) {
+        u128.high &= kBodyMask64;
+    }
+
+    static inline
+    int __count_leading_zeros(integral_t val) {
+        assert(val != 0);
+        return (63 - (int)BitUtils::bsr64(val));
+    }
+
+    static inline
+    int __count_tail_zeros(integral_t val) {
+        assert(val != 0);
         return (int)BitUtils::bsf64(val);
     }
 
     static inline
     int count_leading_zeros(integral_t val) {
-        return (63 - (int)BitUtils::bsr64(val));
+        return (val == 0) ? 0 : __count_leading_zeros(val);
     }
 
     static inline
-    int count_tail_zeros(const this_type & u128) {
-        int tail_zeros;
-        if (u128.low == 0)
-            tail_zeros = (u128.high == 0) ? 0 : (count_tail_zeros(u128.high) + 64);
-        else
-            tail_zeros = count_tail_zeros(u128.low);
-        return tail_zeros;
+    int count_tail_zeros(integral_t val) {
+        return (val == 0) ? 0 : __count_tail_zeros(val);
     }
 
     static inline
-    int count_leading_zeros(const this_type & u128) {
+    int count_leading_zeros(this_type u128) {
+        if (kIsSigned) {
+            remove_sign(u128);
+        }
         int leading_zeros;
         if (u128.high == 0)
-            leading_zeros = (u128.low == 0) ? 0 : (count_leading_zeros(u128.low) + 64);
+            leading_zeros = (u128.low == 0) ? 0 : (__count_leading_zeros(u128.low) + 64);
         else
-            leading_zeros = count_leading_zeros(u128.high);
+            leading_zeros = __count_leading_zeros(u128.high);
         return leading_zeros;
+    }
+
+    static inline
+    int count_tail_zeros(this_type u128) {
+        if (kIsSigned) {
+            remove_sign(u128);
+        }
+        int tail_zeros;
+        if (u128.low == 0)
+            tail_zeros = (u128.high == 0) ? 0 : (__count_tail_zeros(u128.high) + 64);
+        else
+            tail_zeros = __count_tail_zeros(u128.low);
+        return tail_zeros;
     }
 
     static inline
@@ -427,7 +505,7 @@ struct _uint128_t {
             result.low <<= shift;
         } else {
             int low_lshift = (shift - 64);
-            result.high = (result.high & 0x800000000000000ull) | ((unsigned_t)result.low << low_lshift);
+            result.high = (result.high & kSignMask64) | (((unsigned_t)result.low << low_lshift) & kBodyMask64);
             result.low = 0;
         }
         return result;
@@ -443,8 +521,8 @@ struct _uint128_t {
             result.high >>= shift;
         } else {
             int high_rshift = (shift - 64);
-            result.low = (unsigned_t)(result.high & 0x7FFFFFFFFFFFFFFFull) >> high_rshift;
-            result.high = result.high & 0x800000000000000ull;
+            result.low = (unsigned_t)(result.high & kBodyMask64) >> high_rshift;
+            result.high = result.high & kSignMask64;
         }
         return result;
     }
@@ -569,6 +647,13 @@ struct _uint128_t {
     }
 
     static inline
+    int u128_distance(const _uint128_t & dividend, uint64_t divisor) {
+        int n_leading_zeros = count_leading_zeros(dividend);
+        int d_leading_zeros = 64 + count_leading_zeros(divisor);
+        return (d_leading_zeros - n_leading_zeros);
+    }
+
+    static inline
     uint64_t __udivmodti4_64(uint64_t dividend, uint64_t divisor, uint64_t * remainder) {
         if (divisor > dividend) {
             if (remainder != nullptr) {
@@ -604,32 +689,75 @@ struct _uint128_t {
     //      https://github.com/llvm-mirror/compiler-rt/blob/release_90/lib/builtins/udivmodti4.c#L20
     //
     static inline
+    _uint128_t __udivmodti4(_uint128_t dividend, uint64_t divisor, uint64_t * remainder) {
+        if ((dividend.high == 0) && (dividend.low < divisor)) {
+            if (remainder != nullptr) {
+                *remainder = dividend.low;
+            }
+            return 0;
+        }
+
+        if (divisor != 0) {
+            // Calculate the distance between most significant bits, 128 > shift >= 0.
+            int shift = u128_distance(dividend, divisor);
+            divisor <<= shift;
+
+            _uint128_t quotient = 0;
+            for (; shift >= 0; --shift) {
+                quotient <<= 1;
+                if (dividend >= divisor) {
+                    dividend -= divisor;
+                    quotient |= 1;
+                }
+                divisor >>= 1;
+            }
+
+            if (remainder != nullptr) {
+                *remainder = dividend.low;
+            }
+            return quotient;
+        } else {
+            return _uint128_t(INT64_C(-1), INT64_C(-1));
+        }
+    }
+
+    //
+    // See: https://danlark.org/2020/06/14/128-bit-division/
+    //
+    // clang compiler-rt:
+    //      https://github.com/llvm-mirror/compiler-rt/blob/release_90/lib/builtins/udivmodti4.c#L20
+    //
+    static inline
     _uint128_t __udivmodti4(_uint128_t dividend, _uint128_t divisor, _uint128_t * remainder) {
-        if (divisor > dividend) {
+        if (dividend < divisor) {
             if (remainder != nullptr) {
                 *remainder = dividend;
             }
             return 0;
         }
 
-        // Calculate the distance between most significant bits, 128 > shift >= 0.
-        int shift = u128_distance(dividend, divisor);
-        divisor <<= shift;
+        if (divisor != 0) {
+            // Calculate the distance between most significant bits, 128 > shift >= 0.
+            int shift = u128_distance(dividend, divisor);
+            divisor <<= shift;
 
-        _uint128_t quotient = 0;
-        for (; shift >= 0; --shift) {
-            quotient <<= 1;
-            if (dividend >= divisor) {
-                dividend -= divisor;
-                quotient |= 1;
+            _uint128_t quotient = 0;
+            for (; shift >= 0; --shift) {
+                quotient <<= 1;
+                if (dividend >= divisor) {
+                    dividend -= divisor;
+                    quotient |= 1;
+                }
+                divisor >>= 1;
             }
-            divisor >>= 1;
-        }
 
-        if (remainder != nullptr) {
-            *remainder = dividend;
+            if (remainder != nullptr) {
+                *remainder = dividend;
+            }
+            return quotient;
+        } else {
+            return _uint128_t(INT64_C(-1), INT64_C(-1));
         }
-        return quotient;
     }
 
     static inline
@@ -656,6 +784,11 @@ struct _uint128_t {
     // Returns: a / b
 
     static inline
+    _uint128_t __udivti3(_uint128_t a, uint64_t b) {
+        return __udivmodti4(a, b, nullptr);
+    }
+
+    static inline
     _uint128_t __udivti3(_uint128_t a, _uint128_t b) {
         return __udivmodti4(a, b, nullptr);
     }
@@ -675,19 +808,19 @@ struct _uint128_t {
 
     static
     JSTD_FORCE_INLINE
-    integral_t unsigned_64_div_64_to_64(integral_t dividend, integral_t divisor) {
+    integral_t bigint_64_div_64_to_64(integral_t dividend, integral_t divisor) {
         return (dividend / divisor);
     }
 
     static
     JSTD_FORCE_INLINE
-    integral_t unsigned_64_div_128_to_64(integral_t dividend, const this_type & divisor) {
+    integral_t bigint_64_div_128_to_64(integral_t dividend, const this_type & divisor) {
         return ((divisor.high != 0) ? 0 : (dividend / divisor.low));
     }
 
     static
     JSTD_FORCE_INLINE
-    integral_t unsigned_128_div_64_to_64(const this_type & dividend, integral_t divisor) {
+    integral_t bigint_128_div_64_to_64(const this_type & dividend, integral_t divisor) {
         // N.B. resist the temptation to use __uint128_t here.
         // In LLVM compiler-rt, it performs a 128/128 -> 128 division which is many times slower than
         // necessary. In gcc it's better but still slower than the divlu implementation, perhaps because
@@ -754,6 +887,7 @@ struct _uint128_t {
 #elif defined(JSTD_X86_64) && (defined(_MSC_VER) || defined(__ICL))
 #if 1
         uint64_t remainder;
+        // From /jstd/udiv128.asm (MASM format)
         uint64_t quotient = __udiv128(dividend.low, dividend.high, divisor, &remainder);
         return (integral_t)quotient;
 #else
@@ -768,7 +902,7 @@ struct _uint128_t {
                 if (divisor != 0) {
                     int gcd_pow2 = count_leading_zeros(divisor);
                 } else {
-                    throw std::runtime_error("_uint128_t::unsigned_128_div_64_to_64(): divisor is zero.");
+                    throw std::runtime_error("_uint128_t::bigint_128_div_64_to_64(): divisor is zero.");
                 }
             } else {
                 return integral_t(~0ull);
@@ -783,10 +917,10 @@ struct _uint128_t {
     // q(64) = n(128) / d(128)
     //
     static inline
-    integral_t unsigned_128_div_128_to_64(const this_type & dividend, const this_type & divisor) {
+    integral_t bigint_128_div_128_to_64(const this_type & dividend, const this_type & divisor) {
         if (divisor.high == 0) {
             // dividend.high != 0 && divisor.high == 0
-            return unsigned_128_div_64_to_64(dividend, divisor.low);
+            return bigint_128_div_64_to_64(dividend, divisor.low);
         } else {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
@@ -812,15 +946,17 @@ struct _uint128_t {
 
     static
     JSTD_FORCE_INLINE
-    this_type unsigned_128_div_64_to_128(const this_type & dividend, integral_t divisor) {
+    this_type bigint_128_div_64_to_128(const this_type & dividend, integral_t divisor) {
         if (dividend.high != 0) {
             // TODO: xxxxxx
-#if defined(JSTD_X86_64) && (defined(_MSC_VER) || defined(__ICL))
-            this_type quotient = __udivti3(dividend, divisor);
-            return quotient;
-#else
-            return this_type(UINT64_C(0), UINT64_C(0));
-#endif
+            int distance = u128_distance(dividend, divisor);
+            if (distance < 64) {
+                integral_t quotient = bigint_128_div_64_to_64(dividend, divisor);
+                return this_type((high_t)0ull, quotient);
+            } else {
+                this_type quotient = __udivti3(dividend, divisor);
+                return quotient;
+            }
         } else {
             return this_type(dividend.low / divisor, UINT64_C(0));
         }
@@ -830,10 +966,10 @@ struct _uint128_t {
     // q(128) = n(128) / d(128)
     //
     static inline
-    this_type unsigned_128_div_128_to_128(const this_type & dividend, const this_type & divisor) {
+    this_type bigint_128_div(const this_type & dividend, const this_type & divisor) {
         if (divisor.high == 0) {
             // dividend.high != 0 && divisor.high == 0
-            return unsigned_128_div_64_to_128(dividend, divisor.low);
+            return bigint_128_div_64_to_128(dividend, divisor.low);
         } else {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
@@ -852,7 +988,7 @@ struct _uint128_t {
     }
 
     static inline
-    this_type unsigned_128_mul_128_to_128(const this_type & multiplicand, const this_type & multiplier) {
+    this_type bigint_128_mul(const this_type & multiplicand, const this_type & multiplier) {
         this_type product;
         product.low  = multiplicand.low * multiplier.low;
         product.high = mul128_high_u64(multiplicand.low, multiplier.low);

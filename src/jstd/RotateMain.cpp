@@ -537,7 +537,7 @@ int main(int argn, char * argv[])
     jstd::genModRatioTbl();
 #endif
 
-    jstd::genModRatioTbl_u64();
+    //jstd::genModRatioTbl_u64();
 
     //rotate_test();
     //rotate_unit_test();
