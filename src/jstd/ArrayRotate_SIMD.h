@@ -184,7 +184,7 @@ T * rotate_simple(T * first, T * mid, T * last)
 template <typename T, bool loadIsAligned, bool storeIsAligned, int LeftUints = 7>
 static
 JSTD_FORCE_INLINE
-void avx_forward_move_8_tailing(char * target, char * source, char * end)
+void avx_forward_move_N_tailing(char * target, char * source, char * end)
 {
     static const std::size_t kValueSize = sizeof(T);
     std::size_t lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
@@ -454,7 +454,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
     else
         loadAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
 
-    if (kValueSizeIsDivisible && loadAddrCanAlign) {
+    if (likely(kValueSizeIsDivisible && loadAddrCanAlign)) {
         //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
         unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
         while (unAlignedBytes != 0) {
@@ -471,7 +471,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         bool storeAddrIsAligned = (((std::size_t)target & kAVXAlignMask) == 0);
-        if (!storeAddrIsAligned) {
+        if (likely(!storeAddrIsAligned)) {
             while (source < limit) {
                 //
                 // See: https://blog.csdn.net/qq_43401808/article/details/87360789
@@ -528,7 +528,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsAligned, kStoreIsNotAligned, N - 1>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
                 if (kUsePrefetchHint) {
@@ -583,7 +583,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsAligned, kStoreIsAligned, N - 1>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, N - 1>(target, source, end);
         }
     }
     else {
@@ -612,7 +612,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
         std::size_t totalBytes = (last - first) * kValueSize;
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
-        if (storeAddrCanAlign) {
+        if (likely(storeAddrCanAlign)) {
             while (source < limit) {
                 if (kUsePrefetchHint) {
                     // Here, N would be best a multiple of 2.
@@ -666,7 +666,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
                 if (kUsePrefetchHint) {
@@ -721,22 +721,23 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, N - 1>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, N - 1>(target, source, end);
         }
     }
 }
 
 template <typename T, std::size_t N = 8>
 static
-void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
+void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
     static const bool kValueSizeIsDivisible =  (kValueSize < kAVXRegBytes) ?
                                               ((kAVXRegBytes % kValueSize) == 0) :
                                               ((kValueSize % kAVXRegBytes) == 0);
-
-    static const std::size_t kPerStepBytes = N * kAVXRegBytes;
+    // minimum AVX regs = 1, maximum AVX regs = 8
+    static const std::size_t kAVXRegUnits = (N == 0) ? 1 : ((N <= 8) ? N : 8);
+    static const std::size_t kPerStepBytes = kAVXRegUnits * kAVXRegBytes;
 
     std::size_t unAlignedBytes = (std::size_t)first & kAVXAlignMask;
     bool storeAddrCanAlign;
@@ -745,7 +746,7 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
     else
         storeAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
 
-    if (kValueSizeIsDivisible && storeAddrCanAlign) {
+    if (likely(kValueSizeIsDivisible && storeAddrCanAlign)) {
         //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
         unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
         while (unAlignedBytes != 0) {
@@ -762,7 +763,7 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
-        if (!loadAddrIsAligned) {
+        if (likely(!loadAddrIsAligned)) {
             while (source < limit) {
                 //
                 // See: https://blog.csdn.net/qq_43401808/article/details/87360789
@@ -770,67 +771,111 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
                 if (kUsePrefetchHint) {
                     // Here, N would be best a multiple of 2.
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
-                __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
-                __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
-                __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
-                __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
-                __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
-                __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
-                __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
-                __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                    ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
 
-                _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
-                _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
-                _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
-                _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
-                _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
-                _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
-                _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
-                _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
 
                 source += kPerStepBytes;
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsAligned, 7>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
                 if (kUsePrefetchHint) {
                     // Here, N would be best a multiple of 2.
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
-                __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
-                __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
-                __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
-                __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
-                __m256i ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
-                __m256i ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
-                __m256i ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
-                __m256i ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                    ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
 
-                _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
-                _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
-                _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
-                _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
-                _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
-                _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
-                _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
-                _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
 
                 source += kPerStepBytes;
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsAligned, kStoreIsAligned, 7>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, N - 1>(target, source, end);
         }
     }
     else {
@@ -859,72 +904,116 @@ void avx_forward_move_8_store_aligned(T * first, T * mid, T * last)
         std::size_t totalBytes = (last - first) * kValueSize;
         const char * limit = (totalBytes >= kPerStepBytes) ? (end - lastUnalignedBytes) : source;
 
-        if (loadAddrCanAlign) {
+        if (likely(loadAddrCanAlign)) {
             while (source < limit) {
                 if (kUsePrefetchHint) {
                     // Here, N would be best a multiple of 2.
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
-                __m256i ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
-                __m256i ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
-                __m256i ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
-                __m256i ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
-                __m256i ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
-                __m256i ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
-                __m256i ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
-                __m256i ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                    ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
 
-                _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
 
                 source += kPerStepBytes;
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsAligned, kStoreIsNotAligned, 7>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, N - 1>(target, source, end);
         } else {
             while (source < limit) {
                 if (kUsePrefetchHint) {
                     // Here, N would be best a multiple of 2.
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
                     _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
                 }
 
-                __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
-                __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
-                __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
-                __m256i ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
-                __m256i ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
-                __m256i ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
-                __m256i ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
-                __m256i ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                    ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
 
-                _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
-                _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
 
                 source += kPerStepBytes;
                 target += kPerStepBytes;
             }
 
-            avx_forward_move_8_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, 7>(target, source, end);
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, N - 1>(target, source, end);
         }
     }
 }
@@ -1589,8 +1678,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 }
 
 template <typename T>
-void left_rotate_sse_1_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m128i * stash_start = (const __m128i *)first;
     __m128i stash0 = _mm_loadu_si128(stash_start);
@@ -1602,8 +1690,7 @@ void left_rotate_sse_1_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_1_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start);
@@ -1615,8 +1702,7 @@ void left_rotate_avx_1_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_2_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_2_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1630,8 +1716,7 @@ void left_rotate_avx_2_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_3_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_3_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1647,8 +1732,7 @@ void left_rotate_avx_3_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_4_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1657,7 +1741,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last,
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_8_store_aligned<T>(first, mid, last);
+    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -1667,8 +1751,7 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_5_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1678,7 +1761,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last,
     __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
 
     //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_8_store_aligned<T>(first, mid, last);
+    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
 
     __m256i * store_start = (__m256i *)(last - left_len);
     _mm256_storeu_si256(store_start + 0, stash0);
@@ -1689,8 +1772,7 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_6_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_6_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1712,8 +1794,7 @@ void left_rotate_avx_6_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_7_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_7_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1737,8 +1818,7 @@ void left_rotate_avx_7_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_8_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_8_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1764,8 +1844,7 @@ void left_rotate_avx_8_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_9_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_9_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1793,8 +1872,7 @@ void left_rotate_avx_9_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_10_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_10_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1824,8 +1902,7 @@ void left_rotate_avx_10_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
-void left_rotate_avx_11_regs(T * first, T * mid, T * last,
-                            std::size_t left_len, std::size_t right_len)
+void left_rotate_avx_11_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
     __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
@@ -1857,6 +1934,40 @@ void left_rotate_avx_11_regs(T * first, T * mid, T * last,
 }
 
 template <typename T>
+void left_rotate_avx_12_regs(T * first, T * mid, T * last, std::size_t left_len)
+{
+    const __m256i * stash_start = (const __m256i *)first;
+    __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
+    __m256i stash1 = _mm256_loadu_si256(stash_start + 1);
+    __m256i stash2 = _mm256_loadu_si256(stash_start + 2);
+    __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
+    __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
+    __m256i stash5 = _mm256_loadu_si256(stash_start + 5);
+    __m256i stash6 = _mm256_loadu_si256(stash_start + 6);
+    __m256i stash7 = _mm256_loadu_si256(stash_start + 7);
+    __m256i stash8 = _mm256_loadu_si256(stash_start + 8);
+    __m256i stash9 = _mm256_loadu_si256(stash_start + 9);
+    __m256i stash10 = _mm256_loadu_si256(stash_start + 10);
+    __m256i stash11 = _mm256_loadu_si256(stash_start + 11);
+
+    avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
+
+    __m256i * store_start = (__m256i *)(last - left_len);
+    _mm256_storeu_si256(store_start + 0, stash0);
+    _mm256_storeu_si256(store_start + 1, stash1);
+    _mm256_storeu_si256(store_start + 2, stash2);
+    _mm256_storeu_si256(store_start + 3, stash3);
+    _mm256_storeu_si256(store_start + 4, stash4);
+    _mm256_storeu_si256(store_start + 5, stash5);
+    _mm256_storeu_si256(store_start + 6, stash6);
+    _mm256_storeu_si256(store_start + 7, stash7);
+    _mm256_storeu_si256(store_start + 8, stash8);
+    _mm256_storeu_si256(store_start + 9, stash9);
+    _mm256_storeu_si256(store_start + 10, stash10);
+    _mm256_storeu_last<T, 11>(store_start + 11, stash11, left_len);
+}
+
+template <typename T>
 T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 {
     //typedef T   value_type;
@@ -1882,66 +1993,68 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 
     pointer result = first + right_len;
 
-    do {
-        if (left_len <= right_len) {
-            std::size_t left_bytes = left_len * sizeof(T);
-            if (left_bytes <= kMaxAVXStashBytes) {
-                std::size_t avx_needs = (left_bytes - 1) / kAVXRegBytes;
-                switch (avx_needs) {
-                    case 0:
-                        if (left_bytes <= kSSERegBytes)
-                            left_rotate_sse_1_regs(first, mid, last, left_len, right_len);
-                        else
-                            left_rotate_avx_1_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 1:
-                        left_rotate_avx_2_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 2:
-                        left_rotate_avx_3_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 3:
-                        left_rotate_avx_4_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 4:
-                        left_rotate_avx_5_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 5:
-                        left_rotate_avx_6_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 6:
-                        left_rotate_avx_7_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 7:
-                        left_rotate_avx_8_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 8:
-                        left_rotate_avx_9_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 9:
-                        left_rotate_avx_10_regs(first, mid, last, left_len, right_len);
-                        break;
-                    case 10:
-                        left_rotate_avx_11_regs(first, mid, last, left_len, right_len);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else {
-                return left_rotate_simple_impl(first, mid, last, left_len, right_len);
-            }
-        } else {
-            std::size_t right_bytes = right_len * sizeof(T);
-            if (right_bytes <= kMaxAVXStashBytes) {
-                //
-            }
-            else {
-                return left_rotate_simple_impl(first, mid, last, left_len, right_len);
+    if (left_len <= right_len) {
+        std::size_t left_bytes = left_len * sizeof(T);
+        if (left_bytes <= kMaxAVXStashBytes) {
+            std::size_t avx_needs = (left_bytes - 1) / kAVXRegBytes;
+            switch (avx_needs) {
+                case 0:
+                    if (left_bytes <= kSSERegBytes)
+                        left_rotate_sse_1_regs(first, mid, last, left_len);
+                    else
+                        left_rotate_avx_1_regs(first, mid, last, left_len);
+                    break;
+                case 1:
+                    left_rotate_avx_2_regs(first, mid, last, left_len);
+                    break;
+                case 2:
+                    left_rotate_avx_3_regs(first, mid, last, left_len);
+                    break;
+                case 3:
+                    left_rotate_avx_4_regs(first, mid, last, left_len);
+                    break;
+                case 4:
+                    left_rotate_avx_5_regs(first, mid, last, left_len);
+                    break;
+                case 5:
+                    left_rotate_avx_6_regs(first, mid, last, left_len);
+                    break;
+                case 6:
+                    left_rotate_avx_7_regs(first, mid, last, left_len);
+                    break;
+                case 7:
+                    left_rotate_avx_8_regs(first, mid, last, left_len);
+                    break;
+                case 8:
+                    left_rotate_avx_9_regs(first, mid, last, left_len);
+                    break;
+                case 9:
+                    left_rotate_avx_10_regs(first, mid, last, left_len);
+                    break;
+                case 10:
+                    left_rotate_avx_11_regs(first, mid, last, left_len);
+                    break;
+                case 11:
+                    left_rotate_avx_12_regs(first, mid, last, left_len);
+                    break;
+                default:
+                    assert(false);
+                    break;
             }
         }
-        break;
-    } while (1);
+        else {
+            return left_rotate_simple_impl(first, mid, last, left_len, right_len);
+        }
+    } else {
+        std::size_t right_bytes = right_len * sizeof(T);
+        if (right_bytes <= kMaxAVXStashBytes) {
+            return left_rotate_simple_impl(first, mid, last, left_len, right_len);
+        }
+        else {
+            return left_rotate_simple_impl(first, mid, last, left_len, right_len);
+        }
+    }
+
 
     return result;
 }

@@ -147,6 +147,13 @@ void rotate_test()
     jstd::rotate(array.begin(), array.begin() + Offset, array.end());
     print_array<char>("jstd::rotate(%u, %u)", length, offset, array);
 
+    for (size_t i = 0; i < length; i++) {
+        array[i] = dict_str[i];
+    }
+
+    jstd::simd::rotate(&array[0], &array[0] + Offset, &array[0] + array.size(), nullptr);
+    print_array<char>("jstd::simd::rotate(%u, %u)", length, offset, array);
+
     printf("\n");
 }
 
@@ -202,6 +209,22 @@ void jstd_rotate_test()
 
     printf("\n");
     printf("jstd::right_rotate(%u, %u): ", (uint32_t)length, (uint32_t)(length - offset));
+    error_pos = verify_array(array, array_std);
+    if (error_pos == -1)
+        printf("Passed");
+    else
+        printf("Failed (pos = %d)", error_pos);
+    printf("\n\n");
+
+    for (size_t i = 0; i < length; i++) {
+        array[i] = dict_str[i];
+    }
+
+    jstd::simd::rotate(&array[0], &array[0] + offset, &array[0] + array.size(), nullptr);
+    print_array<char>("jstd::simd::rotate(%u, %u)", length, (length - offset), array);
+
+    printf("\n");
+    printf("jstd::simd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)(length - offset));
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
         printf("Passed");
