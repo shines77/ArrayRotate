@@ -631,8 +631,6 @@ struct _uint128_t {
         return result;
     }
 
-#if defined(_MSC_VER) || defined(__ICL)
-
     static inline
     int bigint_64_distance(uint64_t dividend, const uint64_t divisor) {
         int n_leading_zeros = count_leading_zeros(dividend);
@@ -653,6 +651,8 @@ struct _uint128_t {
         int d_leading_zeros = count_leading_zeros(divisor) + 64;
         return (d_leading_zeros - n_leading_zeros);
     }
+
+#if (defined(_MSC_VER) || defined(__ICL)) || 1
 
     static inline
     uint64_t __udivmodti4_64(uint64_t dividend, uint64_t divisor, uint64_t * remainder) {
@@ -955,7 +955,7 @@ struct _uint128_t {
                 integral_t quotient = bigint_128_div_64_to_64(dividend, divisor);
                 return this_type((high_t)0ull, quotient);
             } else {
-                this_type quotient = __udivti3(dividend, divisor);
+                this_type quotient = __udivti3(dividend, (uint64_t)divisor);
                 return quotient;
             }
         } else {
