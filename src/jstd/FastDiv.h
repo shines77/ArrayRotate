@@ -1364,6 +1364,7 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
 {
     std::uint32_t shift = floorLog2<std::uint64_t>(divisor);
     std::uint64_t multi, add = 0;
+    UNUSED_VARIANT(add);
     if ((divisor & (divisor - 1)) == 0) {
         if (divisor == 0) {
             multi = 0;
