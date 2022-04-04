@@ -824,6 +824,51 @@ struct _uint128_t {
         return ((divisor.high != 0) ? 0 : (dividend / divisor.low));
     }
 
+#if 0
+    //
+    // From: https://stackoverflow.com/questions/8453146/128-bit-division-intrinsic-in-visual-c
+    //
+    static unsigned char udiv128_Data[] = {
+        0x48, 0x89, 0xD0,   // mov rax,rdx
+        0x48, 0x89, 0xCA,   // mov rdx,rcx
+        0x49, 0xF7, 0xF0,   // div r8
+        0x49, 0x89, 0x11,   // mov [r9],rdx
+        0xC3                // ret
+    };
+
+    static unsigned char sdiv128_Data[] = {
+        0x48, 0x89, 0xD0,   // mov rax,rdx
+        0x48, 0x89, 0xCA,   // mov rdx,rcx
+        0x49, 0xF7, 0xF8,   // idiv r8
+        0x49, 0x89, 0x11,   // mov [r9],rdx
+        0xC3                // ret
+    };
+
+    unsigned __int64 (__fastcall * vc_udiv128)(unsigned __int64 high,
+                                               unsigned __int64 low,
+                                               unsigned __int64 divisor,
+                                               unsigned __int64 * remainder) =
+        (unsigned __int64(__fastcall *)(unsigned __int64,
+                                        unsigned __int64,
+                                        unsigned __int64,
+                                        unsigned __int64 *))((unsigned __int64 *)udiv128_Data);
+
+    __int64 (__fastcall * vc_sdiv128)(__int64 high,
+                                      __int64 low,
+                                      __int64 divisor,
+                                      __int64 * remainder) =
+        (__int64(__fastcall *)(__int64,
+                               __int64,
+                               __int64,
+                               __int64 *))((__int64 *)sdiv128_Data);
+
+    //
+    // DWORD dummy;
+    // VirtualProtect(udiv128_Data, sizeof(udiv128_Data), PAGE_EXECUTE_READWRITE, &dummy);
+    // VirtualProtect(sdiv128_Data, sizeof(sdiv128_Data), PAGE_EXECUTE_READWRITE, &dummy);
+    //
+#endif
+
     static
     JSTD_FORCE_INLINE
     integral_t bigint_128_div_64_to_64(const this_type & dividend, integral_t divisor) {
