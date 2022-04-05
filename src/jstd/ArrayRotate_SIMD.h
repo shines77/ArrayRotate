@@ -34,6 +34,23 @@
 #define PREFETCH_HINT_LEVEL     _MM_HINT_T0
 #endif
 
+//
+// TLB miss and L3 Cache miss
+//
+
+//
+// About Single-threaded memory bandwidth
+//
+// Single-threaded memory bandwidth on modern CPUs is limited by max_concurrency / latency of
+// the transfers from L1D to the rest of the system, not by DRAM-controller bottlenecks.
+// Each core has 10 Line-Fill Buffers (LFBs) which track outstanding requests to/from L1D.
+// (And 16 "superqueue" entries which track lines to/from L2).
+//
+// experiments show that Skylake probably has 12 LFBs, up from 10 in Broadwell. e.g.
+//
+// See: https://stackoverflow.com/questions/39260020/why-is-skylake-so-much-better-than-broadwell-e-for-single-threaded-memory-throug
+//
+
 namespace jstd {
 namespace simd {
 
@@ -2137,7 +2154,13 @@ void _mm_storeu_last(__m128i * addr, __m128i src, std::size_t left_len)
 {
     uint8_t * target = (uint8_t *)addr;
     std::intptr_t left_bytes = left_len * sizeof(T) - index * kSSERegBytes;
-    assert(left_bytes >= 0 && left_bytes <= kSSERegBytes);
+    assert(left_bytes > 0 && left_bytes <= kSSERegBytes);
+
+#if defined(__AVX512BW__) && defined(__AVX512VL__)
+    static const uint32_t kFullStoreMask = 0x0000FFFFul;
+    __mmask16 store_mask = (__mmask16)(kFullStoreMask >> (16 - left_bytes));
+    _mm_mask_storeu_epi8(addr, store_mask, src);
+#else
     uint32_t value32_0, value32_1;
     uint64_t value64_0, value64_1;
     switch (left_bytes) {
@@ -2237,6 +2260,7 @@ void _mm_storeu_last(__m128i * addr, __m128i src, std::size_t left_len)
         default:
             break;
     }
+#endif
 }
 
 template <typename T, std::size_t index>
@@ -2244,7 +2268,13 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 {
     uint8_t * target = (uint8_t *)addr;
     std::intptr_t left_bytes = left_len * sizeof(T) - index * kAVXRegBytes;
-    assert(left_bytes >= 0 && left_bytes <= kAVXRegBytes);
+    assert(left_bytes > 0 && left_bytes <= kAVXRegBytes);
+
+#if defined(__AVX512BW__) && defined(__AVX512VL__)
+    static const uint32_t kFullStoreMask = 0xFFFFFFFFul;
+    __mmask32 store_mask = (__mmask32)(kFullStoreMask >> (32 - left_bytes));
+    _mm256_mask_storeu_epi8(addr, store_mask, src);
+#else
     uint32_t value32_0, value32_1;
     uint64_t value64_0, value64_1, value64_2;
     switch (left_bytes) {
@@ -2515,6 +2545,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
         default:
             break;
     }
+#endif
 }
 
 template <typename T, std::size_t N>
@@ -2554,12 +2585,28 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
 
     ////////////////////////////////////////////////////////////////////////
 
+#if defined(__clang__)
+    if (N <= 6)         // 1 -- 6,
+        avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
+    else if (N <= 8)    // 7, 8
+        avx_forward_move_Nx2_store_aligned<T, 6>(first, mid, last);
+    else                // 9, 10, 11, 12
+        avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
+#elif 1
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
         avx_forward_move_N_load_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
         avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
+#else
+    if (N <= 6)         // 1 -- 6,
+        avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
+    else if (N <= 8)    // 7, 8
+        avx_forward_move_N_store_aligned<T, 6>(first, mid, last);
+    else                // 9, 10, 11, 12
+        avx_forward_move_N_store_aligned<T, 4>(first, mid, last);
+#endif
 
     ////////////////////////////////////////////////////////////////////////
 

@@ -34,8 +34,9 @@
 #define __AVX__
 #define __AVX2__
 
-#define __AVX512VL__
-#define __AVX512F__
+//#define __AVX512BW__
+//#define __AVX512VL__
+//#define __AVX512F__
 
 //#undef __SSE4_1__
 //#undef __AVX2__

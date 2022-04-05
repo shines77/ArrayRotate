@@ -53,6 +53,8 @@ void run_rotate_test(Container & array_std, Container & array)
     static const std::size_t offset = Offset % length;
     int error_pos;
 
+    printf("--------------------------------------------------------------\n\n");
+
     for (size_t i = 0; i < length; i++) {
         array_std[i] = (int)i;
     }
@@ -65,13 +67,13 @@ void run_rotate_test(Container & array_std, Container & array)
 
     jstd::rotate(array.begin(), array.begin() + offset, array.end());
 
-    printf(" jstd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)offset);
+    printf(" jstd::rotate(%u, %u):              ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
         printf("Passed");
     else
         printf("Failed (pos = %d)", error_pos);
-    printf("\n\n");
+    printf("\n");
 
     for (size_t i = 0; i < length; i++) {
         array[i] = (int)i;
@@ -79,13 +81,13 @@ void run_rotate_test(Container & array_std, Container & array)
 
     jstd::simd::rotate<int>((int *)&array[0], array.size(), offset);
 
-    printf(" jstd::simd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)offset);
+    printf(" jstd::simd::rotate(%u, %u):        ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
         printf("Passed");
     else
         printf("Failed (pos = %d)", error_pos);
-    printf("\n\n");
+    printf("\n");
 
 #if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
@@ -101,38 +103,11 @@ void run_rotate_test(Container & array_std, Container & array)
         printf("Passed");
     else
         printf("Failed (pos = %d)", error_pos);
-    printf("\n\n");
+    printf("\n");
 #endif
 #endif // USE_KERBAL_ROTATE
-}
 
-void validate_test()
-{
-    static const size_t test_length = 100000000;
-
-    std::vector<int> array_std;
-    array_std.resize(test_length);
-
-    std::vector<int> array;
-    array.resize(test_length);
-
-    printf("--------------------------------------------------------------\n\n");
-
-    run_rotate_test<int, test_length, 32>(array_std, array);
-
-    printf("--------------------------------------------------------------\n\n");
-
-    run_rotate_test<int, test_length, 33>(array_std, array);
-
-    printf("--------------------------------------------------------------\n\n");
-
-    run_rotate_test<int, test_length, 33333333>(array_std, array);
-
-    printf("--------------------------------------------------------------\n\n");
-
-    run_rotate_test<int, test_length, 50000000>(array_std, array);
-
-    printf("--------------------------------------------------------------\n\n");
+    printf("\n");
 }
 
 template < typename ItemType, std::size_t Length, std::size_t Offset,
@@ -145,6 +120,8 @@ void run_rotate_benchmark(Container & array)
     test::StopWatch sw;
     double elapsedTime;
 
+    printf("//////////////////////////////////////////////////////////////////\n\n");
+
     //////////////////////////////////////////////////////////////
 
     sw.start();
@@ -152,7 +129,7 @@ void run_rotate_benchmark(Container & array)
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" std::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+    printf(" std::rotate(%u, %u):               %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 
     //////////////////////////////////////////////////////////////
 
@@ -161,7 +138,7 @@ void run_rotate_benchmark(Container & array)
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" jstd::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+    printf(" jstd::rotate(%u, %u):              %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 
     //////////////////////////////////////////////////////////////
 
@@ -170,7 +147,7 @@ void run_rotate_benchmark(Container & array)
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" jstd::simd::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+    printf(" jstd::simd::rotate(%u, %u):        %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 
     //////////////////////////////////////////////////////////////
 
@@ -181,11 +158,39 @@ void run_rotate_benchmark(Container & array)
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" kerbal::algorithm::rotate(%u, %u): %0.2f ms\n\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+    printf(" kerbal::algorithm::rotate(%u, %u): %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 #endif
 #endif // USE_KERBAL_ROTATE
 
+    printf("\n");
     //////////////////////////////////////////////////////////////
+}
+
+void validate_test()
+{
+    static const size_t test_length = 100000000;
+
+    std::vector<int> array_std;
+    array_std.resize(test_length);
+
+    std::vector<int> array;
+    array.resize(test_length);
+
+    run_rotate_test<int, test_length, 1>(array_std, array);
+    run_rotate_test<int, test_length, 2>(array_std, array);
+    run_rotate_test<int, test_length, 3>(array_std, array);
+    run_rotate_test<int, test_length, 4>(array_std, array);
+    run_rotate_test<int, test_length, 7>(array_std, array);
+    run_rotate_test<int, test_length, 8>(array_std, array);
+    run_rotate_test<int, test_length, 9>(array_std, array);
+    run_rotate_test<int, test_length, 10>(array_std, array);
+    run_rotate_test<int, test_length, 15>(array_std, array);
+    run_rotate_test<int, test_length, 32>(array_std, array);
+    run_rotate_test<int, test_length, 33>(array_std, array);
+    run_rotate_test<int, test_length, 33333333>(array_std, array);
+    run_rotate_test<int, test_length, 50000000>(array_std, array);
+
+    printf("--------------------------------------------------------------\n\n");
 }
 
 void benchmark()
@@ -198,23 +203,21 @@ void benchmark()
         array[i] = (int)i;
     }
 
-    printf("/////////////////////////////////////////////////////\n\n");
-
+    run_rotate_benchmark<int, test_length, 1>(array);
+    run_rotate_benchmark<int, test_length, 2>(array);
+    run_rotate_benchmark<int, test_length, 3>(array);
+    run_rotate_benchmark<int, test_length, 4>(array);
+    run_rotate_benchmark<int, test_length, 7>(array);
+    run_rotate_benchmark<int, test_length, 8>(array);
+    run_rotate_benchmark<int, test_length, 9>(array);
+    run_rotate_benchmark<int, test_length, 10>(array);
+    run_rotate_benchmark<int, test_length, 15>(array);
     run_rotate_benchmark<int, test_length, 32>(array);
-
-    printf("/////////////////////////////////////////////////////\n\n");
-
     run_rotate_benchmark<int, test_length, 33>(array);
-
-    printf("/////////////////////////////////////////////////////\n\n");
-
     run_rotate_benchmark<int, test_length, 33333333>(array);
-
-    printf("/////////////////////////////////////////////////////\n\n");
-
     run_rotate_benchmark<int, test_length, 50000000>(array);
 
-    printf("/////////////////////////////////////////////////////\n\n");
+    printf("//////////////////////////////////////////////////////////////////\n\n");
 }
 
 int main(int argn, char * argv[])
