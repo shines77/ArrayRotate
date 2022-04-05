@@ -66,7 +66,11 @@ static const int kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
 static const std::size_t kSSERegBytes = 16;
 static const std::size_t kAVXRegBytes = 32;
 
+#if defined(JSTD_X86_64)
+static const std::size_t kSSERegCount = 16;
+#else
 static const std::size_t kSSERegCount = 8;
+#endif
 static const std::size_t kAVXRegCount = 16;
 
 static const std::size_t kSSEAlignment = kSSERegBytes;
@@ -75,7 +79,15 @@ static const std::size_t kAVXAlignment = kAVXRegBytes;
 static const std::size_t kSSEAlignMask = kSSEAlignment - 1;
 static const std::size_t kAVXAlignMask = kAVXAlignment - 1;
 
-static const std::size_t kRotateThresholdLength = 32;
+static const std::size_t kSSERotateThresholdLength = 16;
+
+#if defined(JSTD_X86_64)
+static const std::size_t kMaxSSEStashBytes = (kSSERegCount - 8) * kAVXRegBytes;
+#else
+static const std::size_t kMaxSSEStashBytes = (kSSERegCount - 4) * kAVXRegBytes;
+#endif
+
+static const std::size_t kAVXRotateThresholdLength = 32;
 static const std::size_t kMaxAVXStashBytes = (kAVXRegCount - 4) * kAVXRegBytes;
 
 static const bool kLoadIsAligned = true;
@@ -1624,6 +1636,537 @@ void avx_forward_move_N_store_aligned_nt(T * __restrict first, T * __restrict mi
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
+void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid, T * __restrict last)
+{
+    static const std::size_t kValueSize = sizeof(T);
+    static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
+    static const bool kValueSizeIsDivisible =  (kValueSize < kAVXRegBytes) ?
+                                              ((kAVXRegBytes % kValueSize) == 0) :
+                                              ((kValueSize % kAVXRegBytes) == 0);
+    // minimum AVX regs = 1 * 2, maximum AVX regs = 8 * 2
+    static const std::size_t _N = (N == 0) ? 1 : ((N <= 8) ? N : 8);
+    static const std::size_t kHalfLoopBytes = _N * kAVXRegBytes;
+    static const std::size_t kSingleLoopBytes = kHalfLoopBytes * 2;
+
+    std::size_t unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
+    bool loadAddrCanAlign;
+    if (kValueSize < kAVXRegBytes)
+        loadAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
+    else
+        loadAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
+
+    if (likely(kValueSizeIsDivisible && loadAddrCanAlign)) {
+        //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
+        unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
+        while (unAlignedBytes != 0) {
+            *first++ = *mid++;
+            unAlignedBytes -= kValueSize;
+        }
+
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
+
+        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
+        std::size_t totalBytes = (last - first) * kValueSize;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+
+        bool storeAddrIsAligned = (((std::size_t)target & kAVXAlignMask) == 0);
+        if (likely(!storeAddrIsAligned)) {
+            while (source < limit) {
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                if (N >= 0)
+                    ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                //
+                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+                //
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+
+                /////////////////////////////// Half loop //////////////////////////////////
+
+                if (N >= 0)
+                    ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                //
+                // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+                //
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+            }
+
+            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(target, source, end);
+            //////////////////////////////////////////////////////////////////////////////////////////////////////
+        } else {
+            while (source < limit) {
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                if (N >= 0)
+                    ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+
+                /////////////////////////////// Half loop //////////////////////////////////
+
+                if (N >= 0)
+                    ymm0 = _mm256_load_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_load_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_load_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_load_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_load_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_load_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_load_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_load_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+            }
+
+            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, (_N * 2 - 1)>(target, source, end);
+        }
+    }
+    else {
+        bool storeAddrCanAlign = false;
+        if (kValueSizeIsDivisible) {
+            unAlignedBytes = (std::size_t)first & kAVXAlignMask;
+            if (kValueSize < kAVXRegBytes)
+                storeAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
+            else
+                storeAddrCanAlign = (unAlignedBytes == 0);
+
+            if (storeAddrCanAlign) {
+                unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
+                while (unAlignedBytes != 0) {
+                    *first++ = *mid++;
+                    unAlignedBytes -= kValueSize;
+                }
+            }
+        }
+
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
+
+        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
+        std::size_t totalBytes = (last - first) * kValueSize;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+
+        if (likely(storeAddrCanAlign)) {
+            while (source < limit) {
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                if (N >= 0)
+                    ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+
+                /////////////////////////////// Half loop //////////////////////////////////
+
+                if (N >= 0)
+                    ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_store_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_store_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_store_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_store_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_store_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_store_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_store_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_store_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+            }
+
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(target, source, end);
+            ////////////////////////////////////////////////////////////////////////////////////////////////
+        } else {
+            while (source < limit) {
+                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+                if (N >= 0)
+                    ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+
+                /////////////////////////////// Half loop //////////////////////////////////
+
+                if (N >= 0)
+                    ymm0 = _mm256_loadu_si256((const __m256i *)(source + 32 * 0));
+                if (N >= 2)
+                    ymm1 = _mm256_loadu_si256((const __m256i *)(source + 32 * 1));
+                if (N >= 3)
+                    ymm2 = _mm256_loadu_si256((const __m256i *)(source + 32 * 2));
+                if (N >= 4)
+                    ymm3 = _mm256_loadu_si256((const __m256i *)(source + 32 * 3));
+                if (N >= 5)
+                    ymm4 = _mm256_loadu_si256((const __m256i *)(source + 32 * 4));
+                if (N >= 6)
+                    ymm5 = _mm256_loadu_si256((const __m256i *)(source + 32 * 5));
+                if (N >= 7)
+                    ymm6 = _mm256_loadu_si256((const __m256i *)(source + 32 * 6));
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    ymm7 = _mm256_loadu_si256((const __m256i *)(source + 32 * 7));
+                }
+
+                if (kUsePrefetchHint) {
+                    // Here, N would be best a multiple of 2.
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                    if (N >= 3)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                    if (N >= 5)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                    if (N >= 7)
+                    _mm_prefetch((const char *)(source + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+                }
+
+                source += kHalfLoopBytes;
+
+                if (N >= 0)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 0), ymm0);
+                if (N >= 2)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 1), ymm1);
+                if (N >= 3)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 2), ymm2);
+                if (N >= 4)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 3), ymm3);
+                if (N >= 5)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 4), ymm4);
+                if (N >= 6)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 5), ymm5);
+                if (N >= 7)
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 6), ymm6);
+                // Use "{" and "}" to avoid the gcc warnings
+                if (N >= 8) {
+                    _mm256_storeu_si256((__m256i *)(target + 32 * 7), ymm7);
+                }
+
+                target += kHalfLoopBytes;
+            }
+
+            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, (_N * 2 - 1)>(target, source, end);
+        }
+    }
+}
+
+template <typename T, std::size_t N = 8>
+static
+JSTD_NO_INLINE
 void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid, T * __restrict last)
 {
     static const std::size_t kValueSize = sizeof(T);
@@ -2728,10 +3271,11 @@ void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
     __m256i stash3 = _mm256_loadu_si256(stash_start + 3);
 
 #if defined(__clang__)
-    avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
+    avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
+    //avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
 #else
-    //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
+    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
+    //avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
 #endif
 
     __m256i * store_start = (__m256i *)(last - left_len);
@@ -2753,10 +3297,11 @@ void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
     __m256i stash4 = _mm256_loadu_si256(stash_start + 4);
 
 #if defined(__clang__)
-    avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
+    avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
+    //avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
 #else
-    //avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
+    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
+    //avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
 #endif
 
     __m256i * store_start = (__m256i *)(last - left_len);
@@ -2990,7 +3535,7 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
     std::size_t right_len = (offset <= length) ? (length - offset) : 0;
     if (right_len == 0) return last;
 
-    if (length <= kRotateThresholdLength) {
+    if (length <= kAVXRotateThresholdLength) {
         return left_rotate_simple_impl(first, mid, last, left_len, right_len);
     }
 
