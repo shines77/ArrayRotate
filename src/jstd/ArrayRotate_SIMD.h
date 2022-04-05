@@ -184,11 +184,11 @@ T * rotate_simple(T * first, T * mid, T * last)
 template <typename T, bool loadIsAligned, bool storeIsAligned, int LeftUints = 7>
 static
 JSTD_FORCE_INLINE
-void avx_forward_move_N_tailing(char * target, char * source, char * end)
+void avx_forward_move_N_tailing(char * __restrict target, char * __restrict source, char * __restrict end)
 {
     static const std::size_t kValueSize = sizeof(T);
     std::size_t lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
-    const char * limit = end - lastUnalignedBytes;
+    const char * __restrict limit = end - lastUnalignedBytes;
 
     if (loadIsAligned && storeIsAligned) {
         if (((source + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
@@ -437,11 +437,11 @@ void avx_forward_move_N_tailing(char * target, char * source, char * end)
 template <typename T, bool loadIsAligned, bool storeIsAligned, int LeftUints = 7>
 static
 JSTD_FORCE_INLINE
-void avx_forward_move_N_tailing_nt(char * target, char * source, char * end)
+void avx_forward_move_N_tailing_nt(char * __restrict target, char * __restrict source, char * __restrict end)
 {
     static const std::size_t kValueSize = sizeof(T);
     std::size_t lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
-    const char * limit = end - lastUnalignedBytes;
+    const char * __restrict limit = end - lastUnalignedBytes;
 
     if (loadIsAligned && storeIsAligned) {
         if (((source + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
@@ -690,7 +690,7 @@ void avx_forward_move_N_tailing_nt(char * target, char * source, char * end)
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
+void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T * __restrict last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -716,13 +716,13 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
             unAlignedBytes -= kValueSize;
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         bool storeAddrIsAligned = (((std::size_t)target & kAVXAlignMask) == 0);
         if (likely(!storeAddrIsAligned)) {
@@ -864,13 +864,13 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
             }
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(storeAddrCanAlign)) {
             while (source < limit) {
@@ -995,7 +995,7 @@ void avx_forward_move_N_load_aligned(T * first, T * mid, T * last)
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
+void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, T * __restrict last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -1021,13 +1021,13 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
             unAlignedBytes -= kValueSize;
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
@@ -1169,13 +1169,13 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
             }
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(loadAddrCanAlign)) {
             while (source < limit) {
@@ -1300,7 +1300,7 @@ void avx_forward_move_N_store_aligned(T * first, T * mid, T * last)
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
+void avx_forward_move_N_store_aligned_nt(T * __restrict first, T * __restrict mid, T * __restrict last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -1326,13 +1326,13 @@ void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
             unAlignedBytes -= kValueSize;
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
@@ -1476,13 +1476,13 @@ void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
             }
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(loadAddrCanAlign)) {
             while (source < limit) {
@@ -1607,7 +1607,7 @@ void avx_forward_move_N_store_aligned_nt(T * first, T * mid, T * last)
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_Nx2_store_aligned(T * first, T * mid, T * last)
+void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid, T * __restrict last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -1634,13 +1634,13 @@ void avx_forward_move_Nx2_store_aligned(T * first, T * mid, T * last)
             unAlignedBytes -= kValueSize;
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
@@ -1893,13 +1893,13 @@ void avx_forward_move_Nx2_store_aligned(T * first, T * mid, T * last)
             }
         }
 
-        char * target = (char *)first;
-        char * source = (char *)mid;
-        char * end = (char *)last;
+        char * __restrict target = (char * __restrict)first;
+        char * __restrict source = (char * __restrict)mid;
+        char * __restrict end = (char * __restrict)last;
 
         std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
         std::size_t totalBytes = (last - first) * kValueSize;
-        const char * limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
+        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(loadAddrCanAlign)) {
             while (source < limit) {
@@ -2630,7 +2630,7 @@ JSTD_FORCE_INLINE
 void left_rotate_avx_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m256i * stash_start = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_start);
+    __m256i stash0 = _mm256_loadu_si256(stash_start + 0);
 
     avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
 
