@@ -3561,40 +3561,40 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
                     if (left_bytes <= kSSERegBytes)
                         left_rotate_sse_1_regs(first, mid, last, left_len);
                     else
-                        left_rotate_avx_1_regs(first, mid, last, left_len);
+                        left_rotate_avx_N_regs<T, 1>(first, mid, last, left_len);
                     break;
                 case 1:
-                    left_rotate_avx_2_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 2>(first, mid, last, left_len);
                     break;
                 case 2:
-                    left_rotate_avx_3_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 3>(first, mid, last, left_len);
                     break;
                 case 3:
-                    left_rotate_avx_4_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 4>(first, mid, last, left_len);
                     break;
                 case 4:
-                    left_rotate_avx_5_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 5>(first, mid, last, left_len);
                     break;
                 case 5:
-                    left_rotate_avx_6_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 6>(first, mid, last, left_len);
                     break;
                 case 6:
-                    left_rotate_avx_7_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 7>(first, mid, last, left_len);
                     break;
                 case 7:
-                    left_rotate_avx_8_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 8>(first, mid, last, left_len);
                     break;
                 case 8:
-                    left_rotate_avx_9_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 9>(first, mid, last, left_len);
                     break;
                 case 9:
-                    left_rotate_avx_10_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 10>(first, mid, last, left_len);
                     break;
                 case 10:
-                    left_rotate_avx_11_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 11>(first, mid, last, left_len);
                     break;
                 case 11:
-                    left_rotate_avx_12_regs(first, mid, last, left_len);
+                    left_rotate_avx_N_regs<T, 12>(first, mid, last, left_len);
                     break;
                 default:
                     assert(false);
