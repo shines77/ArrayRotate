@@ -87,7 +87,7 @@ static const std::size_t kMaxSSEStashBytes = (kSSERegCount - 8) * kAVXRegBytes;
 static const std::size_t kMaxSSEStashBytes = (kSSERegCount - 4) * kAVXRegBytes;
 #endif
 
-static const std::size_t kAVXRotateThresholdLength = 32;
+static const std::size_t kAVXRotateThresholdBytes = 32;
 static const std::size_t kMaxAVXStashBytes = (kAVXRegCount - 4) * kAVXRegBytes;
 
 static const bool kLoadIsAligned = true;
@@ -187,7 +187,8 @@ T * left_rotate_simple(T * data, std::size_t length, std::size_t offset)
     std::size_t left_len = offset;
     if (left_len == 0) return first;
 
-    std::size_t right_len = (offset <= length) ? (length - offset) : 0;
+    JSTD_ASSERT((offset <= length), "left_rotate_simple(): Error, offset > length.");
+    std::size_t right_len = length - offset;
     if (right_len == 0) return last;
 
     return left_rotate_simple_impl(first, mid, last, left_len, right_len);
@@ -205,7 +206,7 @@ template <typename T>
 inline
 T * rotate_simple(T * first, T * mid, T * last)
 {
-    JSTD_ASSERT((last >= mid), "simd::rotate_simple(): (last < mid)");
+    JSTD_ASSERT((last >= mid),  "simd::rotate_simple(): (last < mid)");
     JSTD_ASSERT((mid >= first), "simd::rotate_simple(): (mid < first)");
     return left_rotate_simple(first, std::size_t(last - first), std::size_t(mid - first));
 }
@@ -3543,10 +3544,11 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
     std::size_t left_len = offset;
     if (left_len == 0) return first;
 
-    std::size_t right_len = (offset <= length) ? (length - offset) : 0;
+    JSTD_ASSERT((offset <= length), "left_rotate_avx(): Error, offset > length.");
+    std::size_t right_len = length - offset;
     if (right_len == 0) return last;
 
-    if (length <= kAVXRotateThresholdLength) {
+    if (length * sizeof(T) <= kAVXRotateThresholdBytes) {
         return left_rotate_simple_impl(first, mid, last, left_len, right_len);
     }
 
@@ -3630,7 +3632,7 @@ template <typename T>
 inline
 T * rotate(T * first, T * mid, T * last, void * void_ptr)
 {
-    JSTD_ASSERT((last >= mid), "simd::rotate(): (last < mid)");
+    JSTD_ASSERT((last >= mid),  "simd::rotate(): (last < mid)");
     JSTD_ASSERT((mid >= first), "simd::rotate(): (mid < first)");
     return left_rotate_avx((T *)first, std::size_t(last - first), std::size_t(mid - first));
 }

@@ -352,7 +352,7 @@
 #if (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800))
 #define JSTD_STATIC_ASSERT(express, text)       assert(!!(express))
 #else
-#define JSTD_STATIC_ASSERT(express, text)       static_assert(!!(express), (text))
+#define JSTD_STATIC_ASSERT(express, text)       static_assert(!!(express), text)
 #endif
 #endif // JSTD_STATIC_ASSERT
 
