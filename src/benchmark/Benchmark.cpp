@@ -89,7 +89,7 @@ void run_rotate_test(Container & array_std, Container & array)
 
     kerbal::algorithm::rotate(array.begin(), array.begin() + offset, array.end());
 
-    printf(" kerbal::algorithm::rotate(%u, %2u): ", (uint32_t)length, (uint32_t)offset);
+    printf(" kerbal::rotate(%u, %2u):            ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
         printf("Passed");
@@ -159,7 +159,7 @@ void run_rotate_benchmark(Container & array)
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
-    printf(" kerbal::algorithm::rotate(%u, %2u): %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+    printf(" kerbal::rotate(%u, %2u):            %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 #endif
 #endif // USE_KERBAL_ROTATE
 

@@ -3129,26 +3129,37 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
     ////////////////////////////////////////////////////////////////////////
 
 #if defined(__clang__)
+  #if 1
+    if (N <= 6)         // 1 -- 6,
+        avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
+    else if (N <= 8)    // 7, 8
+        avx_forward_move_Nx2_load_aligned<T, 6>(first, mid, last);
+    else                // 9, 10, 11, 12
+        avx_forward_move_Nx2_load_aligned<T, 4>(first, mid, last);
+  #else
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
         avx_forward_move_Nx2_store_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
         avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
-#elif 1
+  #endif
+#else
+  #if 1
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
         avx_forward_move_N_load_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
         avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
-#else
+  #else
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
         avx_forward_move_N_store_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
         avx_forward_move_N_store_aligned<T, 4>(first, mid, last);
+  #endif
 #endif
 
     ////////////////////////////////////////////////////////////////////////
