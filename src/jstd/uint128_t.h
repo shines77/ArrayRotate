@@ -162,31 +162,31 @@ struct _uint128_t {
     _uint128_t(const this_type & src) noexcept
         : low(src.low), high(src.high) {}
 
-    this_type & operator = (const this_type & rhs) {
+    this_type & operator = (const this_type & rhs) noexcept {
         this->low = rhs.low;
         this->high = rhs.high;
         return *this;
     }
 
-    this_type & operator = (int32_t rhs) {
+    this_type & operator = (int32_t rhs) noexcept {
         this->low = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
-    this_type & operator = (uint32_t rhs) {
+    this_type & operator = (uint32_t rhs) noexcept {
         this->low = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
-    this_type & operator = (int64_t rhs) {
+    this_type & operator = (int64_t rhs) noexcept {
         this->low = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
-    this_type & operator = (uint64_t rhs) {
+    this_type & operator = (uint64_t rhs) noexcept {
         this->low = (low_t)rhs;
         this->high = 0;
         return *this;

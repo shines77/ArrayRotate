@@ -123,8 +123,8 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
             RandomAccessIterator write = last;
             if (right_len != 1) {
                 while (read != first) {
-                    --write;
                     --read;
+                    --write;
                     std::iter_swap(read, write);
                 }
 #if ROTATE_USE_FAST_MOD
@@ -141,9 +141,9 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
             else {
                 value_type tmp(std::move(*read));
                 while (read != first) {
-                    --write;
                     --read;
-                    *write = *read;
+                    --write;
+                    *write = std::move(*read);
                 }
                 *read = std::move(tmp);
                 break;
@@ -172,7 +172,7 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
             else {
                 value_type tmp(std::move(*write));
                 while (read != last) {
-                    *write = *read;
+                    *write = std::move(*read);
                     ++write;
                     ++read;
                 }
@@ -225,7 +225,7 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
             else {
                 value_type tmp(std::move(*write));
                 while (read != last) {
-                    *write = *read;
+                    *write = std::move(*read);
                     ++write;
                     ++read;
                 }
@@ -238,8 +238,8 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
             RandomAccessIterator write = last;
             if (right_len != 1) {
                 while (read != first) {
-                    --write;
                     --read;
+                    --write;
                     std::iter_swap(read, write);
                 }
 #if ROTATE_USE_FAST_MOD
@@ -256,9 +256,9 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
             else {
                 value_type tmp(std::move(*read));
                 while (read != first) {
-                    --write;
                     --read;
-                    *write = *read;
+                    --write;
+                    *write = std::move(*read);
                 }
                 *read = std::move(tmp);
                 break;
