@@ -717,9 +717,13 @@ void avx_forward_move_N_tailing_nt(char * __restrict target, char * __restrict s
     }
 }
 
+//
+// Code block alignment setting to 64 byte maybe better than 32,
+// but it's too wasteful for code size.
+//
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC push_options
-#pragma GCC optimize ("align-labels=64")
+#pragma GCC optimize ("align-labels=32")
 #endif
 
 template <typename T, std::size_t N = 8>
