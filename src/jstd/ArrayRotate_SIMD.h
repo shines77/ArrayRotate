@@ -756,6 +756,12 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
 
         bool storeAddrIsAligned = (((std::size_t)target & kAVXAlignMask) == 0);
         if (likely(!storeAddrIsAligned)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -815,8 +821,17 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(target, source, end);
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -873,6 +888,9 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, _N - 1>(target, source, end);
         }
     }
@@ -903,6 +921,12 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
         const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(storeAddrCanAlign)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -959,8 +983,17 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(target, source, end);
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1017,6 +1050,9 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, _N - 1>(target, source, end);
         }
     }
@@ -1061,6 +1097,12 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
 
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1120,8 +1162,17 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(target, source, end);
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1178,6 +1229,9 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, _N - 1>(target, source, end);
         }
     }
@@ -1208,6 +1262,12 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
         const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(loadAddrCanAlign)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1264,8 +1324,17 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(target, source, end);
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1322,6 +1391,9 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
                 target += kSingleLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, _N - 1>(target, source, end);
         }
     }
@@ -1674,6 +1746,12 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
 
         bool storeAddrIsAligned = (((std::size_t)target & kAVXAlignMask) == 0);
         if (likely(!storeAddrIsAligned)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1791,9 +1869,18 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(target, source, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1905,6 +1992,9 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, (_N * 2 - 1)>(target, source, end);
         }
     }
@@ -1935,6 +2025,12 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
         const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(storeAddrCanAlign)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2046,9 +2142,18 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(target, source, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2160,6 +2265,9 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, (_N * 2 - 1)>(target, source, end);
         }
     }
@@ -2205,6 +2313,12 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
 
         bool loadAddrIsAligned = (((std::size_t)source & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2319,9 +2433,18 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(target, source, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2433,6 +2556,9 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, (_N * 2 - 1)>(target, source, end);
         }
     }
@@ -2463,6 +2589,12 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
         const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : source;
 
         if (likely(loadAddrCanAlign)) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2574,9 +2706,18 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(target, source, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize ("align-labels=64")
+#elif defined(__ICL)
+#pragma code_align(64)
+#endif
             while (source < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2688,6 +2829,9 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
                 target += kHalfLoopBytes;
             }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, (_N * 2 - 1)>(target, source, end);
         }
     }
@@ -3130,7 +3274,7 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
     ////////////////////////////////////////////////////////////////////////
 
 #if defined(__clang__)
-  #if 1
+  #if 0
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
@@ -3146,7 +3290,7 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
         avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
   #endif
 #else
-  #if 1
+  #if 0
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
