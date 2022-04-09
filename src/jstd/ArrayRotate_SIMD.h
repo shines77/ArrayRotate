@@ -380,11 +380,12 @@ JSTD_FORCE_INLINE
 void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, char * __restrict end)
 {
     static const std::size_t kValueSize = sizeof(T);
-    std::size_t lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
-    const char * __restrict limit = end - lastUnalignedBytes;
+    JSTD_ASSERT(end >= src);
+    std::size_t left_bytes = (std::size_t)(end - src);
+    JSTD_ASSERT((left_bytes % kValueSize) == 0);
 
     if (srcIsAligned && destIsAligned) {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -408,7 +409,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -424,7 +425,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
 
@@ -436,7 +437,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -447,7 +448,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
         }
     }
     else if (srcIsAligned && !destIsAligned) {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -471,7 +472,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -487,7 +488,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
 
@@ -499,7 +500,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -510,7 +511,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
         }
     }
     else if (!srcIsAligned && destIsAligned) {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -534,7 +535,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -550,7 +551,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
 
@@ -562,7 +563,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -573,7 +574,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
         }
     }
     else {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -597,7 +598,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -613,7 +614,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
 
@@ -625,7 +626,7 @@ void avx_forward_move_N_tailing(char * __restrict dest, char * __restrict src, c
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -649,11 +650,12 @@ JSTD_FORCE_INLINE
 void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src, char * __restrict end)
 {
     static const std::size_t kValueSize = sizeof(T);
-    std::size_t lastUnalignedBytes = (std::size_t)end & kAVXAlignMask;
-    const char * __restrict limit = end - lastUnalignedBytes;
+    JSTD_ASSERT(end >= src);
+    std::size_t left_bytes = (std::size_t)(end - src);
+    JSTD_ASSERT((left_bytes % kValueSize) == 0);
 
     if (srcIsAligned && destIsAligned) {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -677,7 +679,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -693,7 +695,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
 
@@ -705,7 +707,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -716,7 +718,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
         }
     }
     else if (srcIsAligned && !destIsAligned) {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -740,7 +742,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
@@ -756,7 +758,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
 
@@ -768,7 +770,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -779,7 +781,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
         }
     }
     else if (!srcIsAligned && destIsAligned) {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -803,7 +805,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -819,7 +821,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
 
@@ -831,7 +833,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -842,7 +844,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
         }
     }
     else {
-        if (((src + (8 * kAVXRegBytes)) <= limit) && (LeftUints >= 8)) {
+        if (((src + (8 * kAVXRegBytes)) <= end) && (LeftUints >= 8)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -866,7 +868,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 8 * kAVXRegBytes;
         }
 
-        if (((src + (4 * kAVXRegBytes)) <= limit) && (LeftUints >= 4)) {
+        if (((src + (4 * kAVXRegBytes)) <= end) && (LeftUints >= 4)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
             __m256i ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
@@ -882,7 +884,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 4 * kAVXRegBytes;
         }
 
-        if (((src + (2 * kAVXRegBytes)) <= limit) && (LeftUints >= 2)) {
+        if (((src + (2 * kAVXRegBytes)) <= end) && (LeftUints >= 2)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
             __m256i ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
 
@@ -894,7 +896,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
             dest += 2 * kAVXRegBytes;
         }
 
-        if (((src + (1 * kAVXRegBytes)) <= limit) && (LeftUints >= 1)) {
+        if (((src + (1 * kAVXRegBytes)) <= end) && (LeftUints >= 1)) {
             __m256i ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
 
             src += 1 * kAVXRegBytes;
@@ -943,11 +945,11 @@ void avx_mem_copy_forward(void * __restrict _dest, void * __restrict _src, void 
         char * __restrict end = (char * __restrict)_end;
 
         JSTD_ASSERT(end >= src);
-        std::size_t totalBytes = (end - src);
-        JSTD_ASSERT((totalBytes % kValueSize) == 0);
-        std::size_t lastUnalignedBytes = (std::size_t)totalBytes % kSingleLoopBytes;
-        const char * __restrict limit = ((estimatedSize >= kSingleLoopBytes) || (totalBytes >= kSingleLoopBytes))
-                                        ? (end - lastUnalignedBytes) : src;
+        std::size_t totalCopyBytes = (end - src);
+        JSTD_ASSERT((totalCopyBytes % kValueSize) == 0);
+        std::size_t unalignedCopyBytes = (std::size_t)totalCopyBytes % kSingleLoopBytes;
+        const char * __restrict limit = ((estimatedSize >= kSingleLoopBytes) || (totalCopyBytes >= kSingleLoopBytes))
+                                        ? (end - unalignedCopyBytes) : src;
 
         std::size_t srcUnalignedBytes = (std::size_t)src & kAVXAlignMask;
         bool srcAddrCanAlign;
@@ -959,7 +961,7 @@ void avx_mem_copy_forward(void * __restrict _dest, void * __restrict _src, void 
         bool srcAddrIsAligned = (srcUnalignedBytes == 0);
         if (srcIsAligned || (srcAddrIsAligned && srcAddrCanAlign)) {
             // srcIsAligned = true, destIsAligned = true
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1021,7 +1023,7 @@ void avx_mem_copy_forward(void * __restrict _dest, void * __restrict _src, void 
             avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
             // srcIsAligned = false, destIsAligned = true
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1092,11 +1094,11 @@ void avx_mem_copy_forward(void * __restrict _dest, void * __restrict _src, void 
             char * __restrict end = (char * __restrict)_end;
 
             JSTD_ASSERT(end >= src);
-            std::size_t totalBytes = (end - src);
-            JSTD_ASSERT((totalBytes % kValueSize) == 0);
-            std::size_t lastUnalignedBytes = (std::size_t)totalBytes % kSingleLoopBytes;
-            const char * __restrict limit = ((estimatedSize >= kSingleLoopBytes) || (totalBytes >= kSingleLoopBytes))
-                                            ? (end - lastUnalignedBytes) : src;
+            std::size_t totalCopyBytes = (end - src);
+            JSTD_ASSERT((totalCopyBytes % kValueSize) == 0);
+            std::size_t unalignedCopyBytes = (std::size_t)totalCopyBytes % kSingleLoopBytes;
+            const char * __restrict limit = ((estimatedSize >= kSingleLoopBytes) || (totalCopyBytes >= kSingleLoopBytes))
+                                            ? (end - unalignedCopyBytes) : src;
 
             std::size_t destUnalignedBytes = (std::size_t)dest & kAVXAlignMask;
             bool destAddrCanAlign;
@@ -1179,13 +1181,13 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         bool destAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
         if (likely(!destAddrIsAligned)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1249,8 +1251,8 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
 
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
         } else {
-#if defined(__ICL)
-#pragma code_align(64)
+#if defined(JSTD_IS_ICC)
+#pragma 4(64)
 #endif
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
@@ -1333,12 +1335,12 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         if (likely(destAddrCanAlign)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1399,7 +1401,7 @@ void avx_forward_move_N_load_aligned(T * __restrict first, T * __restrict mid, T
 
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(dest, src, end);
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1495,13 +1497,13 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         bool srcAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
         if (likely(!srcAddrIsAligned)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1565,7 +1567,7 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
 
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(dest, src, end);
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1649,12 +1651,12 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         if (likely(srcAddrCanAlign)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1715,7 +1717,7 @@ void avx_forward_move_N_store_aligned(T * __restrict first, T * __restrict mid, 
 
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -1812,9 +1814,9 @@ void avx_forward_move_N_store_aligned_nt(T * __restrict first, T * __restrict mi
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         bool loadAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
@@ -1962,9 +1964,9 @@ void avx_forward_move_N_store_aligned_nt(T * __restrict first, T * __restrict mi
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         if (likely(loadAddrCanAlign)) {
             while (src < limit) {
@@ -2120,13 +2122,13 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         bool storeAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
         if (likely(!storeAddrIsAligned)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -2249,7 +2251,7 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(dest, src, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -2388,12 +2390,12 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         if (likely(storeAddrCanAlign)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -2510,7 +2512,7 @@ void avx_forward_move_Nx2_load_aligned(T * __restrict first, T * __restrict mid,
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(dest, src, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -2663,13 +2665,13 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         bool loadAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
         if (likely(!loadAddrIsAligned)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -2789,7 +2791,7 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
             avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(dest, src, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -2928,12 +2930,12 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
         char * __restrict src = (char * __restrict)mid;
         char * __restrict end = (char * __restrict)last;
 
-        std::size_t lastUnalignedBytes = (std::size_t)last % kSingleLoopBytes;
-        std::size_t totalBytes = (last - first) * kValueSize;
-        const char * __restrict limit = (totalBytes >= kSingleLoopBytes) ? (end - lastUnalignedBytes) : src;
+        std::size_t totalMoveBytes = (last - mid) * kValueSize;
+        std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
+        const char * __restrict limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
         if (likely(loadAddrCanAlign)) {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
@@ -3050,7 +3052,7 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(dest, src, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
             while (src < limit) {
