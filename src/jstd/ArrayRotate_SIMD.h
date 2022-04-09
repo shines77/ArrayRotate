@@ -1115,6 +1115,10 @@ void avx_mem_copy_forward(void * __restrict _dest, void * __restrict _src, void 
             }
         } else {
             // srcIsAligned = false, destIsAligned = false
+            char * __restrict dest = (char * __restrict)_dest;
+            char * __restrict src = (char * __restrict)_src;
+            char * __restrict end = (char * __restrict)_end;
+
             std::size_t srcUnalignedBytes = (std::size_t)src & kAVXAlignMask;
             bool srcAddrCanAlign;
             if (kValueSize < kAVXRegBytes)

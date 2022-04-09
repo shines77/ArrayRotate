@@ -311,7 +311,6 @@ template <typename T>
 static inline
 T * pointer_align_to(T * address, size_t alignment)
 {
-    uintptr_t ptr = (uintptr_t)address;
     JSTD_ASSERT(alignment > 0 );
     JSTD_ASSERT((alignment & (alignment - 1)) == 0);
     uintptr_t ptr = ((uintptr_t)address + alignment - 1) & (~(alignment - 1));
