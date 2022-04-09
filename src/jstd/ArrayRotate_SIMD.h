@@ -166,11 +166,20 @@ T * left_rotate_simple_impl(T * first, T * mid, T * last,
 template <typename T>
 T * left_rotate_simple(T * first, T * mid, T * last)
 {
-    std::size_t left_len = std::size_t(mid - first);
-    if (left_len == 0) return first;
+    // If (first > mid), it's a error under DEBUG mode.
+    JSTD_ASSERT((first <= mid), "simd::left_rotate_avx(): Error, first > mid.");
 
-    std::size_t right_len = std::size_t(last - mid);
-    if (right_len == 0) return last;
+    std::ptrdiff_t s_left_len = mid - first;
+    if (first > mid) return first;
+
+    // If (mid > last), it's a error under DEBUG mode.
+    JSTD_ASSERT((mid <= last), "simd::left_rotate_avx(): Error, mid > last.");
+
+    std::ptrdiff_t s_right_len = last - mid;
+    if (mid > last) return last;
+
+    std::size_t left_len = std::size_t(s_left_len);
+    std::size_t right_len = std::size_t(s_right_len);
 
     return left_rotate_simple_impl(first, mid, last, left_len, right_len);
 }
@@ -187,28 +196,30 @@ T * left_rotate_simple(T * data, std::size_t length, std::size_t offset)
     std::size_t left_len = offset;
     if (left_len == 0) return first;
 
-    JSTD_ASSERT((offset <= length), "left_rotate_simple(): Error, offset > length.");
-    std::size_t right_len = length - offset;
-    if (right_len == 0) return last;
+    // If (offset > length), it's a error under DEBUG mode.
+    JSTD_ASSERT((offset <= length), "simd::left_rotate_simple(): Error, offset > length.");
+
+    // If offset is bigger than length, directly return last.
+    std::intptr_t s_right_len = length - offset;
+    if (s_right_len <= 0) return last;
+
+    std::size_t right_len = (std::size_t)(s_right_len);
 
     return left_rotate_simple_impl(first, mid, last, left_len, right_len);
 }
 
 template <typename T>
 inline
-T * rotate_simple(T * data, std::size_t length, std::size_t offset)
+T * rotate_simple(T * first, T * mid, T * last)
 {
-    JSTD_ASSERT((offset <= length), "simd::rotate_simple(): (offset > length)");
-    return left_rotate_simple(data, length, offset);
+    return left_rotate_simple(first, mid, last);
 }
 
 template <typename T>
 inline
-T * rotate_simple(T * first, T * mid, T * last)
+T * rotate_simple(T * data, std::size_t length, std::size_t offset)
 {
-    JSTD_ASSERT((last >= mid),  "simd::rotate_simple(): (last < mid)");
-    JSTD_ASSERT((mid >= first), "simd::rotate_simple(): (mid < first)");
-    return left_rotate_simple(first, std::size_t(last - first), std::size_t(mid - first));
+    return left_rotate_simple(data, length, offset);
 }
 
 template <typename T, bool loadIsAligned, bool storeIsAligned, int LeftUints = 7>
@@ -3185,6 +3196,19 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 #endif
 }
 
+template <typename T>
+JSTD_FORCE_INLINE
+void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
+{
+    const __m128i * stash_src = (const __m128i *)first;
+    __m128i stash0 = _mm_loadu_si128(stash_src);
+
+    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
+
+    __m128i * stash_dest = (__m128i *)(last - left_len);
+    _mm_storeu_last<T, 0>(stash_dest, stash0, left_len);
+}
+
 template <typename T, std::size_t N>
 JSTD_FORCE_INLINE
 void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
@@ -3316,338 +3340,11 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
 
 template <typename T>
 JSTD_FORCE_INLINE
-void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
+T * left_rotate_avx_impl(T * first, T * mid, T * last, std::size_t left_len, std::size_t right_len)
 {
-    const __m128i * stash_src = (const __m128i *)first;
-    __m128i stash0 = _mm_loadu_si128(stash_src);
-
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-
-    __m128i * stash_dest = (__m128i *)(last - left_len);
-    _mm_storeu_last<T, 0>(stash_dest, stash0, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_1_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_last<T, 0>(stash_dest + 0, stash0, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_2_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_last<T, 1>(stash_dest + 1, stash1, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_3_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_last<T, 2>(stash_dest + 2, stash2, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_4_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-
-#if defined(__clang__)
-    avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
-    //avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
-#else
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    //avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
-#endif
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_last<T, 3>(stash_dest + 3, stash3, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_5_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-
-#if defined(__clang__)
-    avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
-    //avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
-#else
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-    //avx_forward_move_N_store_aligned<T, 8>(first, mid, last);
-#endif
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_last<T, 4>(stash_dest + 4, stash4, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_6_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_last<T, 5>(stash_dest + 5, stash5, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_7_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-    __m256i stash6 = _mm256_loadu_si256(stash_src + 6);
-
-    avx_forward_move_N_load_aligned<T, 6>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_si256(stash_dest + 5, stash5);
-    _mm256_storeu_last<T, 6>(stash_dest + 6, stash6, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_8_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-    __m256i stash6 = _mm256_loadu_si256(stash_src + 6);
-    __m256i stash7 = _mm256_loadu_si256(stash_src + 7);
-
-    avx_forward_move_N_load_aligned<T, 6>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_si256(stash_dest + 5, stash5);
-    _mm256_storeu_si256(stash_dest + 6, stash6);
-    _mm256_storeu_last<T, 7>(stash_dest + 7, stash7, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_9_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-    __m256i stash6 = _mm256_loadu_si256(stash_src + 6);
-    __m256i stash7 = _mm256_loadu_si256(stash_src + 7);
-    __m256i stash8 = _mm256_loadu_si256(stash_src + 8);
-
-    avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_si256(stash_dest + 5, stash5);
-    _mm256_storeu_si256(stash_dest + 6, stash6);
-    _mm256_storeu_si256(stash_dest + 7, stash7);
-    _mm256_storeu_last<T, 8>(stash_dest + 8, stash8, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_10_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-    __m256i stash6 = _mm256_loadu_si256(stash_src + 6);
-    __m256i stash7 = _mm256_loadu_si256(stash_src + 7);
-    __m256i stash8 = _mm256_loadu_si256(stash_src + 8);
-    __m256i stash9 = _mm256_loadu_si256(stash_src + 9);
-
-    avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_si256(stash_dest + 5, stash5);
-    _mm256_storeu_si256(stash_dest + 6, stash6);
-    _mm256_storeu_si256(stash_dest + 7, stash7);
-    _mm256_storeu_si256(stash_dest + 8, stash8);
-    _mm256_storeu_last<T, 9>(stash_dest + 9, stash9, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_11_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-    __m256i stash6 = _mm256_loadu_si256(stash_src + 6);
-    __m256i stash7 = _mm256_loadu_si256(stash_src + 7);
-    __m256i stash8 = _mm256_loadu_si256(stash_src + 8);
-    __m256i stash9 = _mm256_loadu_si256(stash_src + 9);
-    __m256i stash10 = _mm256_loadu_si256(stash_src + 10);
-
-    avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_si256(stash_dest + 5, stash5);
-    _mm256_storeu_si256(stash_dest + 6, stash6);
-    _mm256_storeu_si256(stash_dest + 7, stash7);
-    _mm256_storeu_si256(stash_dest + 8, stash8);
-    _mm256_storeu_si256(stash_dest + 9, stash9);
-    _mm256_storeu_last<T, 10>(stash_dest + 10, stash10, left_len);
-}
-
-template <typename T>
-JSTD_FORCE_INLINE
-void left_rotate_avx_12_regs(T * first, T * mid, T * last, std::size_t left_len)
-{
-    const __m256i * stash_src = (const __m256i *)first;
-    __m256i stash0 = _mm256_loadu_si256(stash_src + 0);
-    __m256i stash1 = _mm256_loadu_si256(stash_src + 1);
-    __m256i stash2 = _mm256_loadu_si256(stash_src + 2);
-    __m256i stash3 = _mm256_loadu_si256(stash_src + 3);
-    __m256i stash4 = _mm256_loadu_si256(stash_src + 4);
-    __m256i stash5 = _mm256_loadu_si256(stash_src + 5);
-    __m256i stash6 = _mm256_loadu_si256(stash_src + 6);
-    __m256i stash7 = _mm256_loadu_si256(stash_src + 7);
-    __m256i stash8 = _mm256_loadu_si256(stash_src + 8);
-    __m256i stash9 = _mm256_loadu_si256(stash_src + 9);
-    __m256i stash10 = _mm256_loadu_si256(stash_src + 10);
-    __m256i stash11 = _mm256_loadu_si256(stash_src + 11);
-
-    avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
-
-    __m256i * stash_dest = (__m256i *)(last - left_len);
-    _mm256_storeu_si256(stash_dest + 0, stash0);
-    _mm256_storeu_si256(stash_dest + 1, stash1);
-    _mm256_storeu_si256(stash_dest + 2, stash2);
-    _mm256_storeu_si256(stash_dest + 3, stash3);
-    _mm256_storeu_si256(stash_dest + 4, stash4);
-    _mm256_storeu_si256(stash_dest + 5, stash5);
-    _mm256_storeu_si256(stash_dest + 6, stash6);
-    _mm256_storeu_si256(stash_dest + 7, stash7);
-    _mm256_storeu_si256(stash_dest + 8, stash8);
-    _mm256_storeu_si256(stash_dest + 9, stash9);
-    _mm256_storeu_si256(stash_dest + 10, stash10);
-    _mm256_storeu_last<T, 11>(stash_dest + 11, stash11, left_len);
-}
-
-template <typename T>
-T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
-{
-    //typedef T   value_type;
     typedef T * pointer;
 
-    pointer first = data;
-    pointer mid   = data + offset;
-    pointer last  = data + length;
-
-    if (kUsePrefetchHint) {
-        _mm_prefetch((const char *)mid, _MM_HINT_T1);
-    }
-
-    std::size_t left_len = offset;
-    if (left_len == 0) return first;
-
-    JSTD_ASSERT((offset <= length), "left_rotate_avx(): Error, offset > length.");
-    std::size_t right_len = length - offset;
-    if (right_len == 0) return last;
-
+    std::size_t length = left_len + right_len;
     if (length * sizeof(T) <= kAVXRotateThresholdBytes) {
         return left_rotate_simple_impl(first, mid, last, left_len, right_len);
     }
@@ -3721,19 +3418,73 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 
 template <typename T>
 inline
-T * rotate(T * data, std::size_t length, std::size_t offset)
+T * left_rotate_avx(T * first, T * mid, T * last)
 {
-    JSTD_ASSERT((offset <= length), "simd::rotate(): (offset > length)");
-    return left_rotate_avx(data, length, offset);
+    if (kUsePrefetchHint) {
+        _mm_prefetch((const char *)first, kPrefetchHintLevel);
+        _mm_prefetch((const char *)mid, kPrefetchHintLevel);
+    }
+
+    // If (first > mid), it's a error under DEBUG mode.
+    JSTD_ASSERT((first <= mid), "simd::left_rotate_avx(): Error, first > mid.");
+
+    std::ptrdiff_t s_left_len = mid - first;
+    if (first > mid) return first;
+
+    // If (mid > last), it's a error under DEBUG mode.
+    JSTD_ASSERT((mid <= last), "simd::left_rotate_avx(): Error, mid > last.");
+
+    std::ptrdiff_t s_right_len = last - mid;
+    if (mid > last) return last;
+
+    std::size_t left_len = std::size_t(s_left_len);
+    std::size_t right_len = std::size_t(s_right_len);
+
+    return left_rotate_avx_impl(first, mid, last, left_len, right_len);
 }
 
 template <typename T>
 inline
-T * rotate(T * first, T * mid, T * last, void * void_ptr)
+T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 {
-    JSTD_ASSERT((last >= mid),  "simd::rotate(): (last < mid)");
-    JSTD_ASSERT((mid >= first), "simd::rotate(): (mid < first)");
-    return left_rotate_avx((T *)first, std::size_t(last - first), std::size_t(mid - first));
+    typedef T * pointer;
+
+    pointer first = data;
+    pointer mid   = data + offset;
+    pointer last  = data + length;
+
+    if (kUsePrefetchHint) {
+        _mm_prefetch((const char *)first, kPrefetchHintLevel);
+        _mm_prefetch((const char *)mid, kPrefetchHintLevel);
+    }
+
+    std::size_t left_len = offset;
+    if (left_len == 0) return first;
+
+    // If (offset > length), it's a error under DEBUG mode.
+    JSTD_ASSERT((offset <= length), "simd::left_rotate_avx(): Error, offset > length.");
+
+    // If offset is bigger than length, directly return last.
+    std::intptr_t s_right_len = length - offset;
+    if (s_right_len <= 0) return last;
+
+    std::size_t right_len = (std::size_t)(s_right_len);
+
+    return left_rotate_avx_impl(first, mid, last, left_len, right_len);
+}
+
+template <typename T>
+inline
+T * rotate(T * first, T * mid, T * last)
+{
+    return left_rotate_avx(first, mid, last);
+}
+
+template <typename T>
+inline
+T * rotate(T * data, std::size_t length, std::size_t offset)
+{
+    return left_rotate_avx(data, length, offset);
 }
 
 } // namespace simd

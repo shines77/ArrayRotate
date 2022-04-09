@@ -151,7 +151,7 @@ void rotate_test()
         array[i] = dict_str[i];
     }
 
-    jstd::simd::rotate(&array[0], &array[0] + Offset, &array[0] + array.size(), nullptr);
+    jstd::simd::rotate(&array[0], &array[0] + Offset, &array[0] + array.size());
     print_array<char>("jstd::simd::rotate(%u, %u)", length, offset, array);
 
     printf("\n");
@@ -220,7 +220,7 @@ void jstd_rotate_test()
         array[i] = dict_str[i];
     }
 
-    jstd::simd::rotate(&array[0], &array[0] + offset, &array[0] + array.size(), nullptr);
+    jstd::simd::rotate(&array[0], &array[0] + offset, &array[0] + array.size());
     print_array<char>("jstd::simd::rotate(%u, %u)", length, (length - offset), array);
 
     printf("\n");

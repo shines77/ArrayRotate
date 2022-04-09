@@ -74,7 +74,7 @@ void run_rotate_test(Container & array_std, Container & array)
     printf(" jstd::rotate(%u, %2u):              ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n");
@@ -92,7 +92,7 @@ void run_rotate_test(Container & array_std, Container & array)
     printf(" kerbal::rotate(%u, %2u):            ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n");
@@ -105,12 +105,12 @@ void run_rotate_test(Container & array_std, Container & array)
         array[i] = (int)i;
     }
 
-    jstd::simd::rotate<int>((int *)&array[0], array.size(), offset);
+    jstd::simd::rotate(&array[0], &array[0] + offset, &array[0] + array.size());
 
     printf(" jstd::simd::rotate(%u, %2u):        ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n");
@@ -166,7 +166,7 @@ void run_rotate_benchmark(Container & array)
     //////////////////////////////////////////////////////////////
 
     sw.start();
-    jstd::simd::rotate(&array[0], array.size(), offset);
+    jstd::simd::rotate(&array[0], &array[0] + offset, &array[0] + array.size());
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
