@@ -40,24 +40,24 @@
 #endif
 #endif // __SIZEOF_INT128__
 
-#if defined(JSTD_X86_64) && (defined(JSTD_IS_MSVC) || defined(JSTD_IS_ICC))
+#if defined(JSTD_X86_64) && defined(JSTD_IS_MSVC)
 #ifdef __cplusplus
 extern "C"
 #endif
 uint64_t __udiv128(uint64_t low, uint64_t high, uint64_t divisor, uint64_t * remainder);
-#endif // JSTD_X86_64 && (_MSC_VER || __ICL)
+#endif // JSTD_X86_64 && _MSC_VER
 
 namespace jstd {
 
-#if defined(JSTD_IS_ICC)
+#if 0 && defined(JSTD_IS_ICC)
 //
 // See: https://stackoverflow.com/questions/8453146/128-bit-division-intrinsic-in-visual-c
 // See: https://www.thinbug.com/q/8453146
 //
 
 static
-//__declspec(naked)
-__declspec(regcall, naked)  // only for Intel C++ Compiler
+NAKED_DECL
+//__declspec(regcall, naked)  // only for Intel C++ Compiler
 inline uint64_t __fastcall _udiv128_fast(uint64_t dividend_low, uint64_t dividend_high, uint64_t divisor, uint64_t * remainder) {
     __asm {
         mov rax, rcx    ; Put the low digit in place (high is already there)
@@ -68,8 +68,8 @@ inline uint64_t __fastcall _udiv128_fast(uint64_t dividend_low, uint64_t dividen
 }
 
 static
-//__declspec(naked)
-__declspec(regcall, naked)  // only for Intel C++ Compiler
+NAKED_DECL
+//__declspec(regcall, naked)  // only for Intel C++ Compiler
 inline uint64_t __fastcall _udiv128_icc(uint64_t dividend_high, uint64_t dividend_low, uint64_t divisor, uint64_t * remainder) {
     __asm {
         mov rax, rdx    ; Put the low digit in place

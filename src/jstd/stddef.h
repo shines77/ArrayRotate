@@ -321,6 +321,14 @@
 
 #endif // _MSC_VER
 
+#if defined(_MSC_VER)
+#define NAKED_DECL  __declspec(naked)
+#elif defined(__attribute__)
+#define NAKED_DECL  __attribute__((naked))
+#else
+#define NAKED_DECL
+#endif
+
 #ifndef JSTD_CDECL
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
 #define JSTD_CDECL        __cdecl
