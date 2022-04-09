@@ -97,6 +97,122 @@ static const bool kLoadIsNotAligned = false;
 static const bool kStoreIsNotAligned = false;
 
 template <typename T>
+T * right_rotate_simple_impl(T * first, T * mid, T * last,
+                             std::size_t left_len, std::size_t right_len)
+{
+    typedef T   value_type;
+    typedef T * pointer;
+
+    pointer result = first + right_len;
+
+    do {
+        if (right_len <= left_len) {
+            pointer read = mid;
+            pointer write = last;
+            if (right_len != 1) {
+                while (read != first) {
+                    --read;
+                    --write;
+                    std::iter_swap(read, write);
+                }
+
+                left_len %= right_len;
+                last = write;
+                right_len -= left_len;
+                mid = first + left_len;
+                if (left_len == 0 || right_len == 0)
+                    break;
+            }
+            else {
+                value_type tmp(std::move(*read));
+                while (read != first) {
+                    --read;
+                    --write;
+                    *write = std::move(*read);
+                }
+                *read = std::move(tmp);
+                break;
+            }
+        }
+        else {
+            pointer read = mid;
+            pointer write = first;
+            if (left_len != 1) {
+                while (read != last) {
+                    std::iter_swap(write, read);
+                    ++write;
+                    ++read;
+                }
+
+                right_len %= left_len;
+                first = write;
+                left_len -= right_len;
+                mid = last - right_len;
+                if (right_len == 0 || left_len == 0)
+                    break;
+            }
+            else {
+                value_type tmp(std::move(*write));
+                while (read != last) {
+                    *write = std::move(*read);
+                    ++write;
+                    ++read;
+                }
+                *write = std::move(tmp);
+                break;
+            }
+        }
+    } while (1);
+
+    return result;
+}
+
+template <typename T>
+T * right_rotate_simple(T * first, T * mid, T * last)
+{
+    // If (first > mid), it's a error under DEBUG mode.
+    JSTD_ASSERT((first <= mid), "simd::right_rotate_simple(): Error, first > mid.");
+
+    std::ptrdiff_t s_left_len = mid - first;
+    if (first > mid) return first;
+
+    // If (mid > last), it's a error under DEBUG mode.
+    JSTD_ASSERT((mid <= last), "simd::right_rotate_simple(): Error, mid > last.");
+
+    std::ptrdiff_t s_right_len = last - mid;
+    if (mid > last) return last;
+
+    std::size_t left_len = std::size_t(s_left_len);
+    std::size_t right_len = std::size_t(s_right_len);
+
+    return right_rotate_simple_impl(first, mid, last, left_len, right_len);
+}
+
+template <typename T>
+T * right_rotate_simple(T * data, std::size_t length, std::size_t offset)
+{
+    typedef T * pointer;
+
+    pointer first = data;
+    pointer last  = data + length;
+    pointer mid   = last - offset;
+
+    // If (offset > length), it's a error under DEBUG mode.
+    JSTD_ASSERT((offset <= length), "simd::right_rotate_simple(): Error, offset > length.");
+
+    // If offset is bigger than length, directly return last.
+    std::intptr_t s_left_len = length - offset;
+    if (offset >= length) return first;
+
+    std::size_t left_len = (std::size_t)(s_left_len);
+
+    std::size_t right_len = offset;
+    if (right_len == 0) return last;   
+
+    return right_rotate_simple_impl(first, mid, last, left_len, right_len);
+}
+
+template <typename T>
 static inline
 T * left_rotate_simple_impl(T * first, T * mid, T * last,
                             std::size_t left_len, std::size_t right_len)
@@ -167,16 +283,16 @@ template <typename T>
 T * left_rotate_simple(T * first, T * mid, T * last)
 {
     // If (first > mid), it's a error under DEBUG mode.
-    JSTD_ASSERT((first <= mid), "simd::left_rotate_avx(): Error, first > mid.");
+    JSTD_ASSERT((first <= mid), "simd::left_rotate_simple(): Error, first > mid.");
 
     std::ptrdiff_t s_left_len = mid - first;
-    if (first > mid) return first;
+    if (first >= mid) return first;
 
     // If (mid > last), it's a error under DEBUG mode.
-    JSTD_ASSERT((mid <= last), "simd::left_rotate_avx(): Error, mid > last.");
+    JSTD_ASSERT((mid <= last), "simd::left_rotate_simple(): Error, mid > last.");
 
     std::ptrdiff_t s_right_len = last - mid;
-    if (mid > last) return last;
+    if (mid >= last) return last;
 
     std::size_t left_len = std::size_t(s_left_len);
     std::size_t right_len = std::size_t(s_right_len);
@@ -201,7 +317,7 @@ T * left_rotate_simple(T * data, std::size_t length, std::size_t offset)
 
     // If offset is bigger than length, directly return last.
     std::intptr_t s_right_len = length - offset;
-    if (s_right_len <= 0) return last;
+    if (offset >= length) return last;
 
     std::size_t right_len = (std::size_t)(s_right_len);
 
@@ -3406,10 +3522,10 @@ T * left_rotate_avx_impl(T * first, T * mid, T * last, std::size_t left_len, std
     } else {
         std::size_t right_bytes = right_len * sizeof(T);
         if (right_bytes <= kMaxAVXStashBytes) {
-            return left_rotate_simple_impl(first, mid, last, left_len, right_len);
+            return right_rotate_simple_impl(first, mid, last, left_len, right_len);
         }
         else {
-            return left_rotate_simple_impl(first, mid, last, left_len, right_len);
+            return right_rotate_simple_impl(first, mid, last, left_len, right_len);
         }
     }
 
@@ -3429,13 +3545,13 @@ T * left_rotate_avx(T * first, T * mid, T * last)
     JSTD_ASSERT((first <= mid), "simd::left_rotate_avx(): Error, first > mid.");
 
     std::ptrdiff_t s_left_len = mid - first;
-    if (first > mid) return first;
+    if (first >= mid) return first;
 
     // If (mid > last), it's a error under DEBUG mode.
     JSTD_ASSERT((mid <= last), "simd::left_rotate_avx(): Error, mid > last.");
 
     std::ptrdiff_t s_right_len = last - mid;
-    if (mid > last) return last;
+    if (mid >= last) return last;
 
     std::size_t left_len = std::size_t(s_left_len);
     std::size_t right_len = std::size_t(s_right_len);
@@ -3466,7 +3582,7 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 
     // If offset is bigger than length, directly return last.
     std::intptr_t s_right_len = length - offset;
-    if (s_right_len <= 0) return last;
+    if (offset >= length) return last;
 
     std::size_t right_len = (std::size_t)(s_right_len);
 
