@@ -47,8 +47,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\src\jstd\udiv128.asm">
+    <MASM Include="..\..\..\src\jstd\udiv128.asm">
       <Filter>src</Filter>
-    </None>
+    </MASM>
   </ItemGroup>
 </Project>

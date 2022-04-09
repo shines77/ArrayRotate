@@ -25,6 +25,8 @@
 #include "jstd/ArrayRotate_v1.h"
 #include "jstd/ArrayRotate_SIMD.h"
 
+extern void print_marcos();
+
 #if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
 #include "kerbal/algorithm/modifier.hpp"
@@ -233,8 +235,11 @@ void benchmark()
 int main(int argn, char * argv[])
 {
     printf("\n");
+    print_marcos();
 
+#if 0
     validate_test();
     benchmark();
+#endif
     return 0;
 }

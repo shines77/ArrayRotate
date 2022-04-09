@@ -92,8 +92,7 @@
 #else
 #include <x86intrin.h>
 #include "jstd/msvc_x86intrin.h"
-#include <avxintrin.h>
-#include <avx2intrin.h>
+#include <immintrin.h>
 #endif //_MSC_VER
 
 #if defined(_MSC_VER)

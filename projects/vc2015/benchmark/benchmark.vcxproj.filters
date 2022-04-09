@@ -18,5 +18,8 @@
     <ClCompile Include="..\..\..\src\benchmark\Benchmark.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\benchmark\PrintMacros.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

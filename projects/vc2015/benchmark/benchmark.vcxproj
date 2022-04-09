@@ -163,6 +163,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\benchmark\Benchmark.cpp" />
+    <ClCompile Include="..\..\..\src\benchmark\PrintMacros.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\benchmark\CPUWarmUp.h" />
