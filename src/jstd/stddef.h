@@ -22,7 +22,7 @@
 //
 // What compiler is it?
 //
-#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC) \
  || defined(__ICPC) || defined(__ECL)
   #ifndef JSTD_IS_ICC
   #define JSTD_IS_ICC     1
@@ -49,6 +49,10 @@
 
 #if defined(__GNUC__) || defined(__clang__) || (defined(JSTD_IS_ICC) && defined(__linux__))
 #define JSTD_GCC_STYLE_ASM  1
+#endif
+
+#if defined(__GNUC__) && (!defined(__clang__) && !defined(JSTD_IS_ICC))
+#define JSTD_IS_PURE_GCC    1
 #endif
 
 //
@@ -233,7 +237,7 @@
 //
 // Aligned prefix and suffix declare
 //
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+#if defined(_MSC_VER)
 #ifndef ALIGNED_PREFIX
 #define ALIGNED_PREFIX(n)       __declspec(align(n))
 #endif
@@ -256,7 +260,7 @@
 /**
  * For inline, force-inline and no-inline define.
  */
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+#if defined(_MSC_VER)
 
 #define JSTD_HAS_INLINE                     1
 
@@ -331,7 +335,7 @@
 #endif
 
 #ifndef JSTD_CDECL
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+#if defined(_MSC_VER)
 #define JSTD_CDECL        __cdecl
 #else
 #define JSTD_CDECL        __attribute__((__cdecl__))

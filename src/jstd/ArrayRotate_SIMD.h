@@ -57,7 +57,7 @@ namespace simd {
 static const bool kUsePrefetchHint = true;
 static const std::size_t kPrefetchOffset = 512;
 
-#if defined(__GNUC__) && (!defined(__clang__) && !defined(JSTD_IS_ICC))
+#if defined(JSTD_IS_PURE_GCC)
 static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
 #else
 static const int kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
@@ -916,7 +916,7 @@ void avx_forward_move_N_tailing_nt(char * __restrict dest, char * __restrict src
 // Code block alignment setting to 64 bytes maybe better than 32,
 // but it's too wasteful for code size.
 //
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(JSTD_IS_PURE_GCC)
 #pragma GCC push_options
 #pragma GCC optimize ("align-labels=32")
 #endif
@@ -3169,7 +3169,7 @@ void avx_forward_move_Nx2_store_aligned(T * __restrict first, T * __restrict mid
     }
 }
 
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(JSTD_IS_PURE_GCC)
 #pragma GCC pop_options
 #endif
 
@@ -3718,7 +3718,7 @@ template <typename T>
 JSTD_NO_INLINE
 T * left_rotate_avx_chunk_swap(T * first, T * mid, T * last, std::size_t left_len, std::size_t right_len)
 {
-    typedef T * pointer;
+    //typedef T * pointer;
     static const std::size_t kCacheAlignment = kMaxCacheLineSize - 1;
     static const std::size_t kStackChunkSize = 8192;
     static const std::size_t kActualStackChunkSize = kStackChunkSize + kMaxCacheLineSize * 2;
