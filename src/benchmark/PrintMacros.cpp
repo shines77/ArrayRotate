@@ -89,6 +89,10 @@ static const MarcoInfo g_compilers[] = {
 #ifdef JSTD_GCC_STYLE_ASM
     JSTD_MAKE_MARCOINFO(JSTD_GCC_STYLE_ASM),
 #endif
+
+#ifdef JSTD_IS_PURE_GCC
+    JSTD_MAKE_MARCOINFO(JSTD_IS_PURE_GCC),
+#endif
 };
 
 static const MarcoInfo g_platforms[] = {

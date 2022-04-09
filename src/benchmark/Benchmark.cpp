@@ -237,7 +237,7 @@ int main(int argn, char * argv[])
     printf("\n");
     print_marcos();
 
-#if 0
+#if 1
     validate_test();
     benchmark();
 #endif

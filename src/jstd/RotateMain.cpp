@@ -300,7 +300,7 @@ void jstd_simd_rotate_test()
 void simd_rotate_test()
 {
     printf("-----------------------------------------------------\n");
-    /*
+#if 0
     jstd_simd_rotate_test<34, 33>();
     printf("-----------------------------------------------------\n");
     jstd_simd_rotate_test<10, 3>();
@@ -311,7 +311,8 @@ void simd_rotate_test()
     printf("-----------------------------------------------------\n");
     jstd_simd_rotate_test<100, 33>();
     printf("-----------------------------------------------------\n");
-    //*/
+#endif
+
 #ifdef _DEBUG
     jstd_simd_rotate_test<1000000, 33>();
 #else
