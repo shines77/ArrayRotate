@@ -23,6 +23,48 @@
 #define JSTD_GCC_STYLE_ASM  1
 #endif
 
+//
+// What compiler is it?
+//
+#if defined(_MSC_VER)
+  #ifndef JSTD_IS_MSVC
+  #define JSTD_IS_MSVC    1
+  #endif
+#elif defined(__GNUC__) && !defined(__clang__)
+  #ifndef JSTD_IS_GCC
+  #define JSTD_IS_GCC     1
+  #endif
+#elif defined(__clang__)
+  #ifndef JSTD_IS_CLANG
+  #define JSTD_IS_CLANG   1
+  #endif
+#elif defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+  #ifndef JSTD_IS_ICC
+  #define JSTD_IS_ICC     1
+  #endif
+#else
+  #ifndef JSTD_IS_UNKNOWN_COMPILER
+  #define JSTD_IS_UNKNOWN_COMPILER   1
+  #endif
+#endif // _MSC_VER
+
+//
+// Intel C++ compiler version
+//
+#if defined(__INTEL_COMPILER)
+  #if (__INTEL_COMPILER == 9999)
+    #define __INTEL_CXX_VERSION     1200    // Intel's bug in 12.1.
+  #else
+    #define __INTEL_CXX_VERSION     __INTEL_COMPILER
+  #endif
+#elif defined(__ICL)
+#  define __INTEL_CXX_VERSION       __ICL
+#elif defined(__ICC)
+#  define __INTEL_CXX_VERSION       __ICC
+#elif defined(__ECC)
+#  define __INTEL_CXX_VERSION       __ECC
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Clang Language Extensions
@@ -125,27 +167,7 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-//
-// Intel C++ compiler version
-//
-#if defined(__INTEL_COMPILER)
-  #if (__INTEL_COMPILER == 9999)
-    #define __INTEL_CXX_VERSION     1200    // Intel's bug in 12.1.
-  #else
-    #define __INTEL_CXX_VERSION     __INTEL_COMPILER
-  #endif
-#elif defined(__ICL)
-#  define __INTEL_CXX_VERSION       __ICL
-#elif defined(__ICC)
-#  define __INTEL_CXX_VERSION       __ICC
-#elif defined(__ECC)
-#  define __INTEL_CXX_VERSION       __ECC
-#endif
-
 ////////////////////////////////////////////////////////////////////////////////
-//
-// C++ compiler macro define
-// See: http://www.cnblogs.com/zyl910/archive/2012/08/02/printmacro.html
 //
 // LLVM Branch Weight Metadata
 // See: http://llvm.org/docs/BranchWeightMetadata.html
@@ -231,7 +253,7 @@
 /**
  * For inline, force-inline and no-inline define.
  */
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC)
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
 
 #define JSTD_HAS_INLINE                     1
 
@@ -253,7 +275,7 @@
 
 #define JSTD_RESTRICT                       __restrict
 
-#elif defined(__GNUC__) || defined(__clang__) || defined(__MINGW32__) || defined(__CYGWIN__) || defined(__linux__)
+#elif defined(__GNUC__) || defined(__clang__) || defined(__MINGW32__) || defined(__CYGWIN__)
 
 #define JSTD_HAS_INLINE                     1
 
@@ -298,7 +320,7 @@
 #endif // _MSC_VER
 
 #ifndef JSTD_CDECL
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC)
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
 #define JSTD_CDECL        __cdecl
 #else
 #define JSTD_CDECL        __attribute__((__cdecl__))
@@ -345,25 +367,28 @@
     } while (0)
 
 #ifndef JSTD_ASSERT
-#define JSTD_ASSERT(express, text)       assert(!!(express))
+#ifdef _DEBUG
+#define JSTD_ASSERT(express)            assert(!!(express))
+#else
+#define JSTD_ASSERT(express)            (void)0
+#endif
+#endif // JSTD_ASSERT
+
+#ifndef JSTD_ASSERT_EX
+#ifdef _DEBUG
+#define JSTD_ASSERT_EX(express, text)   assert(!!(express))
+#else
+#define JSTD_ASSERT_EX(express, text)   (void)0
+#endif
 #endif // JSTD_ASSERT
 
 #ifndef JSTD_STATIC_ASSERT
-#if (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800))
+#if (__cplusplus < 201103L) || (defined(_MSC_VER) && (_MSC_VER < 1800))
 #define JSTD_STATIC_ASSERT(express, text)       assert(!!(express))
 #else
 #define JSTD_STATIC_ASSERT(express, text)       static_assert(!!(express), text)
 #endif
 #endif // JSTD_STATIC_ASSERT
-
-#ifndef JSTD_STATIC_ASSERT_EX
-#if (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800))
-#define JSTD_STATIC_ASSERT_EX(express, text)    assert(!!(express))
-#else
-#define JSTD_STATIC_ASSERT_EX(express, text)    static_assert(!!(express), (text)); \
-                                                assert(!!(express))
-#endif
-#endif // JSTD_STATIC_ASSERT_EX
 
 //
 // Little-Endian or Big-Endian
@@ -371,6 +396,8 @@
 #define JSTD_LITTLE_ENDIAN  0
 #define JSTD_BIG_ENDIAN     1
 
-#define JSTD_SUDOKU_ENDIAN  JSTD_LITTLE_ENDIAN
+#ifndef JSTD_ENDIAN
+#define JSTD_ENDIAN  JSTD_LITTLE_ENDIAN
+#endif
 
 #endif // JSTD_BASIC_STDDEF_H

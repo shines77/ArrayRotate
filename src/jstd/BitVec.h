@@ -285,13 +285,49 @@ struct IntVec4x64 {
 
 #pragma pack(pop)
 
+template <typename T>
 static inline
-bool check_alignment(void * address, size_t alignment)
+bool check_alignment(T * address, size_t alignment)
 {
     uintptr_t ptr = (uintptr_t)address;
-    assert(alignment > 0 );
-    assert((alignment & (alignment - 1)) == 0);
+    JSTD_ASSERT(alignment > 0);
+    JSTD_ASSERT((alignment & (alignment - 1)) == 0);
     return ((ptr & (alignment - 1)) == 0);
+}
+
+template <size_t alignment, typename T>
+static inline
+bool check_alignment(T * address)
+{
+    uintptr_t ptr = (uintptr_t)address;
+    JSTD_STATIC_ASSERT((alignment > 0),
+                       "check_alignment<N>(): alignment must bigger than 0.");
+    JSTD_STATIC_ASSERT(((alignment & (alignment - 1)) == 0),
+                       "check_alignment<N>(): alignment must be power of 2.");
+    return ((ptr & (alignment - 1)) == 0);
+}
+
+template <typename T>
+static inline
+T * pointer_align_to(T * address, size_t alignment)
+{
+    uintptr_t ptr = (uintptr_t)address;
+    JSTD_ASSERT(alignment > 0 );
+    JSTD_ASSERT((alignment & (alignment - 1)) == 0);
+    uintptr_t ptr = ((uintptr_t)address + alignment - 1) & (~(alignment - 1));
+    return (T *)ptr;
+}
+
+template <size_t alignment, typename T>
+static inline
+T * pointer_align_to(T * address)
+{
+    JSTD_STATIC_ASSERT((alignment > 0),
+                       "pointer_align_to<N>(): alignment must bigger than 0.");
+    JSTD_STATIC_ASSERT(((alignment & (alignment - 1)) == 0),
+                       "pointer_align_to<N>(): alignment must be power of 2.");
+    uintptr_t ptr = ((uintptr_t)address + alignment - 1) & (~(alignment - 1));
+    return (T *)ptr;
 }
 
 #if defined(JSTD_X86_I386)

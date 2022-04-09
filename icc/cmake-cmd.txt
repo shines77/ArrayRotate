@@ -1,0 +1,2 @@
+
+cmake -G "Unix Makefiles" -DCMAKE_C_COMPILER=/opt/intel/oneapi/compiler/2022.0.2/linux/bin/intel64/icc -DCMAKE_CXX_COMPILER=/opt/intel/oneapi/compiler/2022.0.2/linux/bin/intel64/icpc ./
