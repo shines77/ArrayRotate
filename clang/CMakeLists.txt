@@ -123,7 +123,7 @@ include_directories(../src/benchmark)
 include_directories(../third/Kerbal/include)
 
 set(SOURCE_FILES
-    ../src/benchmark/PrintMarcos.cpp
+    ../src/benchmark/PrintMacros.cpp
     ../src/benchmark/Benchmark.cpp
     )
 
