@@ -39,8 +39,8 @@ int verify_array(Container & container1, Container & container2)
     int offset = 0;
     auto iter1 = container1.cbegin();
     auto iter2 = container2.cbegin();
-    for ( ; iter1 != container1.cend(); iter1++, iter2++) {
-        if (*iter1 != * iter2)
+    for ( ; iter1 != container1.cend(); ++iter1, ++iter2) {
+        if (*iter1 != *iter2)
             return offset;
         offset++;
     }

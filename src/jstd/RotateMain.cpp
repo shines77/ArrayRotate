@@ -41,8 +41,8 @@ int verify_array(Container & container1, Container & container2)
     int offset = 0;
     auto iter1 = container1.cbegin();
     auto iter2 = container2.cbegin();
-    for ( ; iter1 != container1.cend(); iter1++, iter2++) {
-        if (*iter1 != * iter2)
+    for ( ; iter1 != container1.cend(); ++iter1, ++iter2) {
+        if (*iter1 != *iter2)
             return offset;
         offset++;
     }
@@ -195,7 +195,7 @@ void jstd_rotate_test()
     printf("jstd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)offset);
     int error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
@@ -211,7 +211,7 @@ void jstd_rotate_test()
     printf("jstd::right_rotate(%u, %u): ", (uint32_t)length, (uint32_t)(length - offset));
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
@@ -227,7 +227,7 @@ void jstd_rotate_test()
     printf("jstd::simd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)(length - offset));
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
@@ -275,7 +275,7 @@ void jstd_simd_rotate_test()
     printf("jstd::simd::rotate(%u, %u): ", (uint32_t)length, (uint32_t)offset);
     int error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
@@ -291,7 +291,7 @@ void jstd_simd_rotate_test()
     printf("jstd::simd::rotate_simple(%u, %u): ", (uint32_t)length, (uint32_t)offset);
     error_pos = verify_array(array, array_std);
     if (error_pos == -1)
-        printf("Passed");
+        printf("Pass");
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n\n");
