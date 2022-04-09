@@ -22,6 +22,12 @@
 //
 // What compiler is it?
 //
+#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+  #ifndef JSTD_IS_ICC
+  #define JSTD_IS_ICC     1
+  #endif
+#endif
+
 #if defined(_MSC_VER)
   #ifndef JSTD_IS_MSVC
   #define JSTD_IS_MSVC    1
@@ -34,11 +40,7 @@
   #ifndef JSTD_IS_CLANG
   #define JSTD_IS_CLANG   1
   #endif
-#elif defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
-  #ifndef JSTD_IS_ICC
-  #define JSTD_IS_ICC     1
-  #endif
-#else
+#elif !defined(JSTD_IS_ICC)
   #ifndef JSTD_IS_UNKNOWN_COMPILER
   #define JSTD_IS_UNKNOWN_COMPILER   1
   #endif
