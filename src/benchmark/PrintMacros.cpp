@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifndef JSTD_MAKE_MARCOINFO
 #define JSTD_MAKE_MARCOINFO(x)  { #x, JSTD_TO_STRING(x) }
@@ -198,7 +201,7 @@ static const MarcoInfo g_others[] = {
 
 void print_marcos()
 {
-    int i;
+    size_t i;
 
     printf("/* Compiler definitions: */\n\n");
     for (i = 0; i < jstd_count_of(g_compilers); i++) {
