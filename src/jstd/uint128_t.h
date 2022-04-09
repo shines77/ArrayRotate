@@ -40,7 +40,7 @@
 #endif
 #endif // __SIZEOF_INT128__
 
-#if defined(JSTD_X86_64) && (defined(_MSC_VER) || defined(__ICL))
+#if defined(JSTD_X86_64) && (defined(JSTD_IS_MSVC) || defined(JSTD_IS_ICC))
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -49,7 +49,7 @@ uint64_t __udiv128(uint64_t low, uint64_t high, uint64_t divisor, uint64_t * rem
 
 namespace jstd {
 
-#if defined(__ICL)
+#if defined(JSTD_IS_ICC)
 //
 // See: https://stackoverflow.com/questions/8453146/128-bit-division-intrinsic-in-visual-c
 // See: https://www.thinbug.com/q/8453146
@@ -80,7 +80,7 @@ inline uint64_t __fastcall _udiv128_icc(uint64_t dividend_high, uint64_t dividen
     }
 }
 
-#endif // __ICL
+#endif // JSTD_IS_ICC
 
 struct _uint128_t {
     typedef _uint128_t  this_type;
@@ -89,7 +89,7 @@ struct _uint128_t {
     typedef uint64_t    unsigned_t;
     typedef int64_t     signed_t;
 
-#ifdef _MSC_VER
+#if defined(JSTD_IS_MSVC) || defined(JSTD_IS_ICC)
     typedef uint64_t            ull_type;
 #else
     typedef unsigned long long  ull_type;
@@ -935,16 +935,16 @@ struct _uint128_t {
         uint64_t remainder;
         uint64_t quotient = _udiv128(dividend.high, dividend.low, divisor, &remainder);
         return (integral_t)quotient;
-#elif defined(JSTD_X86_64) && (defined(_MSC_VER) || defined(__ICL))
-#if 1
+#elif defined(JSTD_X86_64)
+#if defined(JSTD_IS_MSVC)
         uint64_t remainder;
         // From /jstd/udiv128.asm (MASM format)
         uint64_t quotient = __udiv128(dividend.low, dividend.high, divisor, &remainder);
         return (integral_t)quotient;
-#else
+#else // !JSTD_IS_MSVC
         this_type quotient = __udivti3(dividend, divisor);
         return (integral_t)quotient.low;
-#endif
+#endif // JSTD_IS_MSVC
 #else
         if (dividend.high != 0) {
             // Check for overflow and divide by 0.
@@ -961,7 +961,7 @@ struct _uint128_t {
         } else {
             return (dividend.low / divisor);
         }
-#endif
+#endif // JSTD_X86_64
     }
 
     //

@@ -19,10 +19,6 @@
   #define JSTD_WORD_SIZE    32
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
-#define JSTD_GCC_STYLE_ASM  1
-#endif
-
 //
 // What compiler is it?
 //
@@ -47,6 +43,10 @@
   #define JSTD_IS_UNKNOWN_COMPILER   1
   #endif
 #endif // _MSC_VER
+
+#if defined(__GNUC__) || defined(__clang__) || (defined(JSTD_IS_ICC) && defined(__linux__))
+#define JSTD_GCC_STYLE_ASM  1
+#endif
 
 //
 // Intel C++ compiler version
