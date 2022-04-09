@@ -31,6 +31,26 @@ static const MarcoInfo g_compilers[] = {
     JSTD_MAKE_MARCOINFO(__INTEL_COMPILER),
 #endif
 
+#ifdef __ICL            /* Interl C++ */
+    JSTD_MAKE_MARCOINFO(__ICL),
+#endif
+
+#ifdef __ICC            /* Interl C++ */
+    JSTD_MAKE_MARCOINFO(__ICC),
+#endif
+
+#ifdef __ECC            /* Interl C++ */
+    JSTD_MAKE_MARCOINFO(__ECC),
+#endif
+
+#ifdef __ECL            /* Interl C++ */
+    JSTD_MAKE_MARCOINFO(__ECL),
+#endif
+
+#ifdef __ICPC            /* Interl C++ */
+    JSTD_MAKE_MARCOINFO(__ICPC),
+#endif
+
 #ifdef _MSC_VER         /* Visual C++ */
     JSTD_MAKE_MARCOINFO(_MSC_VER),
 #endif
@@ -165,6 +185,14 @@ static const MarcoInfo g_others[] = {
 
 #ifdef __unix
     JSTD_MAKE_MARCOINFO(__unix),
+#endif
+
+#ifdef __BIG_ENDIAN__
+    JSTD_MAKE_MARCOINFO(__BIG_ENDIAN__),
+#endif
+
+#ifdef __LITTLE_ENDIAN__
+    JSTD_MAKE_MARCOINFO(__LITTLE_ENDIAN__),
 #endif
 };
 

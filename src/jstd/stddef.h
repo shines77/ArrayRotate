@@ -23,6 +23,7 @@
 // What compiler is it?
 //
 #if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+ || defined(__ICPC) || defined(__ECL)
   #ifndef JSTD_IS_ICC
   #define JSTD_IS_ICC     1
   #endif
