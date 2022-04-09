@@ -1252,7 +1252,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
             avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
-#pragma 4(64)
+#pragma code_align(64)
 #endif
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
