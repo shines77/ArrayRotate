@@ -360,7 +360,7 @@
 #endif // __cplusplus
 
 #ifndef JSTD_UNUSED_VARS
-#define JSTD_UNUSED_VARS(x)     (void)(x)
+#define JSTD_UNUSED_VARS(x)     ((void)(x))
 #endif
 
 #ifndef JSTD_TO_STRING
@@ -385,7 +385,7 @@
 #ifdef _DEBUG
 #define JSTD_ASSERT(express)            assert(!!(express))
 #else
-#define JSTD_ASSERT(express)            (void)0
+#define JSTD_ASSERT(express)            ((void)0)
 #endif
 #endif // JSTD_ASSERT
 
@@ -393,7 +393,7 @@
 #ifdef _DEBUG
 #define JSTD_ASSERT_EX(express, text)   assert(!!(express))
 #else
-#define JSTD_ASSERT_EX(express, text)   (void)0
+#define JSTD_ASSERT_EX(express, text)   ((void)0)
 #endif
 #endif // JSTD_ASSERT
 
