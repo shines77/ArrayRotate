@@ -4297,7 +4297,7 @@ T * left_rotate_avx_chunk_swap(T * first, T * mid, T * last, std::size_t left_le
     JSTD_ASSERT(left_bytes > kMaxAVXStashBytes);
     if (left_bytes <= kStackChunkSize) {
         //
-        avx_mem_copy_store_aligned<T, 8, false, true, kMaxAVXStashBytes>(stack_chunk, dest, left_bytes);
+        avx_mem_copy_N_store_aligned<T, 8, false, true, kMaxAVXStashBytes>(stack_chunk, dest, left_bytes);
     } else {
         //
     }
