@@ -17,6 +17,9 @@
 #include <cstddef>
 #include <cstdbool>
 
+#include <exception>
+#include <stdexcept>
+
 #include "jstd/stddef.h"
 #include "jstd/BitUtils.h"
 #include "jstd/DivUtils.h"

@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstdbool>
+#include <atomic>
 #include <algorithm>
 #include <type_traits>
 
@@ -1501,23 +1502,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 #endif
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-                if (N >= 0)
+                if (N >= 0) {
                     ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 //
@@ -1536,23 +1552,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 
                 src += kSingleLoopBytes;
 
-                if (N >= 0)
+                if (N >= 0) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 dest += kSingleLoopBytes;
@@ -1565,23 +1596,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 #endif
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-                if (N >= 0)
+                if (N >= 0) {
                     ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 if (kUsePrefetchHint) {
@@ -1597,23 +1643,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 
                 src += kSingleLoopBytes;
 
-                if (N >= 0)
+                if (N >= 0) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 dest += kSingleLoopBytes;
@@ -1654,23 +1715,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 #endif
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-                if (N >= 0)
+                if (N >= 0) {
                     ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 if (kUsePrefetchHint) {
@@ -1686,23 +1762,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 
                 src += kSingleLoopBytes;
 
-                if (N >= 0)
+                if (N >= 0) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 0), ymm0);
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 1), ymm1);
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 2), ymm2);
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 3), ymm3);
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 4), ymm4);
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 5), ymm5);
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 6), ymm6);
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 7), ymm7);
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 dest += kSingleLoopBytes;
@@ -1715,23 +1806,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 #endif
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-                if (N >= 0)
+                if (N >= 0) {
                     ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 if (kUsePrefetchHint) {
@@ -1747,23 +1853,38 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 
                 src += kSingleLoopBytes;
 
-                if (N >= 0)
+                if (N >= 0) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 0), ymm0);
-                if (N >= 2)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 2) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 1), ymm1);
-                if (N >= 3)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 3) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 2), ymm2);
-                if (N >= 4)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 4) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 3), ymm3);
-                if (N >= 5)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 5) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 4), ymm4);
-                if (N >= 6)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 6) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 5), ymm5);
-                if (N >= 7)
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
+                if (N >= 7) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 6), ymm6);
+                    std::atomic_signal_fence(std::memory_order_release);
+                }
                 // Use "{" and "}" to avoid the gcc warnings
                 if (N >= 8) {
                     _mm256_storeu_si256((__m256i *)(dest + 32 * 7), ymm7);
+                    std::atomic_signal_fence(std::memory_order_release);
                 }
 
                 dest += kSingleLoopBytes;
@@ -1789,13 +1910,13 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
     static const std::size_t kSingleLoopBytes = _N * kAVXRegBytes;
 
     std::size_t unAlignedBytes = (std::size_t)first & kAVXAlignMask;
-    bool storeAddrCanAlign;
+    bool destAddrCanAlign;
     if (kValueSize < kAVXRegBytes)
-        storeAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
+        destAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
     else
-        storeAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
+        destAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && storeAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && destAddrCanAlign)) {
         //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
         unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
         while (unAlignedBytes != 0) {
@@ -1811,8 +1932,8 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        bool loadAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
-        if (likely(!loadAddrIsAligned)) {
+        bool srcAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
+        if (likely(!srcAddrIsAligned)) {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -1936,15 +2057,15 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
         }
     }
     else {
-        bool loadAddrCanAlign = false;
+        bool srcAddrCanAlign = false;
         if (kValueSizeIsDivisible) {
             unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                loadAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
+                srcAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
             else
-                loadAddrCanAlign = (unAlignedBytes == 0);
+                srcAddrCanAlign = (unAlignedBytes == 0);
 
-            if (loadAddrCanAlign) {
+            if (srcAddrCanAlign) {
                 unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
                 while (unAlignedBytes != 0) {
                     *first++ = *mid++;
@@ -1961,7 +2082,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(loadAddrCanAlign)) {
+        if (likely(srcAddrCanAlign)) {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2097,13 +2218,13 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
     static const std::size_t kSingleLoopBytes = kHalfLoopBytes * 2;
 
     std::size_t unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
-    bool loadAddrCanAlign;
+    bool srcAddrCanAlign;
     if (kValueSize < kAVXRegBytes)
-        loadAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
+        srcAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
     else
-        loadAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
+        srcAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && loadAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && srcAddrCanAlign)) {
         //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
         unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
         while (unAlignedBytes != 0) {
@@ -2119,8 +2240,8 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        bool storeAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
-        if (likely(!storeAddrIsAligned)) {
+        bool destAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
+        if (likely(!destAddrIsAligned)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -2362,15 +2483,15 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
         }
     }
     else {
-        bool storeAddrCanAlign = false;
+        bool destAddrCanAlign = false;
         if (kValueSizeIsDivisible) {
             unAlignedBytes = (std::size_t)first & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                storeAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
+                destAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
             else
-                storeAddrCanAlign = (unAlignedBytes == 0);
+                destAddrCanAlign = (unAlignedBytes == 0);
 
-            if (storeAddrCanAlign) {
+            if (destAddrCanAlign) {
                 unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
                 while (unAlignedBytes != 0) {
                     *first++ = *mid++;
@@ -2387,7 +2508,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(storeAddrCanAlign)) {
+        if (likely(destAddrCanAlign)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -2640,13 +2761,13 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
     static const std::size_t kSingleLoopBytes = kHalfLoopBytes * 2;
 
     std::size_t unAlignedBytes = (std::size_t)first & kAVXAlignMask;
-    bool storeAddrCanAlign;
+    bool destAddrCanAlign;
     if (kValueSize < kAVXRegBytes)
-        storeAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
+        destAddrCanAlign = (kValueSizeIsDivisible && ((unAlignedBytes % kValueSize) == 0));
     else
-        storeAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
+        destAddrCanAlign = (kValueSizeIsDivisible && (unAlignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && storeAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && destAddrCanAlign)) {
         //unAlignedBytes = (unAlignedBytes != 0) ? (kAVXRegBytes - unAlignedBytes) : 0;
         unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
         while (unAlignedBytes != 0) {
@@ -2662,8 +2783,8 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        bool loadAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
-        if (likely(!loadAddrIsAligned)) {
+        bool srcAddrIsAligned = (((std::size_t)src & kAVXAlignMask) == 0);
+        if (likely(!srcAddrIsAligned)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -2902,15 +3023,15 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
         }
     }
     else {
-        bool loadAddrCanAlign = false;
+        bool srcAddrCanAlign = false;
         if (kValueSizeIsDivisible) {
             unAlignedBytes = (std::size_t)mid & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                loadAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
+                srcAddrCanAlign = ((unAlignedBytes % kValueSize) == 0);
             else
-                loadAddrCanAlign = (unAlignedBytes == 0);
+                srcAddrCanAlign = (unAlignedBytes == 0);
 
-            if (loadAddrCanAlign) {
+            if (srcAddrCanAlign) {
                 unAlignedBytes = (kAVXRegBytes - unAlignedBytes) & kAVXAlignMask;
                 while (unAlignedBytes != 0) {
                     *first++ = *mid++;
@@ -2927,7 +3048,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(loadAddrCanAlign)) {
+        if (likely(srcAddrCanAlign)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
