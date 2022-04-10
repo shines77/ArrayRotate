@@ -548,11 +548,11 @@ int mm256_extract_epi32(__m256i src)
         __m128i m128 = _mm256_castsi256_si128(src);
         return _mm_extract_epi32(m128, index % 4);
     }
-    else if (index == 5) {
+    else if (index == 4) {
         __m128i m128 = _mm256_extractf128_si256(src, index >> 2);
         return _mm_cvtsi128_si32(m128);     // SSE2
     }
-    else if (index >= 6 && index < 8) {
+    else if (index >= 5 && index < 8) {
         __m128i m128 = _mm256_extractf128_si256(src, index >> 2);
         return _mm_extract_epi32(m128, index % 4);
     }
