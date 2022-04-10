@@ -106,8 +106,9 @@ static const std::size_t kMaxAVXStashBytes = (kAVXRegCount - 4) * kAVXRegBytes;
 ///////////////////////////////////////////////
 
 // The Enum of aligned property
-static const int kIsNotAligned = 0;
-static const int kIsAligned = 1;
+static const bool kIsNotAligned = false;
+static const bool kIsAligned = true;
+
 static const int kUnknownAligned = 2;
 
 ///////////////////////////////////////////////
@@ -117,14 +118,6 @@ static const bool kDestIsAligned = true;
 
 static const bool kSrcIsNotAligned = false;
 static const bool kDestIsNotAligned = false;
-
-///////////////////////////////////////////////
-
-static const bool kLoadIsAligned = true;
-static const bool kStoreIsAligned = true;
-
-static const bool kLoadIsNotAligned = false;
-static const bool kStoreIsNotAligned = false;
 
 ///////////////////////////////////////////////
 
@@ -1249,7 +1242,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1310,7 +1303,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
         }
     }
     else {
@@ -1399,7 +1392,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1460,7 +1453,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         }
     }
 }
@@ -1565,7 +1558,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1626,7 +1619,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
         }
     }
     else {
@@ -1715,7 +1708,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1776,7 +1769,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         }
     }
 }
@@ -1879,7 +1872,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
@@ -1937,7 +1930,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing_nt<T, kLoadIsAligned, kStoreIsAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing_nt<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
 
             _mm_sfence();
         }
@@ -2025,7 +2018,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         } else {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
@@ -2083,7 +2076,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, _N - 1>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         }
     }
 }
@@ -2248,7 +2241,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -2365,7 +2358,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
     else {
@@ -2509,7 +2502,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -2626,7 +2619,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
 }
@@ -2788,7 +2781,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -2905,7 +2898,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
     else {
@@ -3049,7 +3042,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsAligned, kStoreIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -3166,7 +3159,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kLoadIsNotAligned, kStoreIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
 }
