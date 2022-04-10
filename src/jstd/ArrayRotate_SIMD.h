@@ -932,8 +932,8 @@ template <typename T, std::size_t N,
                       bool destIsAligned,
                       std::size_t estimatedSize = sizeof(T)>
 JSTD_FORCE_INLINE
-void avx_move_forward_N_impl(void * JSTD_RESTRICT dest, void * JSTD_RESTRICT src,
-                             void * JSTD_RESTRICT limit, void * JSTD_RESTRICT end)
+void avx_move_forward_N_impl(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src,
+                             char * JSTD_RESTRICT limit, char * JSTD_RESTRICT end)
 {
     static const std::size_t kSingleLoopBytes = N * kAVXRegBytes;
 
@@ -3341,8 +3341,8 @@ template <typename T, std::size_t N,
                       bool destIsAligned,
                       std::size_t estimatedSize = sizeof(T)>
 JSTD_FORCE_INLINE
-void avx_mem_copy_N_impl(void * JSTD_RESTRICT dest, void * JSTD_RESTRICT src,
-                         void * JSTD_RESTRICT limit, void * JSTD_RESTRICT end)
+void avx_mem_copy_N_impl(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src,
+                         char * JSTD_RESTRICT limit, char * JSTD_RESTRICT end)
 {
     static const std::size_t kSingleLoopBytes = N * kAVXRegBytes;
 
