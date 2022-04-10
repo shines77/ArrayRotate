@@ -381,7 +381,7 @@ T * rotate_simple(T * data, std::size_t length, std::size_t offset)
 template <typename T, bool srcIsAligned, bool destIsAligned, int LeftUints = 7>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_tailing(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src, char * JSTD_RESTRICT end)
+void avx_move_forward_N_tailing(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src, char * JSTD_RESTRICT end)
 {
     static const std::size_t kValueSize = sizeof(T);
     JSTD_ASSERT(end >= src);
@@ -651,7 +651,7 @@ void avx_forward_move_N_tailing(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT 
 template <typename T, bool srcIsAligned, bool destIsAligned, int LeftUints = 7>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_tailing_nt(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src, char * JSTD_RESTRICT end)
+void avx_move_forward_N_tailing_nt(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src, char * JSTD_RESTRICT end)
 {
     static const std::size_t kValueSize = sizeof(T);
     JSTD_ASSERT(end >= src);
@@ -927,237 +927,280 @@ void avx_forward_move_N_tailing_nt(char * JSTD_RESTRICT dest, char * JSTD_RESTRI
 #pragma GCC optimize ("align-labels=32")
 #endif
 
-template <typename T, std::size_t N = 8,
-                      bool srcIsAligned = false,
-                      bool destIsAligned = false,
+template <typename T, std::size_t N,
+                      bool srcIsAligned,
+                      bool destIsAligned,
                       std::size_t estimatedSize = sizeof(T)>
 JSTD_FORCE_INLINE
-void avx_mem_copy_forward_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRICT _src, void * JSTD_RESTRICT _end)
+void avx_move_forward_N_impl(void * JSTD_RESTRICT dest, void * JSTD_RESTRICT src,
+                             void * JSTD_RESTRICT limit, void * JSTD_RESTRICT end)
 {
-    static const std::size_t kValueSize = sizeof(T);
-    static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
-    static const bool kValueSizeIsDivisible =  (kValueSize < kAVXRegBytes) ?
-                                              ((kAVXRegBytes % kValueSize) == 0) :
-                                              ((kValueSize % kAVXRegBytes) == 0);
-    // minimum AVX regs = 1, maximum AVX regs = 8
-    static const std::size_t _N = (N == 0) ? 1 : ((N <= 8) ? N : 8);
-    static const std::size_t kSingleLoopBytes = _N * kAVXRegBytes;
+    static const std::size_t kSingleLoopBytes = N * kAVXRegBytes;
 
-    if (destIsAligned) {
-        char * JSTD_RESTRICT dest = (char * JSTD_RESTRICT)_dest;
-        char * JSTD_RESTRICT src = (char * JSTD_RESTRICT)_src;
-        char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
-
-        JSTD_ASSERT(end >= src);
-        std::size_t totalCopyBytes = (end - src);
-        JSTD_ASSERT((totalCopyBytes % kValueSize) == 0);
-        std::size_t unalignedCopyBytes = (std::size_t)totalCopyBytes % kSingleLoopBytes;
-        const char * JSTD_RESTRICT limit = ((estimatedSize >= kSingleLoopBytes) || (totalCopyBytes >= kSingleLoopBytes))
-                                        ? (end - unalignedCopyBytes) : src;
-
-        std::size_t srcUnalignedBytes = (std::size_t)src & kAVXAlignMask;
-        bool srcAddrCanAlign;
-        if (kValueSize < kAVXRegBytes)
-            srcAddrCanAlign = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
-        else
-            srcAddrCanAlign = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
-
-        bool srcAddrIsAligned = (srcUnalignedBytes == 0);
-        if (srcIsAligned || (srcAddrIsAligned && srcAddrCanAlign)) {
-            // srcIsAligned = true, destIsAligned = true
+    if (srcIsAligned && destIsAligned) {
+        // srcIsAligned = true, destIsAligned = true
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
-            while (src < limit) {
-                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-                if (N >= 0)
-                    ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
-                if (N >= 2)
-                    ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
-                if (N >= 3)
-                    ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
-                if (N >= 4)
-                    ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
-                if (N >= 5)
-                    ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
-                if (N >= 6)
-                    ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
-                if (N >= 7)
-                    ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
-                // Use "{" and "}" to avoid the gcc warnings
-                if (N >= 8) {
-                    ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
-                }
-
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
-                src += kSingleLoopBytes;
-
-                if (N >= 0)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
-                if (N >= 2)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
-                if (N >= 3)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
-                if (N >= 4)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
-                if (N >= 5)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
-                if (N >= 6)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
-                if (N >= 7)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
-                // Use "{" and "}" to avoid the gcc warnings
-                if (N >= 8) {
-                    _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
-                }
-
-                dest += kSingleLoopBytes;
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
-        } else {
-            // srcIsAligned = false (Actually), destIsAligned = true
-#if defined(JSTD_IS_ICC)
-#pragma code_align(64)
-#endif
-            while (src < limit) {
-                __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-                if (N >= 0)
-                    ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
-                if (N >= 2)
-                    ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
                 if (N >= 3)
-                    ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
-                if (N >= 4)
-                    ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
                 if (N >= 5)
-                    ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
-                if (N >= 6)
-                    ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
                 if (N >= 7)
-                    ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
-                // Use "{" and "}" to avoid the gcc warnings
-                if (N >= 8) {
-                    ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
-                }
-
-                if (kUsePrefetchHint) {
-                    // Here, N would be best a multiple of 2.
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
-                    if (N >= 3)
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
-                    if (N >= 5)
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
-                    if (N >= 7)
-                    _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
-                }
-
-                src += kSingleLoopBytes;
-
-                if (N >= 0)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
-                if (N >= 2)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
-                if (N >= 3)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
-                if (N >= 4)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
-                if (N >= 5)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
-                if (N >= 6)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
-                if (N >= 7)
-                    _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
-                // Use "{" and "}" to avoid the gcc warnings
-                if (N >= 8) {
-                    _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
-                }
-
-                dest += kSingleLoopBytes;
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
         }
+
+        avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsAligned, N - 1>(dest, src, end);
+    }
+    else if (srcIsAligned && !destIsAligned) {
+        // srcIsAligned = true, destIsAligned = false
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            //
+            // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+            //
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, N - 1>(dest, src, end);
+    }
+    else if (!srcIsAligned && destIsAligned) {
+        // srcIsAligned = false, destIsAligned = true
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, N - 1>(dest, src, end);
+    }
+    else if (!srcIsAligned && !destIsAligned) {
+        // srcIsAligned = false, destIsAligned = false
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, N - 1>(dest, src, end);
     }
     else {
-        // destIsAligned = false (Unknown)
-        if (srcIsAligned) {
-            // srcIsAligned = true, destIsAligned = false (Unknown)
-            char * JSTD_RESTRICT dest = (char * JSTD_RESTRICT)_dest;
-            char * JSTD_RESTRICT src = (char * JSTD_RESTRICT)_src;
-            char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
-
-            JSTD_ASSERT(end >= src);
-            std::size_t totalCopyBytes = (end - src);
-            JSTD_ASSERT((totalCopyBytes % kValueSize) == 0);
-            std::size_t unalignedCopyBytes = (std::size_t)totalCopyBytes % kSingleLoopBytes;
-            const char * JSTD_RESTRICT limit = ((estimatedSize >= kSingleLoopBytes) || (totalCopyBytes >= kSingleLoopBytes))
-                                              ? (end - unalignedCopyBytes) : src;
-
-            std::size_t destUnalignedBytes = (std::size_t)dest & kAVXAlignMask;
-            bool destAddrCanAlign;
-            if (kValueSize < kAVXRegBytes)
-                destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
-            else
-                destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
-
-            bool destAddrIsAligned = (destUnalignedBytes == 0);
-            if (destAddrIsAligned && destAddrCanAlign) {
-                // srcIsAligned = true, destIsAligned = true
-                // TODO: XXXXX
-
-            } else {
-                // srcIsAligned = true, destIsAligned = false (Actually)
-                // TODO: XXXXX
-
-            }
-        } else {
-            // srcIsAligned = false (Unknown), destIsAligned = false (Unknown)
-            char * JSTD_RESTRICT dest = (char * JSTD_RESTRICT)_dest;
-            char * JSTD_RESTRICT src = (char * JSTD_RESTRICT)_src;
-            char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
-
-            std::size_t srcUnalignedBytes = (std::size_t)src & kAVXAlignMask;
-            bool srcAddrCanAlign;
-            if (kValueSize < kAVXRegBytes)
-                srcAddrCanAlign = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
-            else
-                srcAddrCanAlign = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
-
-            bool destAddrIsAligned = true;
-            if (!srcIsAligned && srcAddrCanAlign) {
-                std::size_t srcPaddingBytes = (kAVXRegBytes - srcUnalignedBytes) & kAVXAlignMask;
-                JSTD_ASSERT((srcPaddingBytes % kValueSize) == 0);
-                while (srcPaddingBytes != 0) {
-                    *(T *)dest = *(T *)src;
-                    dest += kValueSize;
-                    src += kValueSize;
-                    srcPaddingBytes -= kValueSize;
-                }
-
-                destAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
-            }
-
-            if (srcIsAligned || srcAddrCanAlign) {
-            }
-        }
+        JSTD_ASSERT(false);
     }
 }
 
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
+void avx_move_forward_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -1254,7 +1297,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1315,7 +1358,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
         }
     }
     else {
@@ -1404,7 +1447,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1465,7 +1508,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         }
     }
 }
@@ -1473,7 +1516,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
 template <typename T, std::size_t N = 8, std::size_t estimatedSize = sizeof(T)>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
+void avx_move_forward_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -1600,7 +1643,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1691,7 +1734,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
         }
     }
     else {
@@ -1810,7 +1853,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         } else {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
@@ -1901,7 +1944,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         }
     }
 }
@@ -1909,7 +1952,7 @@ void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
+void avx_move_forward_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -2003,7 +2046,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, _N - 1>(dest, src, end);
         } else {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
@@ -2061,7 +2104,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing_nt<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing_nt<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
 
             _mm_sfence();
         }
@@ -2149,7 +2192,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         } else {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
@@ -2207,7 +2250,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 dest += kSingleLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, _N - 1>(dest, src, end);
         }
     }
 }
@@ -2215,7 +2258,7 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
+void avx_move_forward_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -2371,7 +2414,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -2488,7 +2531,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
     else {
@@ -2632,7 +2675,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -2749,7 +2792,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
 }
@@ -2757,7 +2800,7 @@ void avx_forward_move_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
 template <typename T, std::size_t N = 8>
 static
 JSTD_NO_INLINE
-void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
+void avx_move_forward_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
 {
     static const std::size_t kValueSize = sizeof(T);
     static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
@@ -2910,7 +2953,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
             //////////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -3027,7 +3070,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsAligned, (_N * 2 - 1)>(dest, src, end);
         }
     }
     else {
@@ -3171,7 +3214,7 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
             ////////////////////////////////////////////////////////////////////////////////////////////////
         } else {
 #if defined(JSTD_IS_ICC)
@@ -3288,7 +3331,392 @@ void avx_forward_move_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
                 dest += kHalfLoopBytes;
             }
 
-            avx_forward_move_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+            avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, (_N * 2 - 1)>(dest, src, end);
+        }
+    }
+}
+
+template <typename T, std::size_t N,
+                      bool srcIsAligned,
+                      bool destIsAligned,
+                      std::size_t estimatedSize = sizeof(T)>
+JSTD_FORCE_INLINE
+void avx_mem_copy_N_impl(void * JSTD_RESTRICT dest, void * JSTD_RESTRICT src,
+                         void * JSTD_RESTRICT limit, void * JSTD_RESTRICT end)
+{
+    static const std::size_t kSingleLoopBytes = N * kAVXRegBytes;
+
+    if (srcIsAligned && destIsAligned) {
+        // srcIsAligned = true, destIsAligned = true
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsAligned, N - 1>(dest, src, end);
+    }
+    else if (srcIsAligned && !destIsAligned) {
+        // srcIsAligned = true, destIsAligned = false
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_load_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_load_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_load_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_load_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_load_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_load_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_load_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_load_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            //
+            // See: https://blog.csdn.net/qq_43401808/article/details/87360789
+            //
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsAligned, kDestIsNotAligned, N - 1>(dest, src, end);
+    }
+    else if (!srcIsAligned && destIsAligned) {
+        // srcIsAligned = false, destIsAligned = true
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_store_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_store_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_store_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_store_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_store_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_store_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_store_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_store_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsAligned, N - 1>(dest, src, end);
+    }
+    else if (!srcIsAligned && !destIsAligned) {
+        // srcIsAligned = false, destIsAligned = false
+#if defined(JSTD_IS_ICC)
+#pragma code_align(64)
+#endif
+        while (src < limit) {
+            __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+            if (N >= 0)
+                ymm0 = _mm256_loadu_si256((const __m256i *)(src + 32 * 0));
+            if (N >= 2)
+                ymm1 = _mm256_loadu_si256((const __m256i *)(src + 32 * 1));
+            if (N >= 3)
+                ymm2 = _mm256_loadu_si256((const __m256i *)(src + 32 * 2));
+            if (N >= 4)
+                ymm3 = _mm256_loadu_si256((const __m256i *)(src + 32 * 3));
+            if (N >= 5)
+                ymm4 = _mm256_loadu_si256((const __m256i *)(src + 32 * 4));
+            if (N >= 6)
+                ymm5 = _mm256_loadu_si256((const __m256i *)(src + 32 * 5));
+            if (N >= 7)
+                ymm6 = _mm256_loadu_si256((const __m256i *)(src + 32 * 6));
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                ymm7 = _mm256_loadu_si256((const __m256i *)(src + 32 * 7));
+            }
+
+            if (kUsePrefetchHint) {
+                // Here, N would be best a multiple of 2.
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 0), kPrefetchHintLevel);
+                if (N >= 3)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 1), kPrefetchHintLevel);
+                if (N >= 5)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 2), kPrefetchHintLevel);
+                if (N >= 7)
+                _mm_prefetch((const char *)(src + kPrefetchOffset + 64 * 3), kPrefetchHintLevel);
+            }
+
+            src += kSingleLoopBytes;
+
+            if (N >= 0)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 0), ymm0);
+            if (N >= 2)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 1), ymm1);
+            if (N >= 3)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 2), ymm2);
+            if (N >= 4)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 3), ymm3);
+            if (N >= 5)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 4), ymm4);
+            if (N >= 6)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 5), ymm5);
+            if (N >= 7)
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 6), ymm6);
+            // Use "{" and "}" to avoid the gcc warnings
+            if (N >= 8) {
+                _mm256_storeu_si256((__m256i *)(dest + 32 * 7), ymm7);
+            }
+
+            dest += kSingleLoopBytes;
+        }
+
+        avx_move_forward_N_tailing<T, kSrcIsNotAligned, kDestIsNotAligned, N - 1>(dest, src, end);
+    }
+    else {
+        JSTD_ASSERT(false);
+    }
+}
+
+template <typename T, std::size_t N = 8,
+                      bool srcIsAligned = false,
+                      bool destIsAligned = false,
+                      std::size_t estimatedSize = sizeof(T)>
+JSTD_FORCE_INLINE
+void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRICT _src, void * JSTD_RESTRICT _end)
+{
+    static const std::size_t kValueSize = sizeof(T);
+    static const bool kValueSizeIsPower2 = ((kValueSize & (kValueSize - 1)) == 0);
+    static const bool kValueSizeIsDivisible =  (kValueSize < kAVXRegBytes) ?
+                                              ((kAVXRegBytes % kValueSize) == 0) :
+                                              ((kValueSize % kAVXRegBytes) == 0);
+    // minimum AVX regs = 1, maximum AVX regs = 8
+    static const std::size_t _N = (N == 0) ? 1 : ((N <= 8) ? N : 8);
+    static const std::size_t kSingleLoopBytes = _N * kAVXRegBytes;
+
+    if (destIsAligned) {
+        // destIsAligned = true (Actually)
+        std::size_t destUnalignedBytes = (std::size_t)_dest & kAVXAlignMask;
+        JSTD_ASSERT(destUnalignedBytes == 0);
+
+        char * JSTD_RESTRICT dest = (char * JSTD_RESTRICT)_dest;
+        char * JSTD_RESTRICT src = (char * JSTD_RESTRICT)_src;
+        char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
+
+        JSTD_ASSERT(end >= src);
+        std::size_t totalCopyBytes = (end - src);
+        JSTD_ASSERT((totalCopyBytes % kValueSize) == 0);
+        std::size_t unalignedCopyBytes = (std::size_t)totalCopyBytes % kSingleLoopBytes;
+        const char * JSTD_RESTRICT limit = ((estimatedSize >= kSingleLoopBytes) || (totalCopyBytes >= kSingleLoopBytes))
+                                          ? (end - unalignedCopyBytes) : src;
+
+        std::size_t srcUnalignedBytes = (std::size_t)src & kAVXAlignMask;
+        bool srcAddrCanAlign;
+        if (kValueSize < kAVXRegBytes)
+            srcAddrCanAlign = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
+        else
+            srcAddrCanAlign = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
+
+        bool srcAddrIsAligned = (srcUnalignedBytes == 0);
+        if (srcAddrIsAligned && srcAddrCanAlign) {
+            // srcIsAligned = true, destIsAligned = true
+            avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsAligned>(dest, src, limit, end);
+        } else {
+            // srcIsAligned = false (Actually), destIsAligned = true
+            avx_mem_copy_N_impl<T, _N, kSrcIsNotAligned, kDestIsAligned>(dest, src, limit, end);
+        }
+    }
+    else {
+        // destIsAligned = false (Unknown)
+        if (srcIsAligned) {
+            // srcIsAligned = true, destIsAligned = false (Unknown)
+
+            std::size_t srcUnalignedBytes = (std::size_t)_src & kAVXAlignMask;
+            JSTD_ASSERT(srcUnalignedBytes == 0);
+
+            char * JSTD_RESTRICT dest = (char * JSTD_RESTRICT)_dest;
+            char * JSTD_RESTRICT src = (char * JSTD_RESTRICT)_src;
+            char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
+
+            JSTD_ASSERT(end >= src);
+            std::size_t totalCopyBytes = (end - src);
+            JSTD_ASSERT((totalCopyBytes % kValueSize) == 0);
+            std::size_t unalignedCopyBytes = (std::size_t)totalCopyBytes % kSingleLoopBytes;
+            const char * JSTD_RESTRICT limit = ((estimatedSize >= kSingleLoopBytes) || (totalCopyBytes >= kSingleLoopBytes))
+                                              ? (end - unalignedCopyBytes) : src;
+
+            std::size_t destUnalignedBytes = (std::size_t)dest & kAVXAlignMask;
+            bool destAddrCanAlign;
+            if (kValueSize < kAVXRegBytes)
+                destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+            else
+                destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+
+            bool destAddrIsAligned = (destUnalignedBytes == 0);
+            if (destAddrIsAligned && destAddrCanAlign) {
+                // srcIsAligned = true, destIsAligned = true
+                avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsAligned>(dest, src, limit, end);
+            } else {
+                // srcIsAligned = true, destIsAligned = false (Actually)
+                avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsNotAligned>(dest, src, limit, end);
+            }
+        } else {
+            // srcIsAligned = false (Unknown), destIsAligned = false (Unknown)
+            char * JSTD_RESTRICT dest = (char * JSTD_RESTRICT)_dest;
+            char * JSTD_RESTRICT src = (char * JSTD_RESTRICT)_src;
+            char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
+
+            std::size_t destUnalignedBytes = (std::size_t)dest & kAVXAlignMask;
+            bool destAddrCanAlign;
+            if (kValueSize < kAVXRegBytes)
+                destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+            else
+                destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+
+            bool destAddrIsAligned = true;
+            if (!srcIsAligned && destAddrCanAlign) {
+                std::size_t srcPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
+                JSTD_ASSERT((srcPaddingBytes % kValueSize) == 0);
+                while (srcPaddingBytes != 0) {
+                    *(T *)dest = *(T *)src;
+                    dest += kValueSize;
+                    src += kValueSize;
+                    srcPaddingBytes -= kValueSize;
+                }
+
+                destAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
+            }
+
+            if (srcIsAligned || destAddrCanAlign) {
+            }
         }
     }
 }
@@ -3707,7 +4135,7 @@ void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
     const __m128i * stash_src = (const __m128i *)first;
     __m128i stash0 = _mm_loadu_si128(stash_src);
 
-    avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
+    avx_move_forward_N_load_aligned<T, 8>(first, mid, last);
 
     __m128i * stash_dest = (__m128i *)(last - left_len);
     _mm_storeu_last<T, 0>(stash_dest, stash0, left_len);
@@ -3755,41 +4183,41 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
 #if defined(__clang__)
   #if 0
     if (N <= 6)         // 1 -- 6,
-        avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
+        avx_move_forward_Nx2_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
-        avx_forward_move_Nx2_load_aligned<T, 6>(first, mid, last);
+        avx_move_forward_Nx2_load_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
-        avx_forward_move_Nx2_load_aligned<T, 4>(first, mid, last);
+        avx_move_forward_Nx2_load_aligned<T, 4>(first, mid, last);
   #else
     if (N <= 6)         // 1 -- 6,
-        avx_forward_move_Nx2_store_aligned<T, 8>(first, mid, last);
+        avx_move_forward_Nx2_store_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
-        avx_forward_move_Nx2_store_aligned<T, 6>(first, mid, last);
+        avx_move_forward_Nx2_store_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
-        avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
+        avx_move_forward_Nx2_store_aligned<T, 4>(first, mid, last);
   #endif
 #else
   #if 0
     if (N <= 6)         // 1 -- 6,
-        avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
+        avx_move_forward_N_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
-        avx_forward_move_N_load_aligned<T, 6>(first, mid, last);
+        avx_move_forward_N_load_aligned<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
-        avx_forward_move_N_load_aligned<T, 4>(first, mid, last);
+        avx_move_forward_N_load_aligned<T, 4>(first, mid, last);
   #elif 1
     if (N <= 6)         // 1 -- 6,
-        avx_forward_move_N_store_aligned<T, 8, kEstimatedSize>(first, mid, last);
+        avx_move_forward_N_store_aligned<T, 8, kEstimatedSize>(first, mid, last);
     else if (N <= 8)    // 7, 8
-        avx_forward_move_N_store_aligned<T, 6, kEstimatedSize>(first, mid, last);
+        avx_move_forward_N_store_aligned<T, 6, kEstimatedSize>(first, mid, last);
     else                // 9, 10, 11, 12
-        avx_forward_move_N_store_aligned<T, 4, kEstimatedSize>(first, mid, last);
+        avx_move_forward_N_store_aligned<T, 4, kEstimatedSize>(first, mid, last);
   #else
     if (N <= 6)         // 1 -- 6,
-        avx_forward_move_N_store_aligned_nt<T, 8>(first, mid, last);
+        avx_move_forward_N_store_aligned_nt<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
-        avx_forward_move_N_store_aligned_nt<T, 6>(first, mid, last);
+        avx_move_forward_N_store_aligned_nt<T, 6>(first, mid, last);
     else                // 9, 10, 11, 12
-        avx_forward_move_N_store_aligned_nt<T, 4>(first, mid, last);
+        avx_move_forward_N_store_aligned_nt<T, 4>(first, mid, last);
   #endif
 #endif
 
@@ -3869,7 +4297,7 @@ T * left_rotate_avx_chunk_swap(T * first, T * mid, T * last, std::size_t left_le
     JSTD_ASSERT(left_bytes > kMaxAVXStashBytes);
     if (left_bytes <= kStackChunkSize) {
         //
-        avx_mem_copy_forward_store_aligned<T, 8, false, true, kMaxAVXStashBytes>(stack_chunk, dest, left_bytes);
+        avx_mem_copy_store_aligned<T, 8, false, true, kMaxAVXStashBytes>(stack_chunk, dest, left_bytes);
     } else {
         //
     }
