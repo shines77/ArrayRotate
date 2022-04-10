@@ -56,7 +56,7 @@ namespace jstd {
 namespace simd {
 
 static const bool kUsePrefetchHint = true;
-static const std::size_t kPrefetchOffset = 512;
+static const std::size_t kPrefetchOffset = 256;
 
 #if defined(JSTD_IS_PURE_GCC)
 static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
@@ -1459,7 +1459,7 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
     }
 }
 
-template <typename T, std::size_t N = 8>
+template <typename T, std::size_t N = 8, std::size_t estimatedSize = sizeof(T)>
 static
 JSTD_NO_INLINE
 void avx_forward_move_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT mid, T * JSTD_RESTRICT last)
@@ -3948,7 +3948,9 @@ T * left_rotate_avx(T * first, T * mid, T * last)
 {
     if (kUsePrefetchHint) {
         _mm_prefetch((const char *)first, kPrefetchHintLevel);
+        _mm_prefetch((const char *)first + 64, kPrefetchHintLevel);
         _mm_prefetch((const char *)mid, kPrefetchHintLevel);
+        _mm_prefetch((const char *)mid + 64, kPrefetchHintLevel);
     }
 
     // If (first > mid), it's a error under DEBUG mode.
@@ -3981,7 +3983,9 @@ T * left_rotate_avx(T * data, std::size_t length, std::size_t offset)
 
     if (kUsePrefetchHint) {
         _mm_prefetch((const char *)first, kPrefetchHintLevel);
+        _mm_prefetch((const char *)first + 64, kPrefetchHintLevel);
         _mm_prefetch((const char *)mid, kPrefetchHintLevel);
+        _mm_prefetch((const char *)mid + 64, kPrefetchHintLevel);
     }
 
     std::size_t left_len = offset;
