@@ -2059,8 +2059,6 @@ void avx_forward_move_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
                 }
 
                 dest += kSingleLoopBytes;
-
-                _mm_sfence();
             }
 
             avx_forward_move_N_tailing_nt<T, kSrcIsAligned, kDestIsAligned, _N - 1>(dest, src, end);
