@@ -1328,10 +1328,10 @@ void avx_forward_move_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
                 destAddrCanAlign = (destUnalignedBytes == 0);
 
             if (destAddrCanAlign) {
-                std::size_t destUnalignedBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
-                while (destUnalignedBytes != 0) {
+                std::size_t destPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
+                while (destPaddingBytes != 0) {
                     *first++ = *mid++;
-                    destUnalignedBytes -= kValueSize;
+                    destPaddingBytes -= kValueSize;
                 }
             }
         }
