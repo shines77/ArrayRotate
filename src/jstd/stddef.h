@@ -6,6 +6,26 @@
 #pragma once
 #endif
 
+/// \macro __GNUC_PREREQ
+/// \brief Defines __GNUC_PREREQ if glibc's features.h isn't available.
+#ifndef __GNUC_PREREQ
+# if defined(__GNUC__) && defined(__GNUC_MINOR__)
+#  define __GNUC_PREREQ(major, minor) \
+    (((__GNUC__ << 16) + __GNUC_MINOR__) >= (((major) << 16) + (minor)))
+# else
+#  define __GNUC_PREREQ(major, minor) 0
+# endif
+#endif
+
+#ifndef __CLANG_PREREQ
+# if defined(__clang__) && defined(__clang_major__) && defined(__clang_minor__)
+#  define __CLANG_PREREQ(major, minor) \
+    (((__clang_major__ << 16) + __clang_minor__) >= (((major) << 16) + (minor)))
+# else
+#  define __CLANG_PREREQ(major, minor) 0
+# endif
+#endif
+
 #if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
  || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
   #define JSTD_IS_X86       1
@@ -252,6 +272,34 @@
 #define ALIGNED_SUFFIX(n)       __attribute__((aligned(n)))
 #endif
 #endif // ALIGNED(n)
+
+//
+// From: https://hackage.haskell.org/package/LibClang-3.4.0/src/llvm/include/llvm/Support/Compiler.h
+//
+// __builtin_assume_aligned() is support by GCC >= 4.7 and clang >= 3.6.
+//
+
+/// \macro JSTD_ASSUME_ALIGNED
+/// \brief Returns a pointer with an assumed alignment.
+#if __has_builtin(__builtin_assume_aligned) && __CLANG_PREREQ(3, 6)
+# define JSTD_ASSUME_ALIGNED(ptr, alignment)  __builtin_assume_aligned((ptr), (alignment))
+#elif __has_builtin(__builtin_assume_aligned) && __GNUC_PREREQ(4, 7)
+# define JSTD_ASSUME_ALIGNED(ptr, alignment)  __builtin_assume_aligned((ptr), (alignment))
+#elif defined(LLVM_BUILTIN_UNREACHABLE)
+// Clang 3.4 does not support __builtin_assume_aligned().
+# define JSTD_ASSUME_ALIGNED(ptr, alignment) \
+           (((uintptr_t(ptr) % (alignment)) == 0) ? (ptr) : (LLVM_BUILTIN_UNREACHABLE, (ptr)))
+#else
+# define JSTD_ASSUME_ALIGNED(ptr, alignment)  (ptr)
+#endif
+
+#if __has_builtin(__builtin_assume_aligned) && __CLANG_PREREQ(3, 6)
+#define ASSUME_IS_ALIGNED(ptr, alignment)   __builtin_assume_aligned((ptr), (alignment))
+#elif __has_builtin(__builtin_assume_aligned) && __GNUC_PREREQ(4, 7)
+#define ASSUME_IS_ALIGNED(ptr, alignment)   __builtin_assume_aligned((ptr), (alignment))
+#else   
+#define ASSUME_IS_ALIGNED(ptr, alignment)   ((void *)(ptr))
+#endif
 
 #if defined(__GNUC__) && !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__)
   #define __GNUC_GNU_INLINE__   1
