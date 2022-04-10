@@ -3753,7 +3753,7 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
     ////////////////////////////////////////////////////////////////////////
 
 #if defined(__clang__)
-  #if 0
+  #if 1
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_Nx2_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
@@ -3769,7 +3769,7 @@ void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
         avx_forward_move_Nx2_store_aligned<T, 4>(first, mid, last);
   #endif
 #else
-  #if 0
+  #if 1
     if (N <= 6)         // 1 -- 6,
         avx_forward_move_N_load_aligned<T, 8>(first, mid, last);
     else if (N <= 8)    // 7, 8
