@@ -1519,6 +1519,8 @@ struct _uint128_t {
     //
     // p (128) = a (64) * b (64)
     //
+    // From: https://stackoverflow.com/questions/25095741/how-can-i-multiply-64-bit-operands-and-get-128-bit-result-portably
+    //
     static inline
     this_type bigint_128_mul(integral_t multiplicand, integral_t multiplier) {
         /*
@@ -1544,7 +1546,6 @@ struct _uint128_t {
          * and takes advantage of UMAAL on ARMv6 to only need 4
          * calculations.
          */
-
         /*******************************************************************
 
            multiplicand (64) = low0, high0

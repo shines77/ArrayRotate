@@ -35,6 +35,32 @@ static const char dict_str[] =
 
 static const size_t kDictMaxLen = sizeof(dict_str) - 1;
 
+uint32_t next_random_u32()
+{
+#if (RAND_MAX == 0x7FFF)
+    uint32_t rnd32 = (((uint32_t)rand() & 0x03) << 30) |
+                      ((uint32_t)rand() << 15) |
+                       (uint32_t)rand();
+#else
+    uint32_t rnd32 = ((uint32_t)rand() << 16) | (uint32_t)rand();
+#endif
+    return rnd32;
+}
+
+uint64_t next_random_u64()
+{
+#if (RAND_MAX == 0x7FFF)
+    uint64_t rnd64 = (((uint64_t)rand() & 0x0F) << 60) |
+                      ((uint64_t)rand() << 45) |
+                      ((uint64_t)rand() << 30) |
+                      ((uint64_t)rand() << 15) |
+                       (uint64_t)rand();
+#else
+    uint64_t rnd64 = ((uint64_t)rand() << 32) | (uint64_t)rand();
+#endif
+    return rnd64;
+}
+
 template <typename Container>
 int verify_array(Container & container1, Container & container2)
 {
