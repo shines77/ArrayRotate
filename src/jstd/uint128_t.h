@@ -1341,7 +1341,7 @@ struct _uint128_t {
             } else {
                 if (divisor.high == 0) {
                     // dividend.high == 0 && divisor.high == 0
-                    return this_type(0ull, dividend.low / divisor.low);
+                    return this_type(UINT64_C(0), dividend.low / divisor.low);
                 } else {
                     // dividend.high == 0 && divisor.high != 0
                     return this_type(0, 0);
@@ -1369,7 +1369,7 @@ struct _uint128_t {
                     // dividend.high == 0 && divisor.high == 0
                     remainder.low = (integral_t)(dividend.low / divisor.low);
                     remainder.high = 0;
-                    return this_type(0ull, dividend.low / divisor.low);
+                    return this_type(UINT64_C(0), dividend.low / divisor.low);
                 } else {
                     // dividend.high == 0 && divisor.high != 0
                     remainder = dividend;
