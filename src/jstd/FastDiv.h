@@ -47,6 +47,14 @@
 // See: https://topic.alibabacloud.com/a/how-does-the-compiler-implement-constant-integer-division-optimization-for-32-bit-integers-c--_1_31_30483239.html
 //
 
+//
+// Integer Division: Barrett Reduction & Lemire Reduction (There is a new (2019) method)
+//
+// See: https://en.algorithmica.org/hpc/arithmetic/division/
+//
+// PDF: [Lemire et al. 2019](https://arxiv.org/abs/1902.01961)
+//
+
 namespace jstd {
 
 static const std::uint32_t kMaxDivTable = 512;
@@ -63,10 +71,17 @@ struct DivRatio32 {
     uint32_t reserve;
 };
 
-struct DivRatio64 {
+struct DivRatio32_64 {
     uint64_t mul;
     uint32_t shift;
-    uint32_t add;
+    uint32_t reserve;
+};
+
+struct DivRatio64 {
+    uint64_t mul;
+    uint64_t add;
+    uint32_t shift;
+    //uint32_t reserve;
 };
 
 static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {
@@ -1251,7 +1266,7 @@ DivRatio32_v1 preComputeDiv_u32_v1(std::uint32_t divisor)
             multi = 1ul << (32 - shift);
         shift = 0;
     } else {
-        // m = 2^(32+k)
+        // m = 2 ^ (32 + k)
         std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
         // f = m / d
         double f = (double)m_64 / divisor;
@@ -1268,7 +1283,7 @@ static inline
 DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
 {
     std::uint32_t shift = floorLog2<std::uint32_t>(divisor);
-    std::uint32_t multi, multi_down, add = 0;
+    std::uint32_t multi, add = 0;
     if ((divisor & (divisor - 1)) == 0) {
         if (divisor == 0) {
             multi = 0;
@@ -1282,20 +1297,20 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
         }
         shift = 0;
     } else {
-        // m = 2^(32+k)
+        // m = 2 ^ (32 + k)
         std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
         // f = m / d
-        double f = (double)m_64 / divisor;
+        double f = (double)(m_64 / divisor) + (double)(m_64 % divisor) / divisor;
         // Mul = |f| + 1;
-        multi = (std::uint32_t)ceil(f);
-        multi_down = multi - 1;
+        std::uint32_t multi_up = (std::uint32_t)ceil(f);
+        std::uint32_t multi_down = multi_up - 1;
 
         //
         // See: https://bbs.emath.ac.cn/thread-521-3-1.html
         //
 
         // err = Mul - f
-        double f_err = (double)multi - f;
+        double f_err = (double)multi_up - f;
         // maxN = | m / (d * err) |
         double max_N = (double)m_64 / divisor / f_err;
         std::uint32_t maxN = (std::uint32_t)max_N;
@@ -1306,7 +1321,7 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
         //
 
         // product_up = Mul * d
-        std::uint32_t product_up = multi * divisor;
+        std::uint32_t product_up = multi_up * divisor;
         bool failed02 = (product_up > (1u << shift));
 
         //
@@ -1318,13 +1333,17 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
         assert(divisor > remainder);
         // err == product_up
         std::uint32_t err = divisor - remainder;
-        bool failed03 = (err > (1u << shift));
+        bool failed03 = (err >= (1u << shift));
 
         static const double kEpsilon = 0.005;
+
+        // If f_err < ((2 ^ k) / d), use round up (ceil).
+        multi = multi_up;
         
         if (failed01 && failed02 && failed03) {
-            multi = multi_down;
             if (version == 2) {
+                // If f_err >= ((2 ^ k) / d), use round down, and add = multi_down.
+                multi = multi_down;
                 add = multi_down;
             } else {
                 // In order to avoid the error of double precision floating-point.
@@ -1338,27 +1357,106 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
                 // The maximum value is 1.0 times.
                 if (fix_f_err > 1.0)
                     fix_f_err = 1.0;
+                // If f_err >= ((2 ^ k) / d), use round down, and add = multi_down.
+                multi = multi_down;
                 add = (std::uint32_t)((double)multi_down * fix_f_err);
             }
         }
         else if (failed01 || failed02 || failed03) {
+            printf("divisor = %u have errors. [multi_up = %u]\n", divisor, multi_up);
+            printf("failed01 = %d, failed02 = %d, failed03 = %d\n\n",
+                   (int)failed01, (int)failed02, (int)failed03);
             assert(false);
-            printf("divisor = %u have errors.\n\n", divisor);
         }
     }
 
     DivRatio32 divRatio;
     divRatio.mul = multi;
     divRatio.add = add;
-    if (version == 64)
-        divRatio.shift = 32 + shift;
-    else
-        divRatio.shift = shift;
+    divRatio.shift = shift;
     divRatio.reserve = 0;
     return divRatio;
 }
 
-template <int version = 0>
+static inline
+DivRatio32_64 preComputeDiv_u32_64(std::uint32_t divisor)
+{
+    std::uint32_t shift = floorLog2<std::uint32_t>(divisor);
+    std::uint64_t multi;
+    if ((divisor & (divisor - 1)) == 0) {
+        if (divisor == 0) {
+            multi = 0;
+        }
+        else if (divisor == 1) {
+            multi = 1ull << 32;
+        }
+        else {
+            multi = 1ull << (32 - shift);
+        }
+        shift = 0;
+    } else {
+        // m = 2 ^ (32 + k)
+        std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
+        // f = m / d
+        double f = (double)(m_64 / divisor) + (double)(m_64 % divisor) / divisor;
+        // Mul = |f| + 1;
+        std::uint64_t multi_up = (std::uint64_t)ceil(f);
+        std::uint64_t multi_down = multi_up - 1;
+
+        //
+        // See: https://bbs.emath.ac.cn/thread-521-3-1.html
+        //
+
+        // err = Mul - f
+        double f_err = (double)multi_up - f;
+        // maxN = | m / (d * err) |
+        double max_N = (double)m_64 / divisor / f_err;
+        std::uint64_t maxN = (std::uint64_t)max_N;
+        bool failed01 = (max_N < (double)0xFFFFFFFFul);
+
+        //
+        // See: https://github.com/rubenvannieuwpoort/division-by-constant-integers/blob/master/unsigned/runtime/unsigned_division.h
+        //
+
+        // product_up = Mul * d
+        std::uint32_t product_up = (std::uint32_t)multi_up * divisor;
+        bool failed02 = (product_up > (1u << shift));
+
+        //
+        // See: https://stackoverflow.com/questions/45353629/repeated-integer-division-by-a-runtime-constant-value
+        //
+
+        // r = m - Mul_down * d
+        std::uint32_t remainder = (std::uint32_t)m_64 - (std::uint32_t)multi_down * divisor;
+        assert(divisor > remainder);
+        // err == product_up
+        std::uint32_t err = divisor - remainder;
+        bool failed03 = (err >= (1u << shift));
+        
+        // If f_err < ((2 ^ k) / d), use round up (ceil).
+        multi = multi_up;
+
+        if (failed01 && failed02 && failed03) {
+            // If f_err >= ((2 ^ k) / d), use (2 * q' + 1), and shift + 1.
+            multi = multi_down * 2 + 1;
+            shift++;
+        }
+        else if (failed01 || failed02 || failed03) {
+            printf("divisor = %u have errors. [multi_up = %u]\n",
+                   divisor, (std::uint32_t)multi_up);
+            printf("failed01 = %d, failed02 = %d, failed03 = %d\n\n",
+                   (int)failed01, (int)failed02, (int)failed03);
+            assert(false);
+        }
+    }
+
+    DivRatio32_64 divRatio;
+    divRatio.mul = multi;
+    divRatio.shift = 32 + shift;
+    divRatio.reserve = 0;
+    return divRatio;
+}
+
 static inline
 DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
 {
@@ -1379,28 +1477,31 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
         shift = 0;
     } else {
 #if defined(_MSC_VER)
+  #if 0
         multi = (uint64_t)ceil((double)((uint64_t)1 << (32 + shift)) * (double)((uint64_t)1 << 32) / divisor);
-#else
-        __uint128_t shift_128 = (__uint128_t)((uint64_t)1 << (32 + shift)) * ((uint64_t)1 << 32);
-        if ((shift_128 % divisor) != 0)
-            multi = (std::uint64_t)(shift_128 / divisor) + 1;
-        else
-            multi = (std::uint64_t)(shift_128 / divisor);
+  #else
+        _uint128_t shift_128 = 1;
+        shift_128 <<= (64 + shift);
 
-        // m = 2^(64+k)
-        __uint128_t m_128 = (__uint128_t)1ull << (64 + shift);
+        std::uint64_t multi_up = (std::uint64_t)(shift_128 / (_uint128_t)divisor) + 1;
+        std::uint64_t multi_down = multi_up - 1;
+
+        // m = 2 ^ (64 + k)
+        _uint128_t m_128 = (_uint128_t)1ull << (64 + shift);
+        std::uint64_t f_multi = (std::uint64_t)(m_128 / (_uint128_t)divisor);
+        std::uint64_t f_remainder= (std::uint64_t)(m_128 % (_uint128_t)divisor);
         // f = m / d
-        double f = (double)m_128 / divisor;
+        double f = (double)f_multi + (double)f_remainder / divisor;
         // Mul = |f| + 1;
-        multi = (std::uint64_t)ceil(f);
-        std::uint64_t multi_down = multi - 1;
+        std::uint64_t f_multi_up = (std::uint64_t)ceil(f);
+        std::uint64_t f_multi_down = f_multi_up - 1;
 
         //
         // See: https://bbs.emath.ac.cn/thread-521-3-1.html
         //
 
         // err = Mul - f
-        double f_err = (double)multi - f;
+        double f_err = (double)f_multi_up - f;
         // maxN = | m / (d * err) |
         double max_N = (double)m_128 / divisor / f_err;
         std::uint64_t maxN = (std::uint64_t)max_N;
@@ -1411,7 +1512,7 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
         //
 
         // product_up = Mul * d
-        std::uint64_t product_up = multi * divisor;
+        std::uint64_t product_up = multi_up * divisor;
         bool failed02 = (product_up > (1ull << shift));
 
         //
@@ -1426,37 +1527,108 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
         bool failed03 = (err > (1ull << shift));
 
         static const double kEpsilon = 0.005;
+
+        // If f_err < ((2 ^ k) / d), use round up (ceil).
+        multi = multi_up;
         
         if (failed01 && failed02 && failed03) {
+            // If f_err >= ((2 ^ k) / d), use round down, and add = multi_down.
             multi = multi_down;
-            if (version == 2) {
-                add = multi_down;
-            } else {
-                // In order to avoid the error of double precision floating-point.
-                // In fact, due to the precision of double, most of the time,
-                // f_err is a little larger than (err / divisor),
-                // so, there is no problem without correcting this error.
-                // However, we still fxied it here.
-                double fix_f_err = f_err + kEpsilon;
-                // Here, we use (err / divisor) instead of f_err.
-                fix_f_err = ((double)err / divisor) + kEpsilon;
-                // The maximum value is 1.0 times.
-                if (fix_f_err > 1.0)
-                    fix_f_err = 1.0;
-                add = (std::uint64_t)((double)multi_down * fix_f_err);
-            }
+            add = multi_down;
         }
         else if (failed01 || failed02 || failed03) {
+            multi = multi_down;
+            add = multi_down;
+            printf("divisor = [0x%08X] %u have errors. [ multi_up = 0x%08X%08X ]\n",
+                   (std::uint32_t)(divisor >> 32),
+                   (std::uint32_t)(divisor & 0xFFFFFFFFul),
+                   (std::uint32_t)(multi_up >> 32),
+                   (std::uint32_t)(multi_up & 0xFFFFFFFFul));
+            printf("failed01 = %d, failed02 = %d, failed03 = %d\n\n",
+                   (int)failed01, (int)failed02, (int)failed03);
             assert(false);
-            printf("divisor = %u have errors.\n\n", (std::uint32_t)divisor);
+        }
+  #endif
+#else
+        __uint128_t shift_128 = (__uint128_t)1 << (64 + shift);
+        // In fact, (shift_128 % divisor) isn't equal to 0 for ever when divisor isn't a even.
+        std::uint64_t multi_up;
+        if ((shift_128 % divisor) != 0)
+            multi_up = (std::uint64_t)(shift_128 / divisor) + 1;
+        else
+            multi_up = (std::uint64_t)(shift_128 / divisor);
+
+        std::uint64_t multi_down = multi_up - 1;
+
+        // m = 2 ^ (64 + k)
+        __uint128_t m_128 = (__uint128_t)1ull << (64 + shift);
+        std::uint64_t f_multi = (std::uint64_t)(m_128 / divisor);
+        std::uint64_t f_remainder= (std::uint64_t)(m_128 % divisor);
+        // f = m / d
+        double f = (double)f_multi + (double)f_remainder / divisor;
+        // Mul = |f| + 1;
+        std::uint64_t f_multi_up = (std::uint64_t)ceil(f);
+        std::uint64_t f_multi_down = f_multi_up - 1;
+
+        //
+        // See: https://bbs.emath.ac.cn/thread-521-3-1.html
+        //
+
+        // err = Mul - f
+        double f_err = (double)f_multi_up - f;
+        // maxN = | m / (d * err) |
+        double max_N = (double)m_128 / divisor / f_err;
+        std::uint64_t maxN = (std::uint64_t)max_N;
+        bool failed01 = (max_N < (double)0xFFFFFFFFul);
+
+        //
+        // See: https://github.com/rubenvannieuwpoort/division-by-constant-integers/blob/master/unsigned/runtime/unsigned_division.h
+        //
+
+        // product_up = Mul * d
+        std::uint64_t product_up = multi_up * divisor;
+        bool failed02 = (product_up > (1ull << shift));
+
+        //
+        // See: https://stackoverflow.com/questions/45353629/repeated-integer-division-by-a-runtime-constant-value
+        //
+
+        // r = m - Mul_down * d
+        std::uint64_t remainder = static_cast<std::uint64_t>(m_128) - multi_down * divisor;
+        assert(divisor > remainder);
+        // err == product_up
+        std::uint64_t err = divisor - remainder;
+        bool failed03 = (err > (1ull << shift));
+
+        static const double kEpsilon = 0.005;
+
+        // If f_err < ((2 ^ k) / d), use round up (ceil).
+        multi = multi_up;
+        
+        if (failed01 && failed02 && failed03) {
+            // If f_err >= ((2 ^ k) / d), use round down, and add = multi_down.
+            multi = multi_down;
+            add = multi_down;
+        }
+        else if (failed01 || failed02 || failed03) {
+            multi = multi_down;
+            add = multi_down;
+            printf("divisor = [0x%08X] %u have errors. [ multi_up = 0x%08X%08X ]\n",
+                   (std::uint32_t)(divisor >> 32),
+                   (std::uint32_t)(divisor & 0xFFFFFFFFul),
+                   (std::uint32_t)(multi_up >> 32),
+                   (std::uint32_t)(multi_up & 0xFFFFFFFFul));
+            printf("failed01 = %d, failed02 = %d, failed03 = %d\n\n",
+                   (int)failed01, (int)failed02, (int)failed03);
+            assert(false);
         }
 #endif
     }
 
     DivRatio64 divRatio;
     divRatio.mul = multi;
+    divRatio.add = add;
     divRatio.shift = shift;
-    divRatio.add = 0;
     //divRatio.reserve = 0;
     return divRatio;
 }
@@ -1475,17 +1647,20 @@ void genDivRatioTbl_u32_v1()
     fprintf(fp, "\n");
     fprintf(fp, "static const DivRatio32_v1 div_ratio_tbl32_v1[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
-        if ((n % 4) == 0) {
+        if ((n % 2) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X, %2u },", divRatioTbl[n].mul, divRatioTbl[n].shift);
-        if ((n % 4) == 3) {
+        fprintf(fp, "{ /* %3u */ 0x%08X, %2u },",
+                    n,
+                    divRatioTbl[n].mul,
+                    divRatioTbl[n].shift);
+        if ((n % 2) == 1) {
             fprintf(fp, "\n");
         } else {
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -1507,16 +1682,18 @@ void genDivRatioTbl_u32_v2()
         if ((n % 2) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
-                                                   divRatioTbl[n].add,
-                                                   divRatioTbl[n].shift);
+        fprintf(fp, "{ /* %3u */ 0x%08X, 0x%08X, %2u, 0 },",
+                    n,
+                    divRatioTbl[n].mul,
+                    divRatioTbl[n].add,
+                    divRatioTbl[n].shift);
         if ((n % 2) == 1) {
             fprintf(fp, "\n");
         } else {
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -1538,16 +1715,18 @@ void genDivRatioTbl_u32()
         if ((n % 2) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
-                                                   divRatioTbl[n].add,
-                                                   divRatioTbl[n].shift);
+        fprintf(fp, "{ /* %3u */ 0x%08X, 0x%08X, %2u, 0 },",
+                    n,
+                    divRatioTbl[n].mul,
+                    divRatioTbl[n].add,
+                    divRatioTbl[n].shift);
         if ((n % 2) == 1) {
             fprintf(fp, "\n");
         } else {
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -1555,30 +1734,32 @@ void genDivRatioTbl_u32()
 static inline
 void genDivRatioTbl_u32_x64()
 {
-    DivRatio32 divRatioTbl[kMaxDivTable];
+    DivRatio32_64 divRatioTbl[kMaxDivTable];
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
-        divRatioTbl[n] = preComputeDiv_u32<64>(n);
+        divRatioTbl[n] = preComputeDiv_u32_64(n);
     }
 
     FILE * fp = fopen("div_ratio_tbl32_64.h", "w");
     if (fp == NULL) return;
 
     fprintf(fp, "\n");
-    fprintf(fp, "static const DivRatio32 div_ratio_tbl32_64[kMaxDivTable] = {\n");
+    fprintf(fp, "static const DivRatio32_64 div_ratio_tbl32_64[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
         if ((n % 2) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X, 0x%08X, %2u, 0 },", divRatioTbl[n].mul,
-                                                   divRatioTbl[n].add,
-                                                   divRatioTbl[n].shift);
+        fprintf(fp, "{ /* %3u */ 0x%08X%08Xull, %2u, 0 },",
+                    n,
+                    (uint32_t)(divRatioTbl[n].mul >> 32u),
+                    (uint32_t)(divRatioTbl[n].mul & 0xFFFFFFFFul),
+                    divRatioTbl[n].shift);
         if ((n % 2) == 1) {
             fprintf(fp, "\n");
         } else {
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -1597,19 +1778,23 @@ void genDivRatioTbl_u64()
     fprintf(fp, "\n");
     fprintf(fp, "static const DivRatio64 div_ratio_tbl64[kMaxDivTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxDivTable; n++) {
-        if ((n % 2) == 0) {
+        if ((n % 1) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X%08Xull, %2u, 0 },", (uint32_t)(divRatioTbl[n].mul >> 32u),
-                                                  (uint32_t)(divRatioTbl[n].mul & 0xFFFFFFFFul),
-                                                  divRatioTbl[n].shift);
-        if ((n % 2) == 1) {
+        fprintf(fp, "{ /* %3u */ 0x%08X%08Xull, 0x%08X%08Xull, %2u, 0 },",
+                    n,
+                    (uint32_t)(divRatioTbl[n].mul >> 32u),
+                    (uint32_t)(divRatioTbl[n].mul & 0xFFFFFFFFul),
+                    (uint32_t)(divRatioTbl[n].add >> 32u),
+                    (uint32_t)(divRatioTbl[n].add & 0xFFFFFFFFul),
+                    divRatioTbl[n].shift);
+        if ((n % 1) == 0) {
             fprintf(fp, "\n");
         } else {
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -1656,7 +1841,7 @@ std::uint32_t fast_div_u32(std::uint32_t value, std::uint32_t divisor)
 {
     if (divisor < kMaxDivTable) {
         DivRatio32 rt = div_ratio_tbl32_64[divisor];
-        std::uint32_t result = (std::uint32_t)(((std::uint64_t)value * rt.mul + rt.add) >> rt.shift);
+        std::uint32_t result = (std::uint32_t)(((std::uint64_t)value * rt.mul) >> rt.shift);
         return result;
     } else {
         return (value / divisor);
@@ -1684,7 +1869,7 @@ std::uint64_t fast_div_u64(std::uint64_t value, std::uint64_t divisor)
 {
     if (divisor < kMaxDivTable) {
         DivRatio64 rt = div_ratio_tbl64[divisor];
-        std::uint64_t result = (mul128_high_u64_ex(value, rt.mul) >> rt.shift);
+        std::uint64_t result = (mul_u64x64_high_ex(value, rt.mul) >> rt.shift);
         return result;
     } else {
         return (value / divisor);

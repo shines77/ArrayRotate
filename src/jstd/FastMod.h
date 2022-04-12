@@ -885,18 +885,20 @@ void genModRatioTbl_u32()
     fprintf(fp, "\n");
     fprintf(fp, "static const ModRatio mod_ratio_tbl32[kMaxModTable] = {\n");
     for (std::uint32_t n = 0; n < kMaxModTable; n++) {
-        if ((n % 4) == 0) {
+        if ((n % 2) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X%08Xull },", (uint32_t)(modRatioTbl[n].mul >> 32u),
-                                          (uint32_t)(modRatioTbl[n].mul & 0xFFFFFFFFul));
-        if ((n % 4) == 3) {
+        fprintf(fp, "{ /* %3u */ 0x%08X%08Xull },",
+                    n,
+                    (uint32_t)(modRatioTbl[n].mul >> 32u),
+                    (uint32_t)(modRatioTbl[n].mul & 0xFFFFFFFFul));
+        if ((n % 2) == 1) {
             fprintf(fp, "\n");
         } else {
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -918,7 +920,8 @@ void genModRatioTbl_u64()
         if ((n % 2) == 0) {
             fprintf(fp, "    ");
         }
-        fprintf(fp, "{ 0x%08X%08Xull, 0x%08X%08Xull },",
+        fprintf(fp, "{ /* %3u */ 0x%08X%08Xull, 0x%08X%08Xull },",
+                    n,
                     (uint32_t)(modRatioTbl[n].mul_low >> 32u),
                     (uint32_t)(modRatioTbl[n].mul_low & 0xFFFFFFFFul),
                     (uint32_t)(modRatioTbl[n].mul_high >> 32u),
@@ -929,7 +932,7 @@ void genModRatioTbl_u64()
             fprintf(fp, " ");
         }
     }
-    fprintf(fp, "};\n\n");
+    fprintf(fp, "};\n");
 
     fclose(fp);
 }
@@ -949,7 +952,7 @@ std::uint32_t fast_mod_u32(std::uint32_t value, std::uint32_t divisor)
     } else {
         ModRatio32 rt = mod_ratio_tbl32[divisor];
         std::uint64_t low64_bits = (std::uint64_t)value * rt.mul;
-        std::uint32_t result = (std::uint32_t)mul128_high_u32(low64_bits, divisor);
+        std::uint32_t result = (std::uint32_t)mul_u64x32_high(low64_bits, divisor);
         return result;
     }
 }
@@ -962,7 +965,7 @@ std::uint64_t fast_mod_u64(std::uint64_t value, std::uint32_t divisor)
     } else {
         ModRatio32 rt = mod_ratio_tbl32[divisor];
         std::uint64_t low64_bits = value * rt.mul;
-        std::uint32_t result = (std::uint32_t)mul128_high_u32(low64_bits, divisor);
+        std::uint32_t result = (std::uint32_t)mul_u64x32_high(low64_bits, divisor);
         return result;
     }
 }
@@ -975,7 +978,7 @@ std::uint64_t fast_mod_u64(std::uint64_t value, std::uint64_t divisor)
     } else {
         ModRatio32 rt = mod_ratio_tbl32[divisor];
         std::uint64_t low64_bits = value * rt.mul;
-        std::uint32_t result = (std::uint32_t)mul128_high_u64(low64_bits, divisor);
+        std::uint32_t result = (std::uint32_t)mul_u64x64_high(low64_bits, divisor);
         return result;
     }
 }

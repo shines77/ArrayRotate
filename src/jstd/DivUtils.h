@@ -57,36 +57,36 @@ std::uint32_t floorLog2(Integal val)
 //
 // See: https://github.com/lemire/fastmod
 //
-// __umulh() is only available in x64 mode under Visual Studio: don't compile to 32-bit!
-//           but, I write a version for x86 (32bit) mode: see below.
+// __umulh() is only available in x64 mode under Visual Studio.
+//           But, I have written a version (see below) for x86 (32bit) mode.
 //
 static inline
-uint64_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
-    return __umulh(low64_bits, divisor);
+uint64_t mul_u64x32_high(uint64_t low64_bits, uint32_t divisor) {
+    return __umulh(low64_bits, (uint64_t)divisor);
 }
 
 static inline
-uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
+uint64_t mul_u64x64_high(uint64_t low64_bits, uint64_t divisor) {
     return __umulh(low64_bits, divisor);
 }
 
 #else // !_MSC_VER
 
 static inline
-uint64_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
+uint64_t mul_u64x32_high(uint64_t low64_bits, uint32_t divisor) {
     return (((__uint128_t)low64_bits * divisor) >> 64u);
 }
 
 static inline
-uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
+uint64_t mul_u64x64_high(uint64_t low64_bits, uint64_t divisor) {
     return (((__uint128_t)low64_bits * divisor) >> 64u);
 }
 
 #endif // _MSC_VER
 
 static inline
-uint64_t mul128_high_u64_ex(uint64_t low64_bits, uint64_t divisor) {
-    return mul128_high_u64(low64_bits, divisor);
+uint64_t mul_u64x64_high_ex(uint64_t low64_bits, uint64_t divisor) {
+    return mul_u64x64_high(low64_bits, divisor);
 }
 
 #else // !__amd64__
@@ -99,16 +99,17 @@ uint64_t mul128_high_u64_ex(uint64_t low64_bits, uint64_t divisor) {
    low64_bits * divisor32 =
 
  |           |             |            |           |
- |           |             |      high0 * 0         |  product03
- |           |       low0  * 0          |           |  product02
- |           |       high0 * low1       |           |  product01
- |      low0 * low1        |            |           |  product00
+ |           |             |      high0 * 0         |  product_03
+ |           |       low0  * 0          |           |  product_02
+ |           |       high0 * low1       |           |  product_01
+ |      low0 * low1        |            |           |  product_00
  |           |             |            |           |
+ 0          32            64           96          128
 
 *****************************************************************/
 
 static inline
-uint32_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
+uint32_t mul_u64x32_high(uint64_t low64_bits, uint32_t divisor) {
     uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
     uint32_t high0 = (uint32_t)(low64_bits >> 32u);
     if (high0 == 0)
@@ -134,20 +135,21 @@ uint32_t mul128_high_u32(uint64_t low64_bits, uint32_t divisor) {
    low64_bits * divisor64 =
 
  |           |             |            |           |
- |           |             |      high0 * high1     |  product03
- |           |       low0  * high1      |           |  product02
- |           |       high0 * low1       |           |  product01
- |      low0 * low1        |            |           |  product00
+ |           |             |      high0 * high1     |  product_03
+ |           |       low0  * high1      |           |  product_02
+ |           |       high0 * low1       |           |  product_01
+ |      low0 * low1        |            |           |  product_00
  |           |             |            |           |
+ 0          32            64           96          128
 
 *****************************************************************/
 
 static inline
-uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
+uint64_t mul_u64x64_high(uint64_t low64_bits, uint64_t divisor) {
     uint32_t low1  = (uint32_t)(divisor & 0xFFFFFFFFull);
     uint32_t high1 = (uint32_t)(divisor >> 32u);
     if (high1 == 0) {
-        return mul128_high_u32(low64_bits, low1);
+        return mul_u64x32_high(low64_bits, low1);
     }
 
     uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
@@ -188,7 +190,7 @@ uint64_t mul128_high_u64(uint64_t low64_bits, uint64_t divisor) {
 }
 
 static inline
-uint64_t mul128_high_u64_ex(uint64_t low64_bits, uint64_t divisor) {
+uint64_t mul_u64x64_high_ex(uint64_t low64_bits, uint64_t divisor) {
     uint32_t low0  = (uint32_t)(low64_bits & 0xFFFFFFFFull);
     uint32_t high0 = (uint32_t)(low64_bits >> 32u);
     uint32_t low1  = (uint32_t)(divisor & 0xFFFFFFFFull);

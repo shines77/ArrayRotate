@@ -89,6 +89,9 @@ struct _uint128_t {
     typedef _uint128_t  this_type;
 
     typedef uint64_t    integral_t;
+    typedef uint64_t    high_t;
+    typedef uint64_t    low_t;
+
     typedef uint64_t    unsigned_t;
     typedef int64_t     signed_t;
 
@@ -97,9 +100,6 @@ struct _uint128_t {
 #else
     typedef unsigned long long  ull_type;
 #endif
-
-    typedef uint64_t    high_t;
-    typedef uint64_t    low_t;
 
     low_t  low;
     high_t high;
@@ -115,6 +115,7 @@ struct _uint128_t {
     static const uint32_t kSignMask32   = 0x80000000ul;
     static const uint32_t kBodyMask32   = 0x7FFFFFFFul;
     static const uint32_t kFullMask32   = 0xFFFFFFFFul;
+    static const uint64_t kFullMask32_64 = 0x00000000FFFFFFFFull;
 
     static const integral_t kZero64     = (integral_t)0ull;
     static const uint32_t   kZero32     = (uint32_t)0ull;
@@ -130,6 +131,9 @@ struct _uint128_t {
     _uint128_t(uint64_t _high, int64_t _low) noexcept
         : low((low_t)_low), high((high_t)_high) {}
 
+    _uint128_t(int64_t _high, uint64_t _low) noexcept
+        : low((low_t)_low), high((high_t)_high) {}
+
     _uint128_t(int64_t _high, int64_t _low) noexcept
         : low((low_t)_low), high((high_t)_high) {}
 
@@ -137,6 +141,9 @@ struct _uint128_t {
         : low((low_t)_low), high((high_t)_high) {}
 
     _uint128_t(uint32_t _high, int32_t _low) noexcept
+        : low((low_t)_low), high((high_t)_high) {}
+
+    _uint128_t(int32_t _high, uint32_t _low) noexcept
         : low((low_t)_low), high((high_t)_high) {}
 
     _uint128_t(int32_t _high, int32_t _low) noexcept
@@ -199,6 +206,9 @@ struct _uint128_t {
         return (this->low == (low_t)0 && this->high == (high_t)0);
     }
 
+    //
+    // Logical operator
+    //
     bool operator > (const this_type & rhs) const {
         return ((this->high > rhs.high) || ((this->high == rhs.high) && (this->low > rhs.low)));
     }
@@ -231,6 +241,9 @@ struct _uint128_t {
         return (!this->is_zero() || !rhs.is_zero());
     }
 
+    //
+    // Logical operator for integral
+    //
 #define INTEGRAL_LOGICAL_OPERATOR(integral_type) \
     bool operator > (integral_type rhs) const { \
         return ((this->high > (high_t)0) || ((this->high == (high_t)0) && (this->low > (low_t)rhs))); \
@@ -264,6 +277,9 @@ struct _uint128_t {
         return (!this->is_zero() || (rhs != (integral_type)0)); \
     }
 
+    //
+    // Logical operator for integral implement
+    //
     INTEGRAL_LOGICAL_OPERATOR(int32_t)
     INTEGRAL_LOGICAL_OPERATOR(uint32_t)
     INTEGRAL_LOGICAL_OPERATOR(int64_t)
@@ -275,6 +291,14 @@ struct _uint128_t {
 
     operator bool () const {
         return !this->is_zero();
+    }
+
+    this_type operator ~ () const {
+        return this_type((low_t)(~(this->low)), (high_t)(~(this->high)));
+    }
+
+    this_type operator - () const {
+        return negate(*this);
     }
 
     operator int32_t () const {
@@ -293,6 +317,17 @@ struct _uint128_t {
         return (uint64_t)this->low;
     }
 
+    operator double () const {
+        return toDouble(*this);
+    }
+
+    operator float () const {
+        return toFloat(*this);
+    }
+
+    //
+    // Arithmetic operator
+    //
     this_type operator & (const this_type & rhs) const {
         return this_type(this->low & rhs.low, this->high & rhs.high);
     }
@@ -305,47 +340,11 @@ struct _uint128_t {
         return this_type(this->low ^ rhs.low, this->high ^ rhs.high);
     }
 
-    this_type operator ~ () const {
-        return this_type((low_t)(~(this->low)), (high_t)(~(this->high)));
-    }
-
     this_type operator + (const this_type & rhs) const {
         return bigint_128_add(*this, rhs);
     }
 
     this_type operator - (const this_type & rhs) const {
-        return bigint_128_sub(*this, rhs);
-    }
-
-    this_type operator + (int rhs) const {
-        return bigint_128_add(*this, (int64_t)rhs);
-    }
-
-    this_type operator - (int rhs) const {
-        return bigint_128_sub(*this, (int64_t)rhs);
-    }
-
-    this_type operator + (uint32_t rhs) const {
-        return bigint_128_add(*this, (uint64_t)rhs);
-    }
-
-    this_type operator - (uint32_t rhs) const {
-        return bigint_128_sub(*this, (uint64_t)rhs);
-    }
-
-    this_type operator + (int64_t rhs) const {
-        return bigint_128_add(*this, rhs);
-    }
-
-    this_type operator - (int64_t rhs) const {
-        return bigint_128_sub(*this, rhs);
-    }
-
-    this_type operator + (uint64_t rhs) const {
-        return bigint_128_add(*this, rhs);
-    }
-
-    this_type operator - (uint64_t rhs) const {
         return bigint_128_sub(*this, rhs);
     }
 
@@ -357,15 +356,71 @@ struct _uint128_t {
         return bigint_128_div(*this, rhs);
     }
 
-    this_type operator >> (const int shift) const {
-        return right_shift(*this, shift);
+    this_type operator % (const this_type & rhs) const {
+        return bigint_128_mod(*this, rhs);
     }
 
-    this_type operator << (const int shift) const {
-        return left_shift(*this, shift);
+    this_type operator >> (const this_type & shift) const {
+        return right_shift(*this, shift.low);
     }
 
-#define INTEGRAL_ARITHMETIC_OPERATOR(integral_type)
+    this_type operator << (const this_type & shift) const {
+        return left_shift(*this, shift.low);
+    }
+
+    //
+    // Arithmetic operator for integral
+    //
+#define INTEGRAL_ARITHMETIC_OPERATOR(integral_type) \
+    this_type operator & (const integral_type rhs) const { \
+        return this_type(this->low & rhs, this->high & kZero64); \
+    } \
+    \
+    this_type operator | (const integral_type rhs) const { \
+        return this_type(this->low | rhs, this->high | kZero64); \
+    } \
+    \
+    this_type operator ^ (const integral_type rhs) const { \
+        return this_type(this->low ^ rhs, this->high ^ kZero64); \
+    } \
+    \
+    this_type operator + (const integral_type rhs) const { \
+        return bigint_128_add(*this, rhs); \
+    } \
+    \
+    this_type operator - (const integral_type rhs) const { \
+        return bigint_128_sub(*this, rhs); \
+    } \
+    \
+    this_type operator * (const integral_type rhs) const { \
+        return bigint_128_mul(*this, rhs); \
+    } \
+    \
+    this_type operator / (const integral_type rhs) const { \
+        return bigint_128_div(*this, rhs); \
+    } \
+    \
+    this_type operator % (const integral_type rhs) const { \
+        return bigint_128_mod(*this, rhs); \
+    } \
+    \
+    this_type operator >> (const integral_type shift) const { \
+        return right_shift(*this, shift); \
+    } \
+    \
+    this_type operator << (const integral_type shift) const { \
+        return left_shift(*this, shift); \
+    }
+
+    //
+    // Arithmetic operator for integral implement
+    //
+    INTEGRAL_ARITHMETIC_OPERATOR(int32_t)
+    INTEGRAL_ARITHMETIC_OPERATOR(uint32_t)
+    INTEGRAL_ARITHMETIC_OPERATOR(int64_t)
+    INTEGRAL_ARITHMETIC_OPERATOR(uint64_t)
+
+    ///////////////////////////////////////////////////////////////////////
 
     this_type & operator &= (const this_type & rhs) {
         this->low &= rhs.low;
@@ -405,20 +460,102 @@ struct _uint128_t {
         return *this;
     }
 
-    this_type &  operator >>= (const int shift) {
-        *this = *this >> shift;
+    this_type &  operator >>= (const this_type shift) {
+        *this = *this >> shift.low;
         return *this;
     }
 
-    this_type &  operator <<= (const int shift) {
-        *this = *this << shift;
+    this_type &  operator <<= (const this_type shift) {
+        *this = *this << shift.low;
         return *this;
     }
 
-    static inline
-    void remove_sign(this_type & u128) {
-        u128.high &= kBodyMask64;
+    /////////////////////////////////////////////////////////////////////////
+
+    double toDouble(const this_type & val) const {
+        static const double kDoubleShift63 = (double)(1ull << 63);
+        double f_low  = (double)val.low;
+        double f_high = (double)val.high * kDoubleShift63 * 2.0;
+        return (f_high + f_low);
     }
+
+    float toFloat(const this_type & val) const {
+        double f_double = toDouble(*this);
+        return (float)f_double;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+
+    inline integral_t get_sign(const this_type & val) const {
+        return ((integral_t)val.high & kSignMask64);
+    }
+
+    inline high_t get_high_body(const this_type & val) const {
+        high_t high_body = (high_t)((integral_t)val.high & kBodyMask64);
+        return high_body;
+    }
+
+    inline this_type remove_sign(const this_type & val) const {
+        high_t high_body = get_high_body(val);
+        return this_type(high_body, val.low);
+    }
+
+    inline integral_t get_sign() const {
+        return get_sign(*this);
+    }
+
+    inline high_t get_high_body() const {
+        return get_high_body(*this);
+    }
+
+    inline this_type & remove_sign() {
+        this->high = get_high_body(*this);
+        return *this;
+    }
+
+    inline this_type invert(const this_type & val) const {
+        low_t  low  = (low_t)(~((integral_t)this->low));
+        high_t high = (high_t)(~((integral_t)this->high));
+        return this_type(high, low);
+    }
+
+    inline this_type two_complement(const this_type & val) const {
+        this_type complement = invert(val);
+        return (complement + 1u);
+    }
+
+    inline this_type negate(const this_type & val) const {
+        integral_t sign_mask = get_sign(val);
+        // Negate the sign mask
+        sign_mask ^= kFullMask64;
+
+        // Remove the sign mask, and get the two's complement
+        this_type positive = remove_sign(val);
+        positive = two_complement(positive);
+
+        // Combine the sign mask and two's complement
+        positive.high = (high_t)((integral_t)positive.high | sign_mask);
+        return positive;
+    }
+
+    inline this_type & invert() {
+        this->low  = (low_t)(~((integral_t)this->low));
+        this->high = (high_t)(~((integral_t)this->high));
+        return *this;
+    }
+
+    inline this_type & two_complement() {
+        this->invert();
+        *this = *this + 1u;
+        return *this;
+    }
+
+    inline this_type & negate()  {
+        *this = negate(*this);
+        return *this;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
 
     static inline
     int _count_leading_zeros(integral_t val) {
@@ -443,28 +580,28 @@ struct _uint128_t {
     }
 
     static inline
-    int count_leading_zeros(this_type u128) {
+    int count_leading_zeros(this_type val128) {
         if (kIsSigned) {
-            remove_sign(u128);
+            val128.remove_sign();
         }
         int leading_zeros;
-        if (u128.high == 0)
-            leading_zeros = (u128.low == 0) ? 0 : (_count_leading_zeros(u128.low) + 64);
+        if (val128.high == 0)
+            leading_zeros = (val128.low == 0) ? 0 : (_count_leading_zeros(val128.low) + 64);
         else
-            leading_zeros = _count_leading_zeros(u128.high);
+            leading_zeros = _count_leading_zeros(val128.high);
         return leading_zeros;
     }
 
     static inline
-    int count_tail_zeros(this_type u128) {
+    int count_tail_zeros(this_type val128) {
         if (kIsSigned) {
-            remove_sign(u128);
+            val128.remove_sign();
         }
         int tail_zeros;
-        if (u128.low == 0)
-            tail_zeros = (u128.high == 0) ? 0 : (_count_tail_zeros(u128.high) + 64);
+        if (val128.low == 0)
+            tail_zeros = (val128.high == 0) ? 0 : (_count_tail_zeros(val128.high) + 64);
         else
-            tail_zeros = _count_tail_zeros(u128.low);
+            tail_zeros = _count_tail_zeros(val128.low);
         return tail_zeros;
     }
 
@@ -473,7 +610,7 @@ struct _uint128_t {
         assert(shift >= 0 && shift < 128);
         this_type result = src;
         if (shift <= 64) {
-            int low_rshift = (64 - shift);
+            int low_rshift = ((int)64 - shift);
             result.high = ((unsigned_t)result.high << shift) | ((unsigned_t)result.low >> low_rshift);
             result.low <<= shift;
         } else {
@@ -489,11 +626,43 @@ struct _uint128_t {
         assert(shift >= 0 && shift < 128);
         this_type result = src;
         if (shift <= 64) {
-            int high_lshift = (64 - shift);
+            int high_lshift = ((int)64 - shift);
             result.low = ((unsigned_t)result.low >> shift) | ((unsigned_t)result.high << high_lshift);
             result.high >>= shift;
         } else {
             int high_rshift = (shift - 64);
+            result.low = (unsigned_t)result.high >> high_rshift;
+            result.high = 0;
+        }
+        return result;
+    }
+
+    static inline
+    this_type logic_left_shift(const this_type & src, const uint32_t shift) {
+        assert(shift >= 0 && shift < 128);
+        this_type result = src;
+        if (shift <= 64) {
+            uint32_t low_rshift = ((uint32_t)64 - shift);
+            result.high = ((unsigned_t)result.high << shift) | ((unsigned_t)result.low >> low_rshift);
+            result.low <<= shift;
+        } else {
+            uint32_t low_lshift = (uint32_t)(shift - (uint32_t)64);
+            result.high = (unsigned_t)result.low << low_lshift;
+            result.low = 0;
+        }
+        return result;
+    }
+
+    static inline
+    this_type logic_right_shift(const this_type & src, const uint32_t shift) {
+        assert(shift >= 0 && shift < 128);
+        this_type result = src;
+        if (shift <= 64) {
+            uint32_t high_lshift = ((uint32_t)64 - shift);
+            result.low = ((unsigned_t)result.low >> shift) | ((unsigned_t)result.high << high_lshift);
+            result.high >>= shift;
+        } else {
+            uint32_t high_rshift = (uint32_t)(shift - (uint32_t)64);
             result.low = (unsigned_t)result.high >> high_rshift;
             result.high = 0;
         }
@@ -533,7 +702,39 @@ struct _uint128_t {
     }
 
     static inline
-    this_type left_shift(const this_type & src, const int shift) {
+    this_type sign_extend_left_shift(const this_type & src, const uint32_t shift) {
+        assert(shift >= 0 && shift <= 128);
+        this_type result = src;
+        if (shift <= 64) {
+            uint32_t low_rshift = ((uint32_t)64 - shift);
+            result.high = ((signed_t)result.high << shift) | ((unsigned_t)result.low >> low_rshift);
+            result.low <<= shift;
+        } else {
+            uint32_t low_lshift = (uint32_t)(shift - (uint32_t)64);
+            result.high = (result.high & kSignMask64) | (((unsigned_t)result.low << low_lshift) & kBodyMask64);
+            result.low = 0;
+        }
+        return result;
+    }
+
+    static inline
+    this_type sign_extend_right_shift(const this_type & src, const uint32_t shift) {
+        assert(shift >= 0 && shift <= 128);
+        this_type result = src;
+        if (shift <= 64) {
+            uint32_t high_lshift = ((uint32_t)64 - shift);
+            result.low = ((unsigned_t)result.low >> shift) | ((signed_t)result.high << high_lshift);
+            result.high >>= shift;
+        } else {
+            uint32_t high_rshift = (uint32_t)(shift - (uint32_t)64);
+            result.low = (unsigned_t)(result.high & kBodyMask64) >> high_rshift;
+            result.high = result.high & kSignMask64;
+        }
+        return result;
+    }
+
+    static inline
+    this_type left_shift(const this_type & src, const int32_t shift) {
         if (kIsSigned)
             return sign_extend_left_shift(src, shift);
         else
@@ -541,11 +742,47 @@ struct _uint128_t {
     }
 
     static inline
-    this_type right_shift(const this_type & src, const int shift) {
+    this_type right_shift(const this_type & src, const int32_t shift) {
         if (kIsSigned)
             return sign_extend_right_shift(src, shift);
         else
             return logic_right_shift(src, shift);
+    }
+
+    static inline
+    this_type left_shift(const this_type & src, const uint32_t shift) {
+        if (kIsSigned)
+            return sign_extend_left_shift(src, shift);
+        else
+            return logic_left_shift(src, shift);
+    }
+
+    static inline
+    this_type right_shift(const this_type & src, const uint32_t shift) {
+        if (kIsSigned)
+            return sign_extend_right_shift(src, shift);
+        else
+            return logic_right_shift(src, shift);
+    }
+
+    static inline
+    this_type left_shift(const this_type & src, const int64_t shift) {
+        return left_shift(src, (int32_t)shift);
+    }
+
+    static inline
+    this_type right_shift(const this_type & src, const int64_t shift) {
+        return right_shift(src, (int32_t)shift);
+    }
+
+    static inline
+    this_type left_shift(const this_type & src, const uint64_t shift) {
+        return left_shift(src, (uint32_t)(shift & kFullMask32_64));
+    }
+
+    static inline
+    this_type right_shift(const this_type & src, const uint64_t shift) {
+        return right_shift(src, (uint32_t)(shift & kFullMask32_64));
     }
 
 #if defined(JSTD_X86_I386)
@@ -581,13 +818,13 @@ struct _uint128_t {
     }
 
     static inline
-    this_type bigint_128_sub(const this_type & a, const this_type & b) {
+    this_type bigint_128_add(const this_type & a, int64_t b) {
         ull_type out;
-        unsigned char borrow = _subborrow_u64(0, a.low, b.low, &out);
+        unsigned char carry = _addcarry_u64(0, a.low, b, &out);
 
         this_type result;
         result.low = out;
-        result.high = a.high - b.high - borrow;
+        result.high = a.high + ((b >= 0) ? carry : -carry);
         return result;
     }
 
@@ -603,24 +840,23 @@ struct _uint128_t {
     }
 
     static inline
-    this_type bigint_128_sub(const this_type & a, uint64_t b) {
-        ull_type out;
-        unsigned char borrow = _subborrow_u64(0, a.low, b, &out);
-
-        this_type result;
-        result.low = out;
-        result.high = a.high - borrow;
-        return result;
+    this_type bigint_128_add(const this_type & a, int32_t b) {
+        return bigint_128_add(a, (int64_t)b);
     }
 
     static inline
-    this_type bigint_128_add(const this_type & a, int64_t b) {
+    this_type bigint_128_add(const this_type & a, uint32_t b) {
+        return bigint_128_add(a, (uint64_t)b);
+    }
+
+    static inline
+    this_type bigint_128_sub(const this_type & a, const this_type & b) {
         ull_type out;
-        unsigned char carry = _addcarry_u64(0, a.low, b, &out);
+        unsigned char borrow = _subborrow_u64(0, a.low, b.low, &out);
 
         this_type result;
         result.low = out;
-        result.high = a.high + ((b >= 0) ? carry : -carry);
+        result.high = a.high - b.high - borrow;
         return result;
     }
 
@@ -633,6 +869,27 @@ struct _uint128_t {
         result.low = out;
         result.high = a.high - ((b >= 0) ? borrow : -borrow);
         return result;
+    }
+
+    static inline
+    this_type bigint_128_sub(const this_type & a, uint64_t b) {
+        ull_type out;
+        unsigned char borrow = _subborrow_u64(0, a.low, b, &out);
+
+        this_type result;
+        result.low = out;
+        result.high = a.high - borrow;
+        return result;
+    }
+
+    static inline
+    this_type bigint_128_sub(const this_type & a, int32_t b) {
+        return bigint_128_sub(a, (int64_t)b);
+    }
+
+    static inline
+    this_type bigint_128_sub(const this_type & a, uint32_t b) {
+        return bigint_128_sub(a, (uint64_t)b);
     }
 
     static inline
@@ -709,16 +966,17 @@ struct _uint128_t {
         if (divisor != 0) {
             // Calculate the distance between most significant bits, 128 > shift >= 0.
             int shift = bigint_128_distance(dividend, divisor);
-            divisor <<= shift;
+            _uint128_t divisor128 = divisor;
+            divisor128 <<= shift;
 
             _uint128_t quotient = 0;
             for (; shift >= 0; --shift) {
                 quotient <<= 1;
-                if (dividend >= divisor) {
-                    dividend -= divisor;
+                if (dividend >= divisor128) {
+                    dividend -= divisor128;
                     quotient |= 1;
                 }
-                divisor >>= 1;
+                divisor128 >>= 1;
             }
 
             if (remainder != nullptr) {
@@ -1012,12 +1270,12 @@ struct _uint128_t {
                 return quotient;
             }
         } else {
-            return this_type(dividend.low / divisor, UINT64_C(0));
+            return this_type(UINT64_C(0), dividend.low / divisor);
         }
     }
 
     //
-    // q(128) = n(128) / d(128)
+    // q (128) = n (128) / d (128)
     //
     static inline
     this_type bigint_128_div(const this_type & dividend, const this_type & divisor) {
@@ -1041,11 +1299,45 @@ struct _uint128_t {
         }
     }
 
+    //
+    // q (128) = n (128) % d (128)
+    //
+    static inline
+    this_type bigint_128_mod(const this_type & dividend, const this_type & divisor) {
+        this_type q = bigint_128_div(dividend, divisor);
+        this_type remainder = dividend - q * divisor;
+        return remainder;
+    }
+
+    /*****************************************************************
+
+       multiplicand = low0, high0
+       multiplier   = low1, high1
+
+       multiplicand * multiplier =
+
+     |           |             |            |           |
+     |           |             |      high0 * high1     |  product_03
+     |           |       low0  * high1      |           |  product_02
+     |           |       high0 * low1       |           |  product_01
+     |      low0 * low1        |            |           |  product_00
+     |           |             |            |           |
+     0          64            128          192         256
+
+    *****************************************************************/
+
+    //
+    // p (128) = a (128) * b (128)
+    //
     static inline
     this_type bigint_128_mul(const this_type & multiplicand, const this_type & multiplier) {
         this_type product;
-        product.low  = multiplicand.low * multiplier.low;
-        product.high = mul128_high_u64(multiplicand.low, multiplier.low);
+        integral_t product_00_low  = multiplicand.low * multiplier.low;
+        integral_t product_01_low  = multiplicand.high * multiplier.low;
+        integral_t product_02_low  = multiplicand.low * multiplier.high;
+        integral_t product_00_high = mul_u64x64_high(multiplicand.low, multiplier.low);
+        product.low  = product_00_low;
+        product.high = product_01_low + product_02_low + product_00_high;
         return product;
     }
 }; // class _uint128_t
