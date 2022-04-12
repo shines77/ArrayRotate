@@ -1056,8 +1056,18 @@ struct _uint128_t {
     }
 
     static inline
+    _uint128_t __udivti3(_uint128_t a, uint64_t b, uint64_t & r) {
+        return __udivmodti4(a, b, &r);
+    }
+
+    static inline
     _uint128_t __udivti3(_uint128_t a, _uint128_t b) {
         return __udivmodti4(a, b, nullptr);
+    }
+
+    static inline
+    _uint128_t __udivti3(_uint128_t a, _uint128_t b, _uint128_t & r) {
+        return __udivmodti4(a, b, &r);
     }
 
     static inline
@@ -1081,8 +1091,23 @@ struct _uint128_t {
 
     static
     JSTD_FORCE_INLINE
+    integral_t bigint_64_div_64_to_64(integral_t dividend, integral_t divisor, integral_t & remainder) {
+        remainder = dividend % divisor;
+        return (dividend / divisor);
+    }
+
+    static
+    JSTD_FORCE_INLINE
     integral_t bigint_64_div_128_to_64(integral_t dividend, const this_type & divisor) {
         return ((divisor.high != 0) ? 0 : (dividend / divisor.low));
+    }
+
+    static
+    JSTD_FORCE_INLINE
+    integral_t bigint_64_div_128_to_64(integral_t dividend, const this_type & divisor, this_type & remainder) {
+        integral_t quotient64 = (divisor.high != 0) ? 0 : (dividend / divisor.low);
+        remainder = (divisor.high != 0) ? dividend : (dividend % divisor.low);
+        return quotient64;
     }
 
 #if 0
@@ -1132,16 +1157,17 @@ struct _uint128_t {
 
     static
     JSTD_FORCE_INLINE
-    integral_t bigint_128_div_64_to_64(const this_type & dividend, integral_t divisor) {
+    integral_t bigint_128_div_64_to_64(const this_type & dividend, integral_t divisor, integral_t & remainder) {
         // N.B. resist the temptation to use __uint128_t here.
         // In LLVM compiler-rt, it performs a 128/128 -> 128 division which is many times slower than
         // necessary. In gcc it's better but still slower than the divlu implementation, perhaps because
         // it's not JSTD_FORCE_INLINE.
 #if defined(JSTD_X86_64) && defined(JSTD_GCC_STYLE_ASM)
-        uint64_t result, remainder;
+        uint64_t quotient64, remainder64;
         UNUSED_VARIANT(remainder);
-        __asm__("divq %[v]" : "=a"(result), "=d"(remainder) : [v] "r"(divisor), "a"(dividend.low), "d"(dividend.high));
-        return (integral_t)result;
+        __asm__("divq %[v]" : "=a"(quotient64), "=d"(remainder64) : [v] "r"(divisor), "a"(dividend.low), "d"(dividend.high));
+        remainder = (integral_t)remainder64;
+        return (integral_t)quotient64;
 #elif defined(JSTD_X86_64) && defined(_MSC_VER) && (_MSC_VER >= 1920)
         /////////////////////////////////////////////////////////
         //
@@ -1193,20 +1219,25 @@ struct _uint128_t {
         // _addcarryx_u64() for AVX2 since Broadwell
         //
         /////////////////////////////////////////////////////////
-        uint64_t remainder;
-        uint64_t quotient = _udiv128(dividend.high, dividend.low, divisor, &remainder);
+        uint64_t remainder64;
+        uint64_t quotient = _udiv128(dividend.high, dividend.low, divisor, &remainder64);
+        remainder = (integral_t)remainder64;
         return (integral_t)quotient;
 #elif defined(JSTD_X86_64)
 #if defined(JSTD_IS_MSVC)
-        uint64_t remainder;
+        uint64_t remainder64;
         // From /jstd/udiv128.asm (MASM format)
-        uint64_t quotient = __udiv128(dividend.low, dividend.high, divisor, &remainder);
+        uint64_t quotient = __udiv128(dividend.low, dividend.high, divisor, &remainder64);
+        remainder = (integral_t)remainder64;
         return (integral_t)quotient;
 #else // !JSTD_IS_MSVC
-        this_type quotient = __udivti3(dividend, divisor);
+        uint64_t remainder64;
+        this_type quotient = __udivti3(dividend, divisor, &remainder64);
+        remainder = (integral_t)remainder64;
         return (integral_t)quotient.low;
 #endif // JSTD_IS_MSVC
 #else
+        // TODO: x86_i386 mode
         if (dividend.high != 0) {
             // Check for overflow and divide by 0.
             if (dividend.high < divisor) {
@@ -1229,10 +1260,10 @@ struct _uint128_t {
     // q(64) = n(128) / d(128)
     //
     static inline
-    integral_t bigint_128_div_128_to_64(const this_type & dividend, const this_type & divisor) {
+    integral_t bigint_128_div_128_to_64(const this_type & dividend, const this_type & divisor, this_type & remainder) {
         if (divisor.high == 0) {
             // dividend.high != 0 && divisor.high == 0
-            return bigint_128_div_64_to_64(dividend, divisor.low);
+            return bigint_128_div_64_to_64(dividend, divisor.low, remainder.low);
         } else {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
@@ -1260,16 +1291,36 @@ struct _uint128_t {
     JSTD_FORCE_INLINE
     this_type bigint_128_div_64_to_128(const this_type & dividend, integral_t divisor) {
         if (dividend.high != 0) {
-            // TODO: xxxxxx
             int distance = bigint_128_distance(dividend, divisor);
-            if (distance < 64) {
-                integral_t quotient = bigint_128_div_64_to_64(dividend, divisor);
+            if ((distance < 64) || ((distance == 64) && ((integral_t)dividend.high < divisor))) {
+                integral_t remainder;
+                integral_t quotient = bigint_128_div_64_to_64(dividend, divisor, remainder);
                 return this_type((high_t)0ull, quotient);
             } else {
                 this_type quotient = __udivti3(dividend, (uint64_t)divisor);
                 return quotient;
             }
         } else {
+            return this_type(UINT64_C(0), dividend.low / divisor);
+        }
+    }
+
+    static
+    JSTD_FORCE_INLINE
+    this_type bigint_128_div_64_to_128(const this_type & dividend, integral_t divisor, integral_t & remainder) {
+        if (dividend.high != 0) {
+            int distance = bigint_128_distance(dividend, divisor);
+            if ((distance < 64) || ((distance == 64) && ((integral_t)dividend.high < divisor))) {
+                integral_t quotient = bigint_128_div_64_to_64(dividend, divisor, remainder);
+                return this_type((high_t)0ull, quotient);
+            } else {
+                uint64_t remainder64;
+                this_type quotient = __udivti3(dividend, (uint64_t)divisor, remainder64);
+                remainder = (integral_t)remainder64;
+                return quotient;
+            }
+        } else {
+            remainder = (integral_t)(dividend.low / divisor);
             return this_type(UINT64_C(0), dividend.low / divisor);
         }
     }
@@ -1285,8 +1336,8 @@ struct _uint128_t {
         } else {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
-                // TODO: xxxxxx
-                return this_type(UINT64_C(0), UINT64_C(0));
+                this_type quotient = __udivti3(dividend, divisor);
+                return quotient;
             } else {
                 if (divisor.high == 0) {
                     // dividend.high == 0 && divisor.high == 0
@@ -1300,12 +1351,41 @@ struct _uint128_t {
     }
 
     //
+    // q (128) = n (128) / d (128)
+    //
+    static inline
+    this_type bigint_128_div(const this_type & dividend, const this_type & divisor, this_type & remainder) {
+        if (divisor.high == 0) {
+            // dividend.high != 0 && divisor.high == 0
+            remainder.high = 0;
+            return bigint_128_div_64_to_128(dividend, divisor.low, remainder.low);
+        } else {
+            if (dividend.high != 0) {
+                // dividend.high != 0 && divisor.high != 0
+                this_type quotient = __udivti3(dividend, divisor, remainder);
+                return quotient;
+            } else {
+                if (divisor.high == 0) {
+                    // dividend.high == 0 && divisor.high == 0
+                    remainder.low = (integral_t)(dividend.low / divisor.low);
+                    remainder.high = 0;
+                    return this_type(0ull, dividend.low / divisor.low);
+                } else {
+                    // dividend.high == 0 && divisor.high != 0
+                    remainder = dividend;
+                    return this_type(0, 0);
+                }
+            }
+        }
+    }
+
+    //
     // q (128) = n (128) % d (128)
     //
     static inline
     this_type bigint_128_mod(const this_type & dividend, const this_type & divisor) {
-        this_type q = bigint_128_div(dividend, divisor);
-        this_type remainder = dividend - q * divisor;
+        this_type remainder;
+        this_type quotient = bigint_128_div(dividend, divisor, remainder);
         return remainder;
     }
 
