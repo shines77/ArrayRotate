@@ -28,15 +28,15 @@
 
 #if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
  || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
-  #define JSTD_IS_X86       1
-  #define JSTD_X86_64       1
-  #define JSTD_WORD_SIZE    64
+  #define JSTD_IS_X86           1
+  #define JSTD_IS_X86_64        1
+  #define JSTD_WORD_SIZE        64
 #else
   #if defined(WIN32) || defined(_WIN32) || defined (_M_IX86) || defined(__i386__)
-    #define JSTD_IS_X86     1
-    #define JSTD_X86_I386   1
+    #define JSTD_IS_X86         1
+    #define JSTD_IS_X86_I386    1
   #endif
-  #define JSTD_WORD_SIZE    32
+  #define JSTD_WORD_SIZE        32
 #endif
 
 //

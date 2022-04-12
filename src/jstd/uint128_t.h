@@ -26,9 +26,14 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>     // For _addcarry_u64(), available only in x64 mode
+#if defined(JSTD_IS_X86_64)
+#pragma intrinsic(_umul128)
+#pragma intrinsic(_addcarry_u64)
+#pragma intrinsic(_subborrow_u64)
 #endif
+#endif // _MSC_VER
 
-#if defined(JSTD_X86_64)
+#if defined(JSTD_IS_X86_64)
 #include <immintrin.h>  // For _udiv128(), _div128(), _addcarry_u64()
 #endif
 
@@ -43,12 +48,12 @@
 #endif
 #endif // __SIZEOF_INT128__
 
-#if defined(JSTD_X86_64) && defined(JSTD_IS_MSVC)
+#if defined(JSTD_IS_X86_64) && defined(JSTD_IS_MSVC)
 #ifdef __cplusplus
 extern "C"
 #endif
 uint64_t __udiv128(uint64_t low, uint64_t high, uint64_t divisor, uint64_t * remainder);
-#endif // JSTD_X86_64 && _MSC_VER
+#endif // JSTD_IS_X86_64 && _MSC_VER
 
 namespace jstd {
 
@@ -874,7 +879,7 @@ struct _uint128_t {
 
     /////////////////////////////////////////////////////////////////////////
 
-#if defined(JSTD_X86_I386)
+#if defined(JSTD_IS_X86_I386)
     static inline
     unsigned char _addcarry_u64(unsigned char c_in, unsigned __int64 a, unsigned __int64 b, unsigned __int64 * out) {
         unsigned __int64 total_a = a + (c_in > 0 ? 1 : 0);
@@ -893,7 +898,7 @@ struct _uint128_t {
         *out = a - total_b;
         return borrow;
     }
-#endif // JSTD_X86_I386
+#endif // JSTD_IS_X86_I386
 
     static inline
     this_type bigint_128_add(const this_type & a, const this_type & b) {
@@ -1253,13 +1258,13 @@ struct _uint128_t {
         // In LLVM compiler-rt, it performs a 128/128 -> 128 division which is many times slower than
         // necessary. In gcc it's better but still slower than the divlu implementation, perhaps because
         // it's not JSTD_FORCE_INLINE.
-#if defined(JSTD_X86_64) && defined(JSTD_GCC_STYLE_ASM)
+#if defined(JSTD_IS_X86_64) && defined(JSTD_GCC_STYLE_ASM)
         uint64_t quotient64, remainder64;
         UNUSED_VARIANT(remainder);
         __asm__("divq %[v]" : "=a"(quotient64), "=d"(remainder64) : [v] "r"(divisor), "a"(dividend.low), "d"(dividend.high));
         remainder = (integral_t)remainder64;
         return (integral_t)quotient64;
-#elif defined(JSTD_X86_64) && defined(_MSC_VER) && (_MSC_VER >= 1920)
+#elif defined(JSTD_IS_X86_64) && defined(_MSC_VER) && (_MSC_VER >= 1920)
         /////////////////////////////////////////////////////////
         //
         // See: https://stackoverflow.com/questions/1870158/unsigned-128-bit-division-on-64-bit-machine/60013652#60013652
@@ -1314,7 +1319,7 @@ struct _uint128_t {
         uint64_t quotient = _udiv128(dividend.high, dividend.low, divisor, &remainder64);
         remainder = (integral_t)remainder64;
         return (integral_t)quotient;
-#elif defined(JSTD_X86_64)
+#elif defined(JSTD_IS_X86_64)
 #if defined(JSTD_IS_MSVC)
         uint64_t remainder64;
         // From /jstd/udiv128.asm (MASM format)
@@ -1344,7 +1349,7 @@ struct _uint128_t {
         } else {
             return (dividend.low / divisor);
         }
-#endif // JSTD_X86_64
+#endif // JSTD_IS_X86_64
     }
 
     //
@@ -1378,9 +1383,12 @@ struct _uint128_t {
         }
     }
 
+    //
+    // q(64) = n(128) / d(64)
+    //
     static
     JSTD_FORCE_INLINE
-    this_type bigint_128_div_64_to_128(const this_type & dividend, integral_t divisor) {
+    this_type bigint_128_div(const this_type & dividend, integral_t divisor) {
         if (dividend.high != 0) {
             int distance = bigint_128_distance(dividend, divisor);
             if ((distance < 64) || ((distance == 64) && ((integral_t)dividend.high < divisor))) {
@@ -1396,9 +1404,12 @@ struct _uint128_t {
         }
     }
 
+    //
+    // q(64) = n(128) / d(64)
+    //
     static
     JSTD_FORCE_INLINE
-    this_type bigint_128_div_64_to_128(const this_type & dividend, integral_t divisor, integral_t & remainder) {
+    this_type bigint_128_div(const this_type & dividend, integral_t divisor, integral_t & remainder) {
         if (dividend.high != 0) {
             int distance = bigint_128_distance(dividend, divisor);
             if ((distance < 64) || ((distance == 64) && ((integral_t)dividend.high < divisor))) {
@@ -1423,7 +1434,7 @@ struct _uint128_t {
     this_type bigint_128_div(const this_type & dividend, const this_type & divisor) {
         if (divisor.high == 0) {
             // dividend.high != 0 && divisor.high == 0
-            return bigint_128_div_64_to_128(dividend, divisor.low);
+            return bigint_128_div(dividend, divisor.low);
         } else {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
@@ -1449,7 +1460,7 @@ struct _uint128_t {
         if (divisor.high == 0) {
             // dividend.high != 0 && divisor.high == 0
             remainder.high = 0;
-            return bigint_128_div_64_to_128(dividend, divisor.low, remainder.low);
+            return bigint_128_div(dividend, divisor.low, remainder.low);
         } else {
             if (dividend.high != 0) {
                 // dividend.high != 0 && divisor.high != 0
@@ -1458,7 +1469,7 @@ struct _uint128_t {
             } else {
                 if (divisor.high == 0) {
                     // dividend.high == 0 && divisor.high == 0
-                    remainder.low = (integral_t)(dividend.low / divisor.low);
+                    remainder.low = (integral_t)(dividend.low % divisor.low);
                     remainder.high = 0;
                     return this_type(UINT64_C(0), dividend.low / divisor.low);
                 } else {
@@ -1474,6 +1485,17 @@ struct _uint128_t {
     // q (128) = n (128) % d (128)
     //
     static inline
+    this_type bigint_128_mod(const this_type & dividend, integral_t divisor) {
+        this_type remainder;
+        this_type quotient = bigint_128_div(dividend, divisor, remainder);
+        UNUSED_VARIANT(quotient);
+        return remainder;
+    }
+
+    //
+    // q (128) = n (128) % d (128)
+    //
+    static inline
     this_type bigint_128_mod(const this_type & dividend, const this_type & divisor) {
         this_type remainder;
         this_type quotient = bigint_128_div(dividend, divisor, remainder);
@@ -1481,28 +1503,158 @@ struct _uint128_t {
         return remainder;
     }
 
-    /*****************************************************************
+    //
+    // p (128) = a (64) * b (64)
+    //
+    static inline
+    this_type bigint_128_mul_lite(integral_t multiplicand, integral_t multiplier) {
+        this_type product;
+        integral_t product_00_low  = multiplicand * multiplier;
+        integral_t product_00_high = mul_u64x64_high(multiplicand, multiplier);
+        product.low  = product_00_low;
+        product.high = product_00_high;
+        return product;
+    }
+
+    //
+    // p (128) = a (64) * b (64)
+    //
+    static inline
+    this_type bigint_128_mul(integral_t multiplicand, integral_t multiplier) {
+        /*
+         * GCC and Clang usually provide __uint128_t on 64-bit targets,
+         * although Clang also defines it on WASM despite having to use
+         * builtins for most purposes - including multiplication.
+         */
+#if defined(__SIZEOF_INT128__) && !defined(__wasm__)
+        this_type product128;
+        __uint128_t product = (__uint128_t)multiplicand * multiplier;
+        product128.low  = (low_t)(product & kFullMask64);
+        product128.high = (high_t)(product >> 64);
+        return product128;
+#elif defined(_MSC_VER) && (defined(_M_IX64) || defined(_M_AMD64))
+        /* Use the _umul128 intrinsic on MSVC x64 to hint for mulq. */
+        this_type product128;
+        product128.low = _umul128(multiplicand, multiplier, &product128.high);
+        return product128;
+#elif defined(__ARM__) || defined(__ARM64__)
+        /*
+         * Fast yet simple grade school multiply that avoids
+         * 64-bit carries with the properties of multiplying by 11
+         * and takes advantage of UMAAL on ARMv6 to only need 4
+         * calculations.
+         */
+
+        /*******************************************************************
+
+           multiplicand (64) = low0, high0
+           multiplier (64)   = low1, high1
+
+           multiplicand (64) * multiplier (64) =
+
+           |           |             |            |           |
+           |           |             |      high0 * high1     |  product_03
+           |           |       low0  * high1      |           |  product_02
+           |           |       high0 * low1       |           |  product_01
+           |      low0 * low1        |            |           |  product_00
+           |           |             |            |           |
+           0          32            64           96          128
+
+        *******************************************************************/
+        uint32_t low0  = (multiplicand & 0xFFFFFFFF);
+        uint32_t high0 = (multiplicand >> 32);
+        uint32_t low1  = (multiplier & 0xFFFFFFFF);
+        uint32_t high1 = (multiplier >> 32);
+
+        /* First calculate all of the cross products. */
+        uint64_t product_00 = (uint64_t)low0  * low1;
+        uint64_t product_01 = (uint64_t)high0 * low1;
+        uint64_t product_02 = (uint64_t)low0  * high1;
+        uint64_t product_03 = (uint64_t)high0 * high1;
+
+        /* Now add the products together. These will never overflow. */
+        uint64_t middle = product_02 + (uint32_t)(product_00 >> 32) + (uint32_t)(product_01 & 0xFFFFFFFFul);
+        uint64_t low64  = (uint32_t)(product_00 & 0xFFFFFFFFul) | (middle << 32);
+        uint64_t high64 = product_03 + (uint32_t)(product_01 >> 32) + (uint32_t)(middle >> 32);
+        return this_type((high_t)high64, (low_t)low64);
+#else // __i386__ or other
+        /*******************************************************************
+
+           multiplicand (64) = low0, high0
+           multiplier (64)   = low1, high1
+
+           multiplicand (64) * multiplier (64) =
+
+           |           |             |            |           |
+           |           |             |      high0 * high1     |  product_03
+           |           |       low0  * high1      |           |  product_02
+           |           |       high0 * low1       |           |  product_01
+           |      low0 * low1        |            |           |  product_00
+           |           |             |            |           |
+           0          32            64           96          128
+
+        *******************************************************************/
+        uint32_t low0  = (multiplicand & 0xFFFFFFFF);
+        uint32_t high0 = (multiplicand >> 32);
+        uint32_t low1  = (multiplier & 0xFFFFFFFF);
+        uint32_t high1 = (multiplier >> 32);
+
+        /* First calculate all of the cross products. */
+        uint64_t product_00 = (uint64_t)low0  * low1;
+        uint64_t product_01 = (uint64_t)high0 * low1;
+        uint64_t product_02 = (uint64_t)low0  * high1;
+        uint64_t product_03 = (uint64_t)high0 * high1;
+
+        /* Now add the products together. These will never overflow. */
+        uint64_t middle = product_01 + product_02 + (uint32_t)(product_00 >> 32);
+        uint64_t low64  = (uint32_t)(product_00 & 0xFFFFFFFFul) | (middle << 32);
+        uint64_t high64 = product_03 + (uint32_t)(middle >> 32);
+        return this_type((high_t)high64, (low_t)low64);
+#endif // __i386__
+    }
+
+    //
+    // p (128) = a (128) * b (64)
+    //
+    static inline
+    this_type bigint_128_mul(const this_type & multiplicand, integral_t multiplier) {
+        if (multiplicand.high == 0) {
+            return bigint_128_mul(multiplicand.low, multiplier);
+        }
+        this_type product;
+        integral_t product_00_low  = multiplicand.low * multiplier;
+        integral_t product_01_low  = multiplicand.high * multiplier;
+        integral_t product_00_high = mul_u64x64_high(multiplicand.low, multiplier);
+        product.low  = product_00_low;
+        product.high = product_01_low + product_00_high;
+        return product;
+    }
+
+    /*******************************************************************
 
        multiplicand = low0, high0
        multiplier   = low1, high1
 
        multiplicand * multiplier =
 
-     |           |             |            |           |
-     |           |             |      high0 * high1     |  product_03
-     |           |       low0  * high1      |           |  product_02
-     |           |       high0 * low1       |           |  product_01
-     |      low0 * low1        |            |           |  product_00
-     |           |             |            |           |
-     0          64            128          192         256
+       |           |             |            |           |
+       |           |             |      high0 * high1     |  product_03
+       |           |       low0  * high1      |           |  product_02
+       |           |       high0 * low1       |           |  product_01
+       |      low0 * low1        |            |           |  product_00
+       |           |             |            |           |
+       0          64            128          192         256
 
-    *****************************************************************/
+    *******************************************************************/
 
     //
     // p (128) = a (128) * b (128)
     //
     static inline
     this_type bigint_128_mul(const this_type & multiplicand, const this_type & multiplier) {
+        if (multiplier.high == 0) {
+            return bigint_128_mul(multiplicand, multiplier.low);
+        }
         this_type product;
         integral_t product_00_low  = multiplicand.low * multiplier.low;
         integral_t product_01_low  = multiplicand.high * multiplier.low;

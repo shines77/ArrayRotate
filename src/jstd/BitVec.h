@@ -328,7 +328,7 @@ T * pointer_align_to(T * address)
     return (T *)ptr;
 }
 
-#if defined(JSTD_X86_I386)
+#if defined(JSTD_IS_X86_I386)
 
 #ifndef _mm_extract_epi64
 #define _mm_extract_epi64(src, index)           SSE::mm_extract_epi64<(index)>(src);
@@ -338,7 +338,7 @@ T * pointer_align_to(T * address)
 #define _mm_insert_epi64(target, index, value)  SSE::mm_insert_epi64<(index)>((src), (value));
 #endif
 
-#endif // JSTD_X86_I386
+#endif // JSTD_IS_X86_I386
 
 struct SSE {
 
@@ -356,7 +356,7 @@ uint32_t mm_cvtsi128_si32_high(__m128i m128)
     return (low32 >> 16U);
 }
 
-#if defined(JSTD_X86_I386)
+#if defined(JSTD_IS_X86_I386)
 
 template <int index>
 static inline
@@ -380,7 +380,7 @@ __m128i mm_insert_epi64(__m128i target, int64_t value)
     return result;
 }
 
-#endif // JSTD_X86_I386
+#endif // JSTD_IS_X86_I386
 
 }; // SSE Wrapper
 
@@ -640,7 +640,7 @@ __m256i mm256_insert_epi32(__m256i target, int64_t value)
     return result;
 }
 
-#if defined(JSTD_X86_64)
+#if defined(JSTD_IS_X86_64)
 
 //
 // See: /gcc/config/i386/avxintrin.h   (gcc 9.x)
@@ -762,9 +762,9 @@ __m256i mm256_insert_epi64(__m256i target, int64_t value)
     return result;
 }
 
-#endif // JSTD_X86_64
+#endif // JSTD_IS_X86_64
 
-#if defined(JSTD_X86_I386)
+#if defined(JSTD_IS_X86_I386)
 
 template <int index>
 static inline
@@ -788,7 +788,7 @@ __m256i mm256_insert_epi64(__m256i target, int64_t value)
     return result;
 }
 
-#endif // JSTD_X86_I386
+#endif // JSTD_IS_X86_I386
 
 #endif // __AVX__
 

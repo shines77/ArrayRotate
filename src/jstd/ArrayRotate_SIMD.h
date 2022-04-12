@@ -90,7 +90,7 @@ static const std::size_t kMaxCacheLineSize = 64;
 static const std::size_t kSSERegBytes = 16;
 static const std::size_t kAVXRegBytes = 32;
 
-#if defined(JSTD_X86_64)
+#if defined(JSTD_IS_X86_64)
 static const std::size_t kSSERegCount = 16;
 #else
 static const std::size_t kSSERegCount = 8;
@@ -105,7 +105,7 @@ static const std::size_t kAVXAlignMask = kAVXAlignment - 1;
 
 static const std::size_t kSSERotateThresholdLength = 16;
 
-#if defined(JSTD_X86_64)
+#if defined(JSTD_IS_X86_64)
 static const std::size_t kMaxSSEStashBytes = (kSSERegCount - 8) * kAVXRegBytes;
 #else
 static const std::size_t kMaxSSEStashBytes = (kSSERegCount - 4) * kAVXRegBytes;

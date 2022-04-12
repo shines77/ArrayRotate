@@ -16,9 +16,14 @@
 #include <cstddef>
 #include <cstdbool>
 
+#include "jstd/stddef.h"
+
 #ifdef _MSC_VER
 #include <intrin.h>     // For __umulh(), available only in x64 mode
+#if defined(JSTD_IS_X86_64)
+#pragma intrinsic(__umulh)
 #endif
+#endif // _MSC_VER
 
 namespace jstd {
 
@@ -91,22 +96,22 @@ uint64_t mul_u64x64_high_ex(uint64_t n1, uint64_t n2) {
 
 #else // !__amd64__
 
-/*****************************************************************
+/*******************************************************************
 
-   low64_bits = low0, high0
-   divisor32  = low1, 0
+   n1 (64) = low0, high0
+   n2 (32) = low1, 0
 
-   low64_bits * divisor32 =
+   n1 (64) * n2 (32) =
 
- |           |             |            |           |
- |           |             |      high0 * 0         |  product_03
- |           |       low0  * 0          |           |  product_02
- |           |       high0 * low1       |           |  product_01
- |      low0 * low1        |            |           |  product_00
- |           |             |            |           |
- 0          32            64           96          128
+   |           |             |            |           |
+   |           |             |      high0 * 0         |  product_03
+   |           |       low0  * 0          |           |  product_02
+   |           |       high0 * low1       |           |  product_01
+   |      low0 * low1        |            |           |  product_00
+   |           |             |            |           |
+   0          32            64           96          128
 
-*****************************************************************/
+*******************************************************************/
 
 static inline
 uint32_t mul_u64x32_high(uint64_t n1, uint32_t n2) {
@@ -127,22 +132,22 @@ uint32_t mul_u64x32_high(uint64_t n1, uint32_t n2) {
     return result;
 }
 
-/*****************************************************************
+/*******************************************************************
 
-   low64_bits = low0, high0
-   divisor64  = low1, high1
+   n1 (64) = low0, high0
+   n2 (64) = low1, high1
 
-   low64_bits * divisor64 =
+   n1 (64) * n2 (64) =
 
- |           |             |            |           |
- |           |             |      high0 * high1     |  product_03
- |           |       low0  * high1      |           |  product_02
- |           |       high0 * low1       |           |  product_01
- |      low0 * low1        |            |           |  product_00
- |           |             |            |           |
- 0          32            64           96          128
+   |           |             |            |           |
+   |           |             |      high0 * high1     |  product_03
+   |           |       low0  * high1      |           |  product_02
+   |           |       high0 * low1       |           |  product_01
+   |      low0 * low1        |            |           |  product_00
+   |           |             |            |           |
+   0          32            64           96          128
 
-*****************************************************************/
+*******************************************************************/
 
 static inline
 uint64_t mul_u64x64_high(uint64_t n1, uint64_t n2) {
