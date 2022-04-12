@@ -325,9 +325,12 @@ struct _uint128_t {
         return toFloat(*this);
     }
 
+    /////////////////////////////////////////////////////////////////////////
     //
     // Arithmetic operator
     //
+    /////////////////////////////////////////////////////////////////////////
+
     this_type operator & (const this_type & rhs) const {
         return this_type(this->low & rhs.low, this->high & rhs.high);
     }
@@ -368,9 +371,12 @@ struct _uint128_t {
         return left_shift(*this, shift.low);
     }
 
+    /////////////////////////////////////////////////////////////////////////
     //
     // Arithmetic operator for integral
     //
+    /////////////////////////////////////////////////////////////////////////
+
 #define INTEGRAL_ARITHMETIC_OPERATOR(integral_type) \
     this_type operator & (const integral_type rhs) const { \
         return this_type(this->low & rhs, this->high & kZero64); \
@@ -413,14 +419,18 @@ struct _uint128_t {
     }
 
     //
-    // Arithmetic operator for integral implement
+    // Arithmetic operator for integral, implement
     //
     INTEGRAL_ARITHMETIC_OPERATOR(int32_t)
     INTEGRAL_ARITHMETIC_OPERATOR(uint32_t)
     INTEGRAL_ARITHMETIC_OPERATOR(int64_t)
     INTEGRAL_ARITHMETIC_OPERATOR(uint64_t)
 
-    ///////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    //
+    // Self arithmetic operator
+    //
+    /////////////////////////////////////////////////////////////////////////
 
     this_type & operator &= (const this_type & rhs) {
         this->low &= rhs.low;
@@ -460,6 +470,11 @@ struct _uint128_t {
         return *this;
     }
 
+    this_type & operator %= (const this_type & rhs) {
+        *this = *this / rhs;
+        return *this;
+    }
+
     this_type &  operator >>= (const this_type shift) {
         *this = *this >> shift.low;
         return *this;
@@ -469,6 +484,74 @@ struct _uint128_t {
         *this = *this << shift.low;
         return *this;
     }
+
+    /////////////////////////////////////////////////////////////////////////
+    //
+    // Self arithmetic operator for integral
+    //
+    /////////////////////////////////////////////////////////////////////////
+
+#define INTEGRAL_SELF_ARITHMETIC_OPERATOR(integral_type) \
+    this_type & operator &= (const integral_type rhs) { \
+        this->low &= (integral_t)rhs; \
+        this->high = kHighZero; \
+        return *this; \
+    } \
+    \
+    this_type & operator |= (const integral_type rhs) { \
+        this->low |= (integral_t)rhs; \
+        this->high |= kHighZero; \
+        return *this; \
+    } \
+    \
+    this_type & operator ^= (const integral_type rhs) { \
+        this->low ^= (integral_t)rhs; \
+        this->high ^= kHighZero; \
+        return *this; \
+    } \
+    \
+    this_type & operator += (const integral_type rhs) { \
+        *this = *this + rhs; \
+        return *this; \
+    } \
+    \
+    this_type & operator -= (const integral_type rhs) { \
+        *this = *this - rhs; \
+        return *this; \
+    } \
+    \
+    this_type & operator *= (const integral_type rhs) { \
+        *this = *this * rhs; \
+        return *this; \
+    } \
+    \
+    this_type & operator /= (const integral_type rhs) { \
+        *this = *this / rhs; \
+        return *this; \
+    } \
+    \
+    this_type & operator %= (const integral_type rhs) { \
+        *this = *this / rhs; \
+        return *this; \
+    } \
+    \
+    this_type &  operator >>= (const integral_type shift) { \
+        *this = *this >> shift; \
+        return *this; \
+    } \
+    \
+    this_type &  operator <<= (const integral_type shift) { \
+        *this = *this << shift; \
+        return *this; \
+    }
+
+    //
+    // Self arithmetic operator for integral, implement
+    //
+    INTEGRAL_SELF_ARITHMETIC_OPERATOR(int32_t)
+    INTEGRAL_SELF_ARITHMETIC_OPERATOR(uint32_t)
+    INTEGRAL_SELF_ARITHMETIC_OPERATOR(int64_t)
+    INTEGRAL_SELF_ARITHMETIC_OPERATOR(uint64_t)
 
     /////////////////////////////////////////////////////////////////////////
 
@@ -605,6 +688,8 @@ struct _uint128_t {
         return tail_zeros;
     }
 
+    /////////////////////////////////////////////////////////////////////////
+
     static inline
     this_type logic_left_shift(const this_type & src, const int shift) {
         assert(shift >= 0 && shift < 128);
@@ -733,6 +818,8 @@ struct _uint128_t {
         return result;
     }
 
+    /////////////////////////////////////////////////////////////////////////
+
     static inline
     this_type left_shift(const this_type & src, const int32_t shift) {
         if (kIsSigned)
@@ -784,6 +871,8 @@ struct _uint128_t {
     this_type right_shift(const this_type & src, const uint64_t shift) {
         return right_shift(src, (uint32_t)(shift & kFullMask32_64));
     }
+
+    /////////////////////////////////////////////////////////////////////////
 
 #if defined(JSTD_X86_I386)
     static inline
@@ -891,6 +980,8 @@ struct _uint128_t {
     this_type bigint_128_sub(const this_type & a, uint32_t b) {
         return bigint_128_sub(a, (uint64_t)b);
     }
+
+    /////////////////////////////////////////////////////////////////////////
 
     static inline
     int bigint_64_distance(uint64_t dividend, const uint64_t divisor) {

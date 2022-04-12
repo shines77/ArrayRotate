@@ -556,24 +556,23 @@ void fast_mod_verify()
 
 int main(int argn, char * argv[])
 {
-#ifdef _DEBUG
+#if 1
     jstd::genDivRatioTbl();
     jstd::genModRatioTbl();
 #endif
 
-    jstd::genDivRatioTbl();
-    jstd::genModRatioTbl();
+    fast_div_verify_fast();
 
-#if 0
-    rotate_test();
-    rotate_unit_test();
+#if 1
+    //rotate_test();
+    //rotate_unit_test();
 
     //fast_mod_verify();
 
 #ifndef _DEBUG
     //fast_div_verify_test();
 #if 1
-    //fast_div_verify_fast();
+    fast_div_verify_fast();
 #else
 #ifdef _MSC_VER
     fast_div_verify_msvc();
