@@ -1683,11 +1683,11 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
     } else {
         // m = 2 ^ (32 + k)
         std::uint64_t m_64 = (std::uint64_t)1u << (32 + shift);
-        // f = m / d
-        double f = (double)(m_64 / divisor) + (double)(m_64 % divisor) / divisor;
+        std::uint32_t multi_down = (std::uint32_t)(m_64 / divisor);
         // Mul = |f| + 1;
-        std::uint32_t multi_up = (std::uint32_t)ceil(f);
-        std::uint32_t multi_down = multi_up - 1;
+        std::uint32_t multi_up = multi_down + 1;
+        // f = m / d
+        double f = (double)multi_down + (double)(m_64 % divisor) / divisor;
 
         //
         // See: https://bbs.emath.ac.cn/thread-521-3-1.html
@@ -1733,7 +1733,6 @@ DivRatio32 preComputeDiv_u32(std::uint32_t divisor)
             printf("failed01 = %d, failed02 = %d, failed03 = %d\n\n",
                    (int)failed01, (int)failed02, (int)failed03);
             failed = true;
-            //assert(false);
         }
 
         if (failed) {
@@ -1861,7 +1860,6 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
 {
     std::uint32_t shift = floorLog2<std::uint64_t>(divisor);
     std::uint64_t multi, add = 0;
-    UNUSED_VARIANT(add);
     if ((divisor & (divisor - 1)) == 0) {
         if (divisor == 0) {
             multi = 0;
@@ -1876,14 +1874,11 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
         shift = 0;
     } else {
 #if defined(_MSC_VER)
-  #if 0
-        multi = (uint64_t)ceil((double)((uint64_t)1 << (32 + shift)) * (double)((uint64_t)1 << 32) / divisor);
-  #else
         _uint128_t shift_128 = 1;
         shift_128 <<= (64 + shift);
 
-        std::uint64_t multi_up = (std::uint64_t)(shift_128 / (_uint128_t)divisor) + 1;
-        std::uint64_t multi_down = multi_up - 1;
+        std::uint64_t multi_down = (std::uint64_t)(shift_128 / (_uint128_t)divisor);
+        std::uint64_t multi_up = multi_down + 1;
 
         // m = 2 ^ (64 + k)
         _uint128_t m_128 = (_uint128_t)1ull << (64 + shift);
@@ -1947,7 +1942,6 @@ DivRatio64 preComputeDiv_u64(std::uint64_t divisor)
                    (int)failed01, (int)failed02, (int)failed03);
             //assert(false);
         }
-  #endif
 #else
         __uint128_t shift_128 = (__uint128_t)1 << (64 + shift);
         // In fact, (shift_128 % divisor) isn't equal to 0 for ever when divisor isn't a even.
