@@ -1386,6 +1386,7 @@ struct _uint128_t {
     this_type bigint_128_mod(const this_type & dividend, const this_type & divisor) {
         this_type remainder;
         this_type quotient = bigint_128_div(dividend, divisor, remainder);
+        UNUSED_VARIANT(quotient);
         return remainder;
     }
 
