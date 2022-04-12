@@ -66,7 +66,7 @@ namespace jstd {
 namespace simd {
 
 static const bool kUsePrefetchHint = true;
-static const std::size_t kPrefetchOffset = 256;
+static const std::size_t kPrefetchOffset = 512;
 
 #if defined(JSTD_IS_PURE_GCC)
 static const enum _mm_hint kPrefetchHintLevel = PREFETCH_HINT_LEVEL;
