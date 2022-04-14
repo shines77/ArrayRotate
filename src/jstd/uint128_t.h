@@ -168,47 +168,47 @@ struct _uint128_t {
 
 #ifdef HAS_INT128_T
     _uint128_t(const __uint128_t & src) noexcept
-        : low((low_t)(src >> 64u)), high((high_t)(src & 0xFFFFFFFFFFFFFFFFull)) {}
+        : low((low_t)(src >> 64u)), high((high_t)(src & kFullMask64)) {}
 
     _uint128_t(const __int128_t & src) noexcept
-        : low((low_t)((__uint128_t)src >> 64u)), high((high_t)(src & 0xFFFFFFFFFFFFFFFFull)) {}
+        : low((low_t)((__uint128_t)src >> 64u)), high((high_t)(src & kFullMask64)) {}
 #endif
 
     _uint128_t(const this_type & src) noexcept
         : low(src.low), high(src.high) {}
 
     this_type & operator = (const this_type & rhs) noexcept {
-        this->low = rhs.low;
+        this->low  = rhs.low;
         this->high = rhs.high;
         return *this;
     }
 
     this_type & operator = (int32_t rhs) noexcept {
-        this->low = (low_t)rhs;
+        this->low  = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
     this_type & operator = (uint32_t rhs) noexcept {
-        this->low = (low_t)rhs;
+        this->low  = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
     this_type & operator = (int64_t rhs) noexcept {
-        this->low = (low_t)rhs;
+        this->low  = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
     this_type & operator = (uint64_t rhs) noexcept {
-        this->low = (low_t)rhs;
+        this->low  = (low_t)rhs;
         this->high = 0;
         return *this;
     }
 
     bool is_zero() const {
-        return (this->low == (low_t)0 && this->high == (high_t)0);
+        return (this->low == kLowZero && this->high == kHighZero);
     }
 
     //
@@ -251,27 +251,27 @@ struct _uint128_t {
     //
 #define INTEGRAL_LOGICAL_OPERATOR(integral_type) \
     bool operator > (integral_type rhs) const { \
-        return ((this->high > (high_t)0) || ((this->high == (high_t)0) && (this->low > (low_t)rhs))); \
+        return ((this->high > kHighZero) || ((this->high == kHighZero) && (this->low > (low_t)rhs))); \
     } \
     \
     bool operator >= (integral_type rhs) const { \
-        return ((this->high > (high_t)0) || ((this->high == (high_t)0) && (this->low >= (low_t)rhs))); \
+        return ((this->high > kHighZero) || ((this->high == kHighZero) && (this->low >= (low_t)rhs))); \
     } \
     \
     bool operator < (integral_type rhs) const { \
-        return ((this->high < (high_t)0) || ((this->high == (high_t)0) && (this->low < (low_t)rhs))); \
+        return ((this->high < kHighZero) || ((this->high == kHighZero) && (this->low < (low_t)rhs))); \
     } \
     \
     bool operator <= (integral_type rhs) const { \
-        return ((this->high < (high_t)0) || ((this->high == (high_t)0) && (this->low <= (low_t)rhs))); \
+        return ((this->high < kHighZero) || ((this->high == kHighZero) && (this->low <= (low_t)rhs))); \
     } \
     \
     bool operator == (integral_type rhs) const { \
-        return ((this->high == (high_t)0) && (this->low == (low_t)rhs)); \
+        return ((this->high == kHighZero) && (this->low == (low_t)rhs)); \
     } \
     \
     bool operator != (integral_type rhs) const { \
-        return ((this->high != (high_t)0) || (this->low != (low_t)rhs)); \
+        return ((this->high != kHighZero) || (this->low != (low_t)rhs)); \
     } \
     \
     bool operator && (integral_type rhs) const { \
@@ -294,10 +294,6 @@ struct _uint128_t {
         return this->is_zero();
     }
 
-    operator bool () const {
-        return !this->is_zero();
-    }
-
     this_type operator ~ () const {
         return this_type((low_t)(~(this->low)), (high_t)(~(this->high)));
     }
@@ -306,8 +302,19 @@ struct _uint128_t {
         return negate(*this);
     }
 
+    operator bool () const {
+        return !this->is_zero();
+    }
+
     operator int32_t () const {
-        return (int32_t)((uint32_t)(((uint64_t)this->high & kSignMask64) >> 32) | (uint32_t)(this->low & kBodyMask32));
+#if defined(JSTD_IS_X86_64)
+        uint64_t sign_mask  = ((uint64_t)this->high & kSignMask64) >> 32;
+        uint64_t low_body32 = (this->low & kBodyMask32);
+#else
+        uint32_t sign_mask  = (uint32_t)(((uint64_t)this->high & kSignMask64) >> 32);
+        uint32_t low_body32 = (uint32_t)(this->low & kBodyMask32);
+#endif
+        return (int32_t)(sign_mask | low_body32);  
     }
 
     operator uint32_t () const {
@@ -315,7 +322,8 @@ struct _uint128_t {
     }
 
     operator int64_t () const {
-        return (int64_t)(((uint64_t)this->high & kSignMask64) | (uint64_t)(this->low & kBodyMask64));
+        uint64_t result = (((uint64_t)this->high & kSignMask64) | (uint64_t)(this->low & kBodyMask64));
+        return (int64_t)result;
     }
 
     operator uint64_t () const {

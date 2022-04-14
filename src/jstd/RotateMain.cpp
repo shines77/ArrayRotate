@@ -610,5 +610,8 @@ int main(int argn, char * argv[])
     //simd_rotate_test();
 #endif
 
+#if defined(_DEBUG) && defined(_MSC_VER)
+    ::system("pause");
+#endif
     return 0;
 }
