@@ -27,12 +27,19 @@
 //
 // Articles and documents
 //
+// https://zhuanlan.zhihu.com/p/151038723 (This article is very nice)
+//
+// Integer Division: Barrett Reduction & Lemire Reduction (There is a new (2019) method)
+//
+// PDF: [Lemire et al. 2019](https://arxiv.org/abs/1902.01961)
+//
+//
+// See: https://en.algorithmica.org/hpc/arithmetic/division/
+//
 // https://github.com/rubenvannieuwpoort/division-by-constant-integers/
 // https://github.com/rubenvannieuwpoort/division-by-constant-integers/blob/master/unsigned/runtime/unsigned_division.h
 //
 // https://stackoverflow.com/questions/45353629/repeated-integer-division-by-a-runtime-constant-value
-//
-// https://zhuanlan.zhihu.com/p/151038723 (nice)
 // 
 // PDF: Integer Division by Constants: Optimal Bounds
 //      https://arxiv.org/abs/2012.12369
@@ -45,14 +52,6 @@
 //
 // (English? Aliyun.com)
 // See: https://topic.alibabacloud.com/a/how-does-the-compiler-implement-constant-integer-division-optimization-for-32-bit-integers-c--_1_31_30483239.html
-//
-
-//
-// Integer Division: Barrett Reduction & Lemire Reduction (There is a new (2019) method)
-//
-// See: https://en.algorithmica.org/hpc/arithmetic/division/
-//
-// PDF: [Lemire et al. 2019](https://arxiv.org/abs/1902.01961)
 //
 
 namespace jstd {
