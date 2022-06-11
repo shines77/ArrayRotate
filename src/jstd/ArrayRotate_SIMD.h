@@ -931,7 +931,7 @@ template <typename T, std::size_t N,
                       bool srcIsAligned,
                       bool destIsAligned,
                       std::size_t estimatedSize = sizeof(T)>
-JSTD_FORCE_INLINE
+JSTD_FORCED_INLINE
 void avx_move_forward_N_impl(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src,
                              char * JSTD_RESTRICT limit, char * JSTD_RESTRICT end)
 {
@@ -3340,7 +3340,7 @@ template <typename T, std::size_t N,
                       bool srcIsAligned,
                       bool destIsAligned,
                       std::size_t estimatedSize = sizeof(T)>
-JSTD_FORCE_INLINE
+JSTD_FORCED_INLINE
 void avx_mem_copy_N_impl(char * JSTD_RESTRICT dest, char * JSTD_RESTRICT src,
                          char * JSTD_RESTRICT limit, char * JSTD_RESTRICT end)
 {
@@ -3610,7 +3610,7 @@ template <typename T, std::size_t N = 8,
                       bool srcIsAligned = false,
                       bool destIsAligned = false,
                       std::size_t estimatedSize = sizeof(T)>
-JSTD_FORCE_INLINE
+JSTD_FORCED_INLINE
 void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRICT _src, void * JSTD_RESTRICT _end)
 {
     static const std::size_t kValueSize = sizeof(T);
@@ -4129,7 +4129,7 @@ void _mm256_storeu_last(__m256i * addr, __m256i src, std::size_t left_len)
 }
 
 template <typename T>
-JSTD_FORCE_INLINE
+JSTD_FORCED_INLINE
 void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     const __m128i * stash_src = (const __m128i *)first;
@@ -4142,7 +4142,7 @@ void left_rotate_sse_1_regs(T * first, T * mid, T * last, std::size_t left_len)
 }
 
 template <typename T, std::size_t N>
-JSTD_FORCE_INLINE
+JSTD_FORCED_INLINE
 void left_rotate_avx_N_regs(T * first, T * mid, T * last, std::size_t left_len)
 {
     static const std::size_t kEstimatedSize = (N != 0) ? ((N - 1) * kAVXRegBytes) : 0;
@@ -4305,7 +4305,7 @@ T * left_rotate_avx_chunk_swap(T * first, T * mid, T * last, std::size_t left_le
 }
 
 template <typename T>
-JSTD_FORCE_INLINE
+JSTD_FORCED_INLINE
 T * left_rotate_avx_impl(T * first, T * mid, T * last, std::size_t left_len, std::size_t right_len)
 {
     typedef T * pointer;

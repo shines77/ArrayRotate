@@ -1188,26 +1188,26 @@ struct _uint128_t {
 #endif // _MSC_VER || __ICL
 
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     integral_t bigint_64_div_64_to_64(integral_t dividend, integral_t divisor) {
         return (dividend / divisor);
     }
 
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     integral_t bigint_64_div_64_to_64(integral_t dividend, integral_t divisor, integral_t & remainder) {
         remainder = dividend % divisor;
         return (dividend / divisor);
     }
 
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     integral_t bigint_64_div_128_to_64(integral_t dividend, const this_type & divisor) {
         return ((divisor.high != 0) ? 0 : (dividend / divisor.low));
     }
 
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     integral_t bigint_64_div_128_to_64(integral_t dividend, const this_type & divisor, this_type & remainder) {
         integral_t quotient64 = (divisor.high != 0) ? 0 : (dividend / divisor.low);
         remainder = (divisor.high != 0) ? dividend : (dividend % divisor.low);
@@ -1260,15 +1260,15 @@ struct _uint128_t {
 #endif
 
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     integral_t bigint_128_div_64_to_64(const this_type & dividend, integral_t divisor, integral_t & remainder) {
         // N.B. resist the temptation to use __uint128_t here.
         // In LLVM compiler-rt, it performs a 128/128 -> 128 division which is many times slower than
         // necessary. In gcc it's better but still slower than the divlu implementation, perhaps because
-        // it's not JSTD_FORCE_INLINE.
+        // it's not JSTD_FORCED_INLINE.
 #if defined(JSTD_IS_X86_64) && defined(JSTD_GCC_STYLE_ASM)
         uint64_t quotient64, remainder64;
-        UNUSED_VARIANT(remainder);
+        UNUSED_VARIABLE(remainder);
         __asm__("divq %[v]" : "=a"(quotient64), "=d"(remainder64) : [v] "r"(divisor), "a"(dividend.low), "d"(dividend.high));
         remainder = (integral_t)remainder64;
         return (integral_t)quotient64;
@@ -1395,7 +1395,7 @@ struct _uint128_t {
     // q(64) = n(128) / d(64)
     //
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     this_type bigint_128_div(const this_type & dividend, integral_t divisor) {
         if (dividend.high != 0) {
             int distance = bigint_128_distance(dividend, divisor);
@@ -1416,7 +1416,7 @@ struct _uint128_t {
     // q(64) = n(128) / d(64)
     //
     static
-    JSTD_FORCE_INLINE
+    JSTD_FORCED_INLINE
     this_type bigint_128_div(const this_type & dividend, integral_t divisor, integral_t & remainder) {
         if (dividend.high != 0) {
             int distance = bigint_128_distance(dividend, divisor);
@@ -1496,7 +1496,7 @@ struct _uint128_t {
     this_type bigint_128_mod(const this_type & dividend, integral_t divisor) {
         this_type remainder;
         this_type quotient = bigint_128_div(dividend, divisor, remainder);
-        UNUSED_VARIANT(quotient);
+        UNUSED_VARIABLE(quotient);
         return remainder;
     }
 
@@ -1507,7 +1507,7 @@ struct _uint128_t {
     this_type bigint_128_mod(const this_type & dividend, const this_type & divisor) {
         this_type remainder;
         this_type quotient = bigint_128_div(dividend, divisor, remainder);
-        UNUSED_VARIANT(quotient);
+        UNUSED_VARIABLE(quotient);
         return remainder;
     }
 

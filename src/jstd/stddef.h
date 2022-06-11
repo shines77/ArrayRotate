@@ -6,6 +6,12 @@
 #pragma once
 #endif
 
+// Minimum requirements: gcc/clang C++ 11 or MSVC 2015 Update 3.
+#if (!defined(_MSC_VER) && defined(__cplusplus) && (__cplusplus < 201103L)) \
+ || (defined(_MSC_VER) && (_MSC_FULL_VER < 190024210))
+#error "jstd requires C++11 support."
+#endif
+
 /// \macro __GNUC_PREREQ
 /// \brief Defines __GNUC_PREREQ if glibc's features.h isn't available.
 #ifndef __GNUC_PREREQ
@@ -26,18 +32,38 @@
 # endif
 #endif
 
-#if defined(WIN64) || defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) \
+#if defined(_M_X64) || defined(_M_AMD64) \
  || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__)
   #define JSTD_IS_X86           1
   #define JSTD_IS_X86_64        1
   #define JSTD_WORD_SIZE        64
-#else
-  #if defined(WIN32) || defined(_WIN32) || defined (_M_IX86) || defined(__i386__)
-    #define JSTD_IS_X86         1
-    #define JSTD_IS_X86_I386    1
-  #endif
+#elif defined (_M_IX86) || defined(__i386__)
+  #define JSTD_IS_X86           1
+  #define JSTD_IS_X86_I386      1
+  #define JSTD_WORD_SIZE        32
+#elif defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM64__) || defined(__arm64__)
+  #define JSTD_IS_ARM           1
+  #define JSTD_IS_ARM_64        1
+  #define JSTD_WORD_SIZE        64
+#elif defined(__aarch32__) || defined(_M_ARM) || defined(__ARM__) || defined(__arm__)
+  #define JSTD_IS_ARM           1
+  #define JSTD_IS_ARM_32        1
+  #define JSTD_WORD_SIZE        32
+#elif defined(_M_MPPC)
+  // Power Macintosh PowerPC
+  #define JSTD_WORD_SIZE        32
+#elif defined(_M_PPC)
+  // PowerPC
   #define JSTD_WORD_SIZE        32
 #endif
+
+#ifndef JSTD_WORD_SIZE
+  #if defined(WIN32) || defined(_WIN32)
+    #define JSTD_WORD_SIZE      32
+  #elif defined(WIN64) || defined(_WIN64)
+    #define JSTD_WORD_SIZE      64
+  #endif
+#endif // !JSTD_WORD_SIZE
 
 //
 // What compiler is it?
@@ -171,7 +197,7 @@
 #endif
 
 #if __is_identifier(__wchar_t)
-    // __wchar_t is not a reserved keyword
+  // __wchar_t is not a reserved keyword
   #if !defined(_MSC_VER)
     typedef wchar_t __wchar_t;
   #endif // !_MSC_VER
@@ -310,83 +336,43 @@
  */
 #if defined(_MSC_VER)
 
-#define JSTD_HAS_INLINE                     1
+#define JSTD_INLINE             __inline
+#define JSTD_FORCED_INLINE      __forceinline
+#define JSTD_NO_INLINE          __declspec(noinline)
 
-#define JSTD_INLINE                         __inline
-#define JSTD_FORCE_INLINE                   __forceinline
-#define JSTD_NO_INLINE                      __declspec(noinline)
-
-#define JSTD_INLINE_DECLARE(type)           __inline type
-#define JSTD_FORCE_INLINE_DECLARE(type)     __forceinline type
-#define JSTD_NOINLINE_DECLARE(type)         __declspec(noinline) type
-
-#define JSTD_CRT_INLINE                     extern __inline
-#define JSTD_CRT_FORCE_INLINE               extern __forceinline
-#define JSTD_CRT_NO_INLINE                  extern __declspec(noinline)
-
-#define JSTD_CRT_INLINE_DECLARE(type)       extern __inline type
-#define JSTD_CRT_FORCE_INLINE_DECLARE(type) extern __forceinline type
-#define JSTD_CRT_NO_INLINE_DECLARE(type)    extern __declspec(noinline) type
-
-#define JSTD_RESTRICT                       __restrict
+#define JSTD_RESTRICT           __restrict
 
 #elif defined(__GNUC__) || defined(__clang__) || defined(__MINGW32__) || defined(__CYGWIN__)
 
-#define JSTD_HAS_INLINE                     1
+#define JSTD_INLINE             inline __attribute__((gnu_inline))
+#define JSTD_FORCED_INLINE      inline __attribute__((always_inline))
+#define JSTD_NO_INLINE          __attribute__((noinline))
 
-#define JSTD_INLINE                         inline __attribute__((gnu_inline))
-#define JSTD_FORCE_INLINE                   inline __attribute__((always_inline))
-#define JSTD_NO_INLINE                      __attribute__((noinline))
-
-#define JSTD_INLINE_DECLARE(type)           inline __attribute__((gnu_inline)) type
-#define JSTD_FORCE_INLINE_DECLARE(type)     inline __attribute__((always_inline)) type
-#define JSTD_NOINLINE_DECLARE(type)         __attribute__((noinline)) type
-
-#define JSTD_CRT_INLINE                     extern inline __attribute__((gnu_inline))
-#define JSTD_CRT_FORCE_INLINE               extern inline __attribute__((always_inline))
-#define JSTD_CRT_NO_INLINE                  extern __attribute__((noinline))
-
-#define JSTD_CRT_INLINE_DECLARE(type)       extern inline __attribute__((gnu_inline)) type
-#define JSTD_CRT_FORCE_INLINE_DECLARE(type) extern inline __attribute__((always_inline)) type
-#define JSTD_CRT_NO_INLINE_DECLARE(type)    extern __attribute__((noinline)) type
-
-#define JSTD_RESTRICT                       __restrict__
+#define JSTD_RESTRICT           __restrict__
 
 #else // Unknown compiler
 
-#define JSTD_INLINE                         inline
-#define JSTD_FORCE_INLINE                   inline
+#define JSTD_INLINE             inline
+#define JSTD_FORCED_INLINE      inline
 #define JSTD_NO_INLINE
-
-#define JSTD_INLINE_DECLARE(type)           inline type
-#define JSTD_FORCE_INLINE_DECLARE(type)     inline type
-#define JSTD_NOINLINE_DECLARE(type)         type
-
-#define JSTD_CRT_INLINE                     extern inline
-#define JSTD_CRT_FORCE_INLINE               extern inline
-#define JSTD_CRT_NO_INLINE                  extern
-
-#define JSTD_CRT_INLINE_DECLARE(type)       extern inline type
-#define JSTD_CRT_FORCE_INLINE_DECLARE(type) extern inline type
-#define JSTD_CRT_NO_INLINE_DECLARE(type)    extern type
 
 #define JSTD_RESTRICT
 
 #endif // _MSC_VER
 
 #if defined(_MSC_VER)
-#define NAKED_DECL  __declspec(naked)
+#define NAKED_DECL      __declspec(naked)
 #elif defined(__attribute__)
-#define NAKED_DECL  __attribute__((naked))
+#define NAKED_DECL      __attribute__((naked))
 #else
 #define NAKED_DECL
 #endif
 
 #ifndef JSTD_CDECL
 #if defined(_MSC_VER)
-#define JSTD_CDECL        __cdecl
+#define JSTD_CDECL      __cdecl
 #else
-#define JSTD_CDECL        __attribute__((__cdecl__))
+#define JSTD_CDECL      __attribute__((__cdecl__))
 #endif
 #endif // JSTD_CDECL
 
@@ -394,11 +380,11 @@
  * For exported func
  */
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
-    #define JSTD_EXPORTED_FUNC      __cdecl
-    #define JSTD_EXPORTED_METHOD    __thiscall
+  #define JSTD_EXPORTED_FUNC        __cdecl
+  #define JSTD_EXPORTED_METHOD      __thiscall
 #else
-    #define JSTD_EXPORTED_FUNC
-    #define JSTD_EXPORTED_METHOD
+  #define JSTD_EXPORTED_FUNC
+  #define JSTD_EXPORTED_METHOD
 #endif
 
 #ifndef __cplusplus
@@ -407,9 +393,14 @@
   #endif
 #endif // __cplusplus
 
-#ifndef JSTD_UNUSED_VARS
-#define JSTD_UNUSED_VARS(x)     ((void)(x))
+#ifndef JSTD_UNUSED_VAR
+#define JSTD_UNUSED_VAR(x)      ((void)(x))
 #endif
+
+#define UNUSED_VARIABLE(var) \
+    do { \
+        (void)var; \
+    } while (0)
 
 #ifndef JSTD_TO_STRING
 #define JSTD_TO_STRING(Text)    #Text
@@ -423,11 +414,6 @@
 
 #define STD_IOS_DEFAULT() \
     std::left << std::setw(0)
-
-#define UNUSED_VARIANT(var) \
-    do { \
-        (void)var; \
-    } while (0)
 
 #ifndef JSTD_ASSERT
 #ifdef _DEBUG

@@ -22,16 +22,40 @@ typedef struct {
 
 /* Compilers */
 static const MarcoInfo g_compilers[] = {
+#ifdef __cplusplus      /* __cplusplus */
+    JSTD_MAKE_MARCOINFO(__cplusplus),
+#endif
+
 #ifdef __GNUC__         /* GCC */
     JSTD_MAKE_MARCOINFO(__GNUC__),
 #endif
 
-#ifdef __clang__         /* GCC */
+#ifdef __GNUC_MAJOR__   /* GCC */
+    JSTD_MAKE_MARCOINFO(__GNUC_MAJOR__),
+#endif
+
+#ifdef __GNUC_MINOR__   /* GCC */
+    JSTD_MAKE_MARCOINFO(__GNUC_MINOR__),
+#endif
+
+#ifdef __clang__       /* clang */
     JSTD_MAKE_MARCOINFO(__clang__),
+#endif
+
+#ifdef __clang_major__  /* clang */
+    JSTD_MAKE_MARCOINFO(__clang_major__),
+#endif
+
+#ifdef __clang_minor__  /* clang */
+    JSTD_MAKE_MARCOINFO(__clang_minor__),
 #endif
 
 #ifdef __INTEL_COMPILER /* Interl C++ */
     JSTD_MAKE_MARCOINFO(__INTEL_COMPILER),
+#endif
+
+#ifdef __INTEL_CXX_VERSION /* Interl C++ */
+    JSTD_MAKE_MARCOINFO(__INTEL_CXX_VERSION),
 #endif
 
 #ifdef __ICL            /* Interl C++ */
@@ -56,6 +80,10 @@ static const MarcoInfo g_compilers[] = {
 
 #ifdef _MSC_VER         /* Visual C++ */
     JSTD_MAKE_MARCOINFO(_MSC_VER),
+#endif
+
+#ifdef _MSC_FULL_VER    /* Visual C++ */
+    JSTD_MAKE_MARCOINFO(_MSC_FULL_VER),
 #endif
 
 #ifdef __DMC__          /* DMC++ */
