@@ -86,6 +86,10 @@ static const MarcoInfo g_compilers[] = {
     JSTD_MAKE_MARCOINFO(_MSC_FULL_VER),
 #endif
 
+    #ifdef _MSVC_LANG    /* Visual C++ */
+    JSTD_MAKE_MARCOINFO(_MSVC_LANG),
+#endif
+
 #ifdef __DMC__          /* DMC++ */
     JSTD_MAKE_MARCOINFO(__DMC__),
 #endif
@@ -186,11 +190,11 @@ static const MarcoInfo g_platforms[] = {
 };
 
 static const MarcoInfo g_others[] = {
-#ifdef __DATE__ 
+#ifdef __DATE__
     JSTD_MAKE_MARCOINFO(__DATE__),
 #endif
 
-#ifdef __TIME__ 
+#ifdef __TIME__
     JSTD_MAKE_MARCOINFO(__TIME__),
 #endif
 
@@ -228,6 +232,22 @@ static const MarcoInfo g_others[] = {
 
 #ifdef __LITTLE_ENDIAN__
     JSTD_MAKE_MARCOINFO(__LITTLE_ENDIAN__),
+#endif
+
+#ifdef __cpp_constexpr
+    JSTD_MAKE_MARCOINFO(__cpp_constexpr)
+#endif
+
+#ifdef __cpp_variable_templates
+    JSTD_MAKE_MARCOINFO(__cpp_variable_templates)
+#endif
+
+#ifdef __cpp_lib_integer_sequence
+    JSTD_MAKE_MARCOINFO(__cpp_lib_integer_sequence)
+#endif
+
+#ifdef __cpp_exceptions
+    JSTD_MAKE_MARCOINFO(__cpp_exceptions)
 #endif
 };
 
