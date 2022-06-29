@@ -7,247 +7,298 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#ifndef JSTD_MAKE_MARCOINFO
-#define JSTD_MAKE_MARCOINFO(x)  { #x, JSTD_TO_STRING(x) }
+#ifndef __count_of
+#define __count_of(arr)     (sizeof(arr) / sizeof(arr[0]))
 #endif
 
-#ifndef jstd_count_of
-#define jstd_count_of(arr)  (sizeof(arr) / sizeof(arr[0]))
-#endif
+#define COMPILER_MARCO_VALUE(value)     #value
+#define COMPILER_MARCO_ENTRY(name)      { #name, COMPILER_MARCO_VALUE(name) }
 
-typedef struct {
+struct CompilerMarco {
+    CompilerMarco(const char * name = nullptr, const char * value = nullptr)
+        : name(name), value(value) {
+    }
+
     const char * name;
     const char * value;
-} MarcoInfo;
+};
 
 /* Compilers */
-static const MarcoInfo g_compilers[] = {
-#ifdef __cplusplus      /* __cplusplus */
-    JSTD_MAKE_MARCOINFO(__cplusplus),
+static const CompilerMarco compiler_version[] = {
+#ifdef __cplusplus
+    COMPILER_MARCO_ENTRY(__cplusplus),
 #endif
 
-#ifdef __GNUC__         /* GCC */
-    JSTD_MAKE_MARCOINFO(__GNUC__),
+/* gcc or g++ */
+
+#ifdef __GNUC__
+    COMPILER_MARCO_ENTRY(__GNUC__),
 #endif
 
-#ifdef __GNUC_MAJOR__   /* GCC */
-    JSTD_MAKE_MARCOINFO(__GNUC_MAJOR__),
-#endif
-
-#ifdef __GNUC_MINOR__   /* GCC */
-    JSTD_MAKE_MARCOINFO(__GNUC_MINOR__),
-#endif
-
-#ifdef __clang__       /* clang */
-    JSTD_MAKE_MARCOINFO(__clang__),
-#endif
-
-#ifdef __clang_major__  /* clang */
-    JSTD_MAKE_MARCOINFO(__clang_major__),
-#endif
-
-#ifdef __clang_minor__  /* clang */
-    JSTD_MAKE_MARCOINFO(__clang_minor__),
-#endif
-
-#ifdef __INTEL_COMPILER /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__INTEL_COMPILER),
-#endif
-
-#ifdef __INTEL_CXX_VERSION /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__INTEL_CXX_VERSION),
-#endif
-
-#ifdef __ICL            /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__ICL),
-#endif
-
-#ifdef __ICC            /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__ICC),
-#endif
-
-#ifdef __ECC            /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__ECC),
-#endif
-
-#ifdef __ECL            /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__ECL),
-#endif
-
-#ifdef __ICPC            /* Interl C++ */
-    JSTD_MAKE_MARCOINFO(__ICPC),
-#endif
-
-#ifdef _MSC_VER         /* Visual C++ */
-    JSTD_MAKE_MARCOINFO(_MSC_VER),
-#endif
-
-#ifdef _MSC_FULL_VER    /* Visual C++ */
-    JSTD_MAKE_MARCOINFO(_MSC_FULL_VER),
-#endif
-
-    #ifdef _MSVC_LANG    /* Visual C++ */
-    JSTD_MAKE_MARCOINFO(_MSVC_LANG),
-#endif
-
-#ifdef __DMC__          /* DMC++ */
-    JSTD_MAKE_MARCOINFO(__DMC__),
-#endif
-
-#ifdef __ARMCC_VERSION  /* ARM C/C++ */
-    JSTD_MAKE_MARCOINFO(__ARMCC_VERSION),
-#endif
-
-#ifdef JSTD_IS_GCC
-    JSTD_MAKE_MARCOINFO(JSTD_IS_GCC),
-#endif
-
-#ifdef JSTD_IS_CLANG
-    JSTD_MAKE_MARCOINFO(JSTD_IS_CLANG),
-#endif
-
-#ifdef JSTD_IS_MSVC
-    JSTD_MAKE_MARCOINFO(JSTD_IS_MSVC),
-#endif
-
-#ifdef JSTD_IS_ICC
-    JSTD_MAKE_MARCOINFO(JSTD_IS_ICC),
-#endif
-
-#ifdef __INTEL_CXX_VERSION
-    JSTD_MAKE_MARCOINFO(__INTEL_CXX_VERSION),
-#endif
-
-#ifdef JSTD_GCC_STYLE_ASM
-    JSTD_MAKE_MARCOINFO(JSTD_GCC_STYLE_ASM),
-#endif
-
-#ifdef JSTD_IS_PURE_GCC
-    JSTD_MAKE_MARCOINFO(JSTD_IS_PURE_GCC),
-#endif
-};
-
-static const MarcoInfo g_platforms[] = {
-#ifdef _WIN32                       /* Windows 32 or Windows 64 */
-    JSTD_MAKE_MARCOINFO(_WIN32),
-#endif
-
-#ifdef _WIN64                       /* Windows 64 */
-    JSTD_MAKE_MARCOINFO(_WIN64),
-#endif
-
-#ifdef __MINGW32__                  /* Windows32 by mingw compiler */
-    JSTD_MAKE_MARCOINFO(__MINGW32__),
-#endif
-
-#ifdef __CYGWIN__                   /* Cygwin */
-    JSTD_MAKE_MARCOINFO(__CYGWIN__),
-#endif
-
-#ifdef __linux__                    /* linux */
-    JSTD_MAKE_MARCOINFO(__linux__),
-#endif
-
-#ifdef __FreeBSD__                  /* FreeBSD */
-    JSTD_MAKE_MARCOINFO(__FreeBSD__),
-#endif
-
-#ifdef __NetBSD__                   /* NetBSD */
-    JSTD_MAKE_MARCOINFO(__NetBSD__),
-#endif
-
-#ifdef __OpenBSD__                  /* OpenBSD */
-    JSTD_MAKE_MARCOINFO(__OpenBSD__),
-#endif
-
-#ifdef __sun__                      /* Sun OS */
-    JSTD_MAKE_MARCOINFO(__sun__),
-#endif
-
-#ifdef __MaxOSX__                   /* MAC OS X */
-    JSTD_MAKE_MARCOINFO(__MaxOSX__),
-#endif
-
-#ifdef __unix__                     /* unix */
-    JSTD_MAKE_MARCOINFO(__unix__),
-#endif
-
-#ifdef JSTD_IS_X86
-    JSTD_MAKE_MARCOINFO(JSTD_IS_X86),
-#endif
-
-#ifdef JSTD_IS_X86_64
-    JSTD_MAKE_MARCOINFO(JSTD_IS_X86_64),
-#endif
-
-#ifdef JSTD_IS_X86_I386
-    JSTD_MAKE_MARCOINFO(JSTD_IS_X86_I386),
-#endif
-
-#ifdef JSTD_WORD_SIZE
-    JSTD_MAKE_MARCOINFO(JSTD_WORD_SIZE),
-#endif
-};
-
-static const MarcoInfo g_others[] = {
-#ifdef __DATE__
-    JSTD_MAKE_MARCOINFO(__DATE__),
-#endif
-
-#ifdef __TIME__
-    JSTD_MAKE_MARCOINFO(__TIME__),
-#endif
-
-#ifdef _BSD_SOURCE
-    JSTD_MAKE_MARCOINFO(_BSD_SOURCE),
-#endif
-
-#ifdef _POSIX_SOURCE
-    JSTD_MAKE_MARCOINFO(_POSIX_SOURCE),
-#endif
-
-#ifdef _XOPEN_SOURCE
-    JSTD_MAKE_MARCOINFO(_XOPEN_SOURCE),
-#endif
-
-#ifdef _GNU_SOURCE
-    JSTD_MAKE_MARCOINFO(_GNU_SOURCE),
+#ifdef __GNUC_MAJOR__
+    COMPILER_MARCO_ENTRY(__GNUC_MAJOR__),
 #endif
 
 #ifdef __GNUC_MINOR__
-    JSTD_MAKE_MARCOINFO(__GNUC_MINOR__),
+    COMPILER_MARCO_ENTRY(__GNUC_MINOR__),
 #endif
 
-#ifdef __VERSION__
-    JSTD_MAKE_MARCOINFO(__VERSION__),
+#ifdef __GNUC_PATCHLEVEL__
+    COMPILER_MARCO_ENTRY(__GNUC_PATCHLEVEL__),
+#endif
+
+#ifdef __GNUG__
+    COMPILER_MARCO_ENTRY(__GNUG__),
+#endif
+
+/* clang */
+
+#ifdef __clang__
+    COMPILER_MARCO_ENTRY(__clang__),
+#endif
+
+#ifdef __clang_major__
+    COMPILER_MARCO_ENTRY(__clang_major__),
+#endif
+
+#ifdef __clang_minor__
+    COMPILER_MARCO_ENTRY(__clang_minor__),
+#endif
+
+#ifdef __clang_patchlevel__
+    COMPILER_MARCO_ENTRY(__clang_patchlevel__),
+#endif
+
+/* Interl C++ */
+
+#ifdef __ICL
+    COMPILER_MARCO_ENTRY(__ICL),
+#endif
+
+#ifdef __ICC
+    COMPILER_MARCO_ENTRY(__ICC),
+#endif
+
+#ifdef __ECC
+    COMPILER_MARCO_ENTRY(__ECC),
+#endif
+
+#ifdef __ECL
+    COMPILER_MARCO_ENTRY(__ECL),
+#endif
+
+#ifdef __ICPC
+    COMPILER_MARCO_ENTRY(__ICPC),
+#endif
+
+#ifdef __INTEL_COMPILER
+    COMPILER_MARCO_ENTRY(__INTEL_COMPILER),
+#endif
+
+#ifdef __INTEL_CXX_VERSION
+    COMPILER_MARCO_ENTRY(__INTEL_CXX_VERSION),
+#endif
+
+/* Visual C++ */
+
+#ifdef _MSC_VER
+    COMPILER_MARCO_ENTRY(_MSC_VER),
+#endif
+
+#ifdef _MSC_FULL_VER
+    COMPILER_MARCO_ENTRY(_MSC_FULL_VER),
+#endif
+
+#ifdef _MSVC_LANG
+    COMPILER_MARCO_ENTRY(_MSVC_LANG),
+#endif
+
+/* DMC++ */
+
+#ifdef __DMC__
+    COMPILER_MARCO_ENTRY(__DMC__),
+#endif
+
+/* ARM C/C++ */
+
+#ifdef __ARMCC_VERSION
+    COMPILER_MARCO_ENTRY(__ARMCC_VERSION),
+#endif
+
+/* jstd */
+
+#ifdef JSTD_IS_GCC
+    COMPILER_MARCO_ENTRY(JSTD_IS_GCC),
+#endif
+
+#ifdef JSTD_IS_CLANG
+    COMPILER_MARCO_ENTRY(JSTD_IS_CLANG),
+#endif
+
+#ifdef JSTD_IS_MSVC
+    COMPILER_MARCO_ENTRY(JSTD_IS_MSVC),
+#endif
+
+#ifdef JSTD_IS_ICC
+    COMPILER_MARCO_ENTRY(JSTD_IS_ICC),
+#endif
+
+#ifdef JSTD_GCC_STYLE_ASM
+    COMPILER_MARCO_ENTRY(JSTD_GCC_STYLE_ASM),
+#endif
+
+#ifdef JSTD_IS_PURE_GCC
+    COMPILER_MARCO_ENTRY(JSTD_IS_PURE_GCC),
+#endif
+};
+
+static const CompilerMarco compiler_platforms[] = {
+#ifdef _WIN32
+    COMPILER_MARCO_ENTRY(_WIN32),
+#endif
+
+#ifdef _WIN64
+    COMPILER_MARCO_ENTRY(_WIN64),
+#endif
+
+/* Windows32 by mingw compiler */
+#ifdef __MINGW32__
+    COMPILER_MARCO_ENTRY(__MINGW32__),
+#endif
+
+/* Cygwin */
+#ifdef __CYGWIN__
+    COMPILER_MARCO_ENTRY(__CYGWIN__),
+#endif
+
+/* linux */
+#ifdef __linux__
+    COMPILER_MARCO_ENTRY(__linux__),
+#endif
+
+/* unix */
+#ifdef __unix__
+    COMPILER_MARCO_ENTRY(__unix__),
 #endif
 
 #ifdef __unix
-    JSTD_MAKE_MARCOINFO(__unix),
+    COMPILER_MARCO_ENTRY(__unix),
+#endif
+
+/* FreeBSD */
+#ifdef __FreeBSD__
+    COMPILER_MARCO_ENTRY(__FreeBSD__),
+#endif
+
+/* NetBSD */
+#ifdef __NetBSD__
+    COMPILER_MARCO_ENTRY(__NetBSD__),
+#endif
+
+/* OpenBSD */
+#ifdef __OpenBSD__
+    COMPILER_MARCO_ENTRY(__OpenBSD__),
+#endif
+
+/* Sun OS */
+#ifdef __sun__
+    COMPILER_MARCO_ENTRY(__sun__),
+#endif
+
+/* Apple */
+#ifdef __APPLE__
+    COMPILER_MARCO_ENTRY(__APPLE__),
+#endif
+
+/* Apple */
+#ifdef __apple__
+    COMPILER_MARCO_ENTRY(__apple__),
+#endif
+
+/* MAC OS X */
+#ifdef __MaxOSX__
+    COMPILER_MARCO_ENTRY(__MaxOSX__),
+#endif
+
+/* Android */
+#ifdef __ANDROID__
+    COMPILER_MARCO_ENTRY(__ANDROID__),
+#endif
+};
+
+static const CompilerMarco compiler_arch[] = {
+#ifdef JSTD_IS_X86
+    COMPILER_MARCO_ENTRY(JSTD_IS_X86),
+#endif
+
+#ifdef JSTD_IS_X86_64
+    COMPILER_MARCO_ENTRY(JSTD_IS_X86_64),
+#endif
+
+#ifdef JSTD_IS_X86_I386
+    COMPILER_MARCO_ENTRY(JSTD_IS_X86_I386),
+#endif
+
+#ifdef JSTD_WORD_LEN
+    COMPILER_MARCO_ENTRY(JSTD_WORD_LEN),
 #endif
 
 #ifdef __BIG_ENDIAN__
-    JSTD_MAKE_MARCOINFO(__BIG_ENDIAN__),
+    COMPILER_MARCO_ENTRY(__BIG_ENDIAN__),
 #endif
 
 #ifdef __LITTLE_ENDIAN__
-    JSTD_MAKE_MARCOINFO(__LITTLE_ENDIAN__),
+    COMPILER_MARCO_ENTRY(__LITTLE_ENDIAN__),
+#endif
+};
+
+static const CompilerMarco compiler_others[] = {
+#ifdef __DATE__
+    COMPILER_MARCO_ENTRY(__DATE__),
+#endif
+
+#ifdef __TIME__
+    COMPILER_MARCO_ENTRY(__TIME__),
+#endif
+
+#ifdef __FILE__
+    COMPILER_MARCO_ENTRY(__FILE__),
+#endif
+
+#ifdef _BSD_SOURCE
+    COMPILER_MARCO_ENTRY(_BSD_SOURCE),
+#endif
+
+#ifdef _POSIX_SOURCE
+    COMPILER_MARCO_ENTRY(_POSIX_SOURCE),
+#endif
+
+#ifdef _XOPEN_SOURCE
+    COMPILER_MARCO_ENTRY(_XOPEN_SOURCE),
+#endif
+
+#ifdef _GNU_SOURCE
+    COMPILER_MARCO_ENTRY(_GNU_SOURCE),
+#endif
+
+#ifdef __VERSION__
+    COMPILER_MARCO_ENTRY(__VERSION__),
 #endif
 
 #ifdef __cpp_constexpr
-    JSTD_MAKE_MARCOINFO(__cpp_constexpr)
+    COMPILER_MARCO_ENTRY(__cpp_constexpr),
 #endif
 
 #ifdef __cpp_variable_templates
-    JSTD_MAKE_MARCOINFO(__cpp_variable_templates)
+    COMPILER_MARCO_ENTRY(__cpp_variable_templates),
 #endif
 
 #ifdef __cpp_lib_integer_sequence
-    JSTD_MAKE_MARCOINFO(__cpp_lib_integer_sequence)
+    COMPILER_MARCO_ENTRY(__cpp_lib_integer_sequence),
 #endif
 
 #ifdef __cpp_exceptions
-    JSTD_MAKE_MARCOINFO(__cpp_exceptions)
+    COMPILER_MARCO_ENTRY(__cpp_exceptions),
 #endif
 };
 
@@ -256,20 +307,26 @@ void print_marcos()
     size_t i;
 
     printf("/* Compiler definitions: */\n\n");
-    for (i = 0; i < jstd_count_of(g_compilers); i++) {
-        printf("#define %s %s\n", g_compilers[i].name, g_compilers[i].value);
+    for (i = 0; i < __count_of(compiler_version); i++) {
+        printf("#define %s %s\n", compiler_version[i].name, compiler_version[i].value);
     }
     printf("\n");
 
     printf("/* Platform definitions: */\n\n");
-    for (i = 0; i < jstd_count_of(g_platforms); i++) {
-        printf("#define %s %s\n", g_platforms[i].name, g_platforms[i].value);
+    for (i = 0; i < __count_of(compiler_platforms); i++) {
+        printf("#define %s %s\n", compiler_platforms[i].name, compiler_platforms[i].value);
+    }
+    printf("\n");
+
+    printf("/* Architecture definitions: */\n\n");
+    for (i = 0; i < __count_of(compiler_arch); i++) {
+        printf("#define %s %s\n", compiler_arch[i].name, compiler_arch[i].value);
     }
     printf("\n");
 
     printf("/* Other definitions: */\n\n");
-    for (i = 0; i < jstd_count_of(g_others); i++) {
-        printf("#define %s %s\n", g_others[i].name, g_others[i].value);
+    for (i = 0; i < __count_of(compiler_others); i++) {
+        printf("#define %s %s\n", compiler_others[i].name, compiler_others[i].value);
     }
     printf("\n");
 
