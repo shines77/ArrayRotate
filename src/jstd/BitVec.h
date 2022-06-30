@@ -132,10 +132,19 @@
 
 /////////////////////////////////////////////
 
+#if defined (_M_IX86) || defined(__i386__)
+
 #ifndef _mm_setr_epi64x
-#define _mm_setr_epi64x(high, low) \
-        _mm_setr_epi64(_mm_cvtsi64_m64(high), _mm_cvtsi64_m64(low))
+#define _mm_setr_epi64x(high, low)  _mm_setr_epi64(high, low)
 #endif
+
+#else
+
+#ifndef _mm_setr_epi64x
+#define _mm_setr_epi64x(high, low)  _mm_set_epi64x(low, high)
+#endif
+
+#endif // _M_IX86 || __i386__
 
 /////////////////////////////////////////////
 
