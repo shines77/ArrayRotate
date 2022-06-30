@@ -16,23 +16,57 @@
 #include <cstddef>
 #include <bitset>
 #include <cstring>          // For std::memset()
-#include <initializer_list>
 #include <type_traits>
+
+#if defined(_M_X64) || defined(_M_AMD64) \
+ || defined(_M_IA64) || defined(__amd64__) || defined(__x86_64__) \
+ || defined (_M_IX86) || defined(__i386__)
 
 #if defined(_MSC_VER)
 
+#ifndef __MMX__
 #define __MMX__
-#define __SSE__
-#define __SSE2__
-#define __SSE3__
-#define __SSSE3__
-#define __SSE4A__
-#define __SSE4a__
-#define __SSE4_1__
-#define __SSE4_2__
+#endif
 
+#ifndef __SSE__
+#define __SSE__
+#endif
+
+#ifndef __SSE2__
+#define __SSE2__
+#endif
+
+#ifndef __SSE3__
+#define __SSE3__
+#endif
+
+#ifndef __SSSE3__
+#define __SSSE3__
+#endif
+
+#ifndef __SSE4A__
+#define __SSE4A__
+#endif
+
+#ifndef __SSE4a__
+#define __SSE4a__
+#endif
+
+#ifndef __SSE4_1__
+#define __SSE4_1__
+#endif
+
+#ifndef __SSE4_2__
+#define __SSE4_2__
+#endif
+
+#ifndef __AVX__
 #define __AVX__
+#endif
+
+#ifndef __AVX2__
 #define __AVX2__
+#endif
 
 //#define __AVX512BW__
 //#define __AVX512VL__
@@ -42,6 +76,9 @@
 //#undef __AVX2__
 
 #endif //_MSC_VER
+
+//#undef __AVX512VL__
+//#undef __AVX512F__
 
 /*
  * We'll support vectors targeting sse2, sse4_1, avx2, and avx512bitalg instruction sets.
@@ -87,15 +124,11 @@
 // For SSE2, SSE3, SSSE3, SSE 4.1, AVX, AVX2
 #if defined(_MSC_VER)
 #include <intrin.h>
-#include "jstd/msvc_x86intrin.h"
-#include <immintrin.h>
 #else
 #include <x86intrin.h>
-#include "jstd/msvc_x86intrin.h"
-#include <immintrin.h>
 #endif //_MSC_VER
 
-#if defined(_MSC_VER)
+#include "jstd/x86_intrin.h"
 
 /////////////////////////////////////////////
 
@@ -105,6 +138,8 @@
 #endif
 
 /////////////////////////////////////////////
+
+#if !defined(_MSC_VER)
 
 #ifndef _mm256_set_m128
 #define _mm256_set_m128(hi, lo) \
@@ -151,7 +186,7 @@
 #define _mm256_test_mix_ones_zeros(mask, val) \
         _mm256_testnzc_si256((mask), (val))
 #endif
-#endif // _MSC_VER
+#endif // !_MSC_VER
 
 /////////////////////////////////////////////
 
@@ -237,7 +272,7 @@
 // for functions like extract below where we use switches to determine which immediate to use
 // we'll assume only valid values are passed and omit the default, thereby allowing the compiler's
 // assumption of defined behavior to optimize away a branch.
-#if !defined(_MSC_VER)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
 #endif
@@ -284,7 +319,7 @@ struct IntVec4x64 {
 
 #pragma pack(pop)
 
-template <typename T>
+template <typename T = void>
 static inline
 bool check_alignment(T * address, size_t alignment)
 {
@@ -294,15 +329,15 @@ bool check_alignment(T * address, size_t alignment)
     return ((ptr & (alignment - 1)) == 0);
 }
 
-template <size_t alignment, typename T>
+template <typename T, size_t alignment = std::alignment_of<T>::value>
 static inline
 bool check_alignment(T * address)
 {
     uintptr_t ptr = (uintptr_t)address;
     JSTD_STATIC_ASSERT((alignment > 0),
-                       "check_alignment<N>(): alignment must bigger than 0.");
+                       "check_alignment<T, N>(addr): alignment must bigger than 0.");
     JSTD_STATIC_ASSERT(((alignment & (alignment - 1)) == 0),
-                       "check_alignment<N>(): alignment must be power of 2.");
+                       "check_alignment<T, N>(addr): alignment must be power of 2.");
     return ((ptr & (alignment - 1)) == 0);
 }
 
@@ -339,6 +374,35 @@ T * pointer_align_to(T * address)
 #endif
 
 #endif // JSTD_IS_X86_I386
+
+//
+// https://github.com/abseil/abseil-cpp/issues/209
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87853
+// _mm_cmpgt_epi8 is broken under GCC with -funsigned-char
+// Work around this by using the portable implementation of Group
+// when using -funsigned-char under GCC.
+//
+inline __m128i _mm_cmpgt_epi8_fixed(__m128i A, __m128i B) {
+#if defined(__GNUC__) && !defined(__clang__)
+    if (std::is_unsigned<char>::value) {
+        const __m128i mask = _mm_set1_epi8(0x80);
+        const __m128i diff = _mm_subs_epi8(B, A);
+        return _mm_cmpeq_epi8(_mm_and_si128(diff, mask), mask);
+    }
+#endif
+    return _mm_cmpgt_epi8(A, B);
+}
+
+inline __m128i _mm_cmplt_epi8_fixed(__m128i A, __m128i B) {
+#if defined(__GNUC__) && !defined(__clang__)
+    if (std::is_unsigned<char>::value) {
+        const __m128i mask = _mm_set1_epi8(0x80);
+        const __m128i diff = _mm_subs_epi8(A, B);
+        return _mm_cmpeq_epi8(_mm_and_si128(diff, mask), mask);
+    }
+#endif
+    return _mm_cmplt_epi8(A, B);
+}
 
 struct SSE {
 
@@ -419,6 +483,18 @@ __m128i mm_insert_epi64(__m128i target, int64_t value)
 struct AVX {
 
 #if defined(__AVX__)
+
+static inline
+uint32_t mm256_cvtsi256_si32_low(__m256i src)
+{
+    return (uint32_t)(_mm256_cvtsi256_si32(src) & 0xFFFFUL);
+}
+
+static inline
+uint32_t mm256_cvtsi256_si32_high(__m256i src)
+{
+    return (uint32_t)(_mm256_cvtsi256_si32(src) >> 16U);
+}
 
 template <int index>
 static inline
@@ -810,8 +886,10 @@ static inline uint32_t mm_cvtsi128_si16(__m128i m128)
 
 } // namespace jstd
 
-#if !defined(_MSC_VER)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
+
+#endif // _M_X64 || __amd64__ || _M_IX86 || __i386__
 
 #endif // JSTD_BITVEC_H

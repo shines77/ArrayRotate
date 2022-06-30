@@ -167,12 +167,13 @@
     <ClInclude Include="..\..\..\src\jstd\ArrayRotate_v1.h" />
     <ClInclude Include="..\..\..\src\jstd\BitUtils.h" />
     <ClInclude Include="..\..\..\src\jstd\BitVec.h" />
+    <ClInclude Include="..\..\..\src\jstd\config.h" />
     <ClInclude Include="..\..\..\src\jstd\DivUtils.h" />
     <ClInclude Include="..\..\..\src\jstd\FastDiv.h" />
     <ClInclude Include="..\..\..\src\jstd\FastMod.h" />
-    <ClInclude Include="..\..\..\src\jstd\msvc_x86intrin.h" />
     <ClInclude Include="..\..\..\src\jstd\stddef.h" />
     <ClInclude Include="..\..\..\src\jstd\uint128_t.h" />
+    <ClInclude Include="..\..\..\src\jstd\x86_intrin.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="..\..\..\src\jstd\udiv128.asm">

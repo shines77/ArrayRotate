@@ -15,9 +15,6 @@
     <ClInclude Include="..\..\..\src\jstd\ArrayRotate.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\jstd\msvc_x86intrin.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\jstd\FastMod.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -43,6 +40,12 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\jstd\BitUtils.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\jstd\x86_intrin.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\jstd\config.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
