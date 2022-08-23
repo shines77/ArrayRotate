@@ -125,7 +125,7 @@ struct _uint128_t {
     static const integral_t kZero64     = (integral_t)0ull;
     static const uint32_t   kZero32     = (uint32_t)0ull;
     static const high_t     kHighZero   = (high_t)0ull;
-    static const low_t      kLowZero    = (low_t)0ull;    
+    static const low_t      kLowZero    = (low_t)0ull;
 
     _uint128_t() noexcept
         : low((low_t)0ull), high((high_t)0ull) {}
@@ -314,7 +314,7 @@ struct _uint128_t {
         uint32_t sign_mask  = (uint32_t)(((uint64_t)this->high & kSignMask64) >> 32);
         uint32_t low_body32 = (uint32_t)(this->low & kBodyMask32);
 #endif
-        return (int32_t)(sign_mask | low_body32);  
+        return (int32_t)(sign_mask | low_body32);
     }
 
     operator uint32_t () const {
@@ -1542,7 +1542,7 @@ struct _uint128_t {
         product128.low  = (low_t)(product & kFullMask64);
         product128.high = (high_t)(product >> 64);
         return product128;
-#elif defined(_MSC_VER) && (defined(_M_IX64) || defined(_M_AMD64))
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX64) || defined(_M_AMD64))
         /* Use the _umul128 intrinsic on MSVC x64 to hint for mulq. */
         this_type product128;
         product128.low = _umul128(multiplicand, multiplier, &product128.high);
