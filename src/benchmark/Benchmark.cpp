@@ -50,7 +50,7 @@ int verify_array(Container & container1, Container & container2)
 
 template < typename ItemType, std::size_t Length, std::size_t Offset,
            typename Container = std::vector<ItemType> >
-void run_rotate_test(Container & array_std, Container & array)
+void run_rotate_validate(Container & array_std, Container & array)
 {
     static const std::size_t length = (Length <= 0) ? 100000000 : Length;
     static const std::size_t offset = Offset % length;
@@ -179,7 +179,7 @@ void run_rotate_benchmark(Container & array)
     //////////////////////////////////////////////////////////////
 }
 
-void validate_test()
+void rotate_validate()
 {
     static const size_t test_length = 100000000;
 
@@ -189,24 +189,24 @@ void validate_test()
     std::vector<int> array;
     array.resize(test_length);
 
-    run_rotate_test<int, test_length, 1>(array_std, array);
-    run_rotate_test<int, test_length, 2>(array_std, array);
-    run_rotate_test<int, test_length, 3>(array_std, array);
-    run_rotate_test<int, test_length, 4>(array_std, array);
-    run_rotate_test<int, test_length, 7>(array_std, array);
-    run_rotate_test<int, test_length, 8>(array_std, array);
-    run_rotate_test<int, test_length, 9>(array_std, array);
-    run_rotate_test<int, test_length, 10>(array_std, array);
-    run_rotate_test<int, test_length, 15>(array_std, array);
-    run_rotate_test<int, test_length, 32>(array_std, array);
-    run_rotate_test<int, test_length, 33>(array_std, array);
-    run_rotate_test<int, test_length, 33333333>(array_std, array);
-    run_rotate_test<int, test_length, 50000000>(array_std, array);
+    run_rotate_validate<int, test_length, 1>(array_std, array);
+    run_rotate_validate<int, test_length, 2>(array_std, array);
+    run_rotate_validate<int, test_length, 3>(array_std, array);
+    run_rotate_validate<int, test_length, 4>(array_std, array);
+    run_rotate_validate<int, test_length, 7>(array_std, array);
+    run_rotate_validate<int, test_length, 8>(array_std, array);
+    run_rotate_validate<int, test_length, 9>(array_std, array);
+    run_rotate_validate<int, test_length, 10>(array_std, array);
+    run_rotate_validate<int, test_length, 15>(array_std, array);
+    run_rotate_validate<int, test_length, 32>(array_std, array);
+    run_rotate_validate<int, test_length, 33>(array_std, array);
+    run_rotate_validate<int, test_length, 33333333>(array_std, array);
+    run_rotate_validate<int, test_length, 50000000>(array_std, array);
 
     printf("--------------------------------------------------------------\n\n");
 }
 
-void benchmark()
+void rotate_benchmark()
 {
     static const size_t test_length = 100000000;
 
@@ -239,8 +239,9 @@ int main(int argn, char * argv[])
     print_marcos();
 
 #if 1
-    validate_test();
-    benchmark();
+    rotate_validate();
+    rotate_benchmark();
 #endif
+
     return 0;
 }
