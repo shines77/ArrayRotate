@@ -20,44 +20,71 @@
 
 namespace jstd {
 
+namespace detail {
+
 //
 // Recursive version, not practical in actual use.
 //
 // From: https://en.cppreference.com/w/cpp/algorithm/rotate
 //
-template <typename ForwardIter>
-ForwardIter // void until C++11
-std_rotate(ForwardIter first, ForwardIter mid, ForwardIter last)
+template <typename ForwardIterator>
+ForwardIterator // void until C++11
+std_rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last, std::forward_iterator_tag)
 {
-    if (first == mid) return last;
-    if (mid == last) return first;
+    if (first == middle) return last;
+    if (middle == last) return first;
 
-    ForwardIter read = mid;
-    ForwardIter write = first;
+    ForwardIterator read = middle;
+    ForwardIterator write = first;
     // Read position for when "read" hits "last"
-    ForwardIter next_read = first;
+    ForwardIterator next_read = first;
 
     while (read != last) {
         // Track where "first" went
-        if (write == next_read) next_read = read;
+        if (write == next_read)
+            next_read = read;
         std::iter_swap(write++, read++);
     }
 
     // Rotate the remaining sequence into place
-    (std_rotate)(write, next_read, last);
+    (detail::std_rotate)(write, next_read, last, std::forward_iterator_tag());
     return write;
+}
+
+template <typename RandomAccessIterator>
+RandomAccessIterator
+std_rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, std::random_access_iterator_tag)
+{
+    return detail::std_rotate(first, middle, last, std::forward_iterator_tag());
+}
+
+template <typename BidirectionalIterator >
+BidirectionalIterator
+std_rotate(BidirectionalIterator  first, BidirectionalIterator  middle, BidirectionalIterator  last, std::bidirectional_iterator_tag)
+{
+    return detail::std_rotate(first, middle, last, std::forward_iterator_tag());
+}
+
+} // namespace detail
+
+template <typename UnknownIterator>
+UnknownIterator // void until C++11
+std_rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+{
+    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    return detail::std_rotate(first, middle, last, iterator_category());
 }
 
 template <typename _Integral>
 inline
-_Integral __gcd(_Integral __x, _Integral __y)
+_Integral __gcd(_Integral __m, _Integral __n)
 {
-    do {
-        _Integral __t = __x % __y;
-        __x = __y;
-        __y = __t;
-    } while (__y);
-    return __x;
+    while (__n != 0) {
+        _Integral __t = __m % __n;
+        __m = __n;
+        __n = __t;
+    }
+    return __m;
 }
 
 //
@@ -67,59 +94,62 @@ _Integral __gcd(_Integral __x, _Integral __y)
 //
 template <typename _RandomAccessIterator>
 _RandomAccessIterator
-libcxx_rotate_gcd(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last)
+libcxx_rotate(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last)
 {
     typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type   difference_type;
     typedef typename std::iterator_traits<_RandomAccessIterator>::value_type        value_type;
 
-    const difference_type __m1 = __middle - __first;
-    const difference_type __m2 = __last - __middle;
-    if (__m1 == __m2) {
+    const difference_type __left  = __middle - __first;
+    const difference_type __right = __last - __middle;
+    if (__left == __right) {
         std::swap_ranges(__first, __middle, __middle);
         return __middle;
     }
 
-    const difference_type __g = __gcd(__m1, __m2);
+    const difference_type __g = __gcd(__left, __right);
     for (_RandomAccessIterator __p = __first + __g; __p != __first;) {
         value_type __t(std::move(*--__p));
         _RandomAccessIterator __p1 = __p;
-        _RandomAccessIterator __p2 = __p1 + __m1;
+        _RandomAccessIterator __p2 = __p1 + __left;
 
         do {
             *__p1 = std::move(*__p2);
             __p1 = __p2;
             const difference_type __d = __last - __p2;
-            if (__m1 < __d)
-                __p2 += __m1;
+            if (__left < __d)
+                __p2 += __left;
             else
-                __p2 = __first + (__m1 - __d);
+                __p2 = __first + (__left - __d);
         } while (__p2 != __p);
 
         *__p1 = std::move(__t);
     }
 
-    return __first + __m2;
+    return __first + __right;
 }
+
+namespace detail {
 
 template <typename RandomAccessIterator>
 RandomAccessIterator
-right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
+right_rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last,
+             std::random_access_iterator_tag)
 {
     typedef RandomAccessIterator iterator;
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
     typedef typename std::iterator_traits<iterator>::value_type         value_type;
 
-    std::size_t left_len = (std::size_t)difference_type(mid - first);
+    std::size_t left_len = (std::size_t)difference_type(middle - first);
     if (left_len == 0) return first;
 
-    std::size_t right_len = (std::size_t)difference_type(last - mid);
+    std::size_t right_len = (std::size_t)difference_type(last - middle);
     if (right_len == 0) return last;
 
     RandomAccessIterator result = first + right_len;
 
     do {
         if (right_len <= left_len) {
-            RandomAccessIterator read = mid;
+            RandomAccessIterator read = middle;
             RandomAccessIterator write = last;
             if (right_len != 1) {
                 while (read != first) {
@@ -134,7 +164,7 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
 #endif
                 last = write;
                 right_len -= left_len;
-                mid = first + left_len;
+                middle = first + left_len;
                 if (left_len == 0 || right_len == 0)
                     break;
             }
@@ -150,7 +180,7 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
             }
         }
         else {
-            RandomAccessIterator read = mid;
+            RandomAccessIterator read = middle;
             RandomAccessIterator write = first;
             if (left_len != 1) {
                 while (read != last) {
@@ -165,7 +195,7 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
 #endif
                 first = write;
                 left_len -= right_len;
-                mid = last - right_len;
+                middle = last - right_len;
                 if (right_len == 0 || left_len == 0)
                     break;
             }
@@ -187,23 +217,24 @@ right_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessI
 
 template <typename RandomAccessIterator>
 RandomAccessIterator
-left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
+left_rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last,
+            std::random_access_iterator_tag)
 {
     typedef RandomAccessIterator iterator;
     typedef typename std::iterator_traits<iterator>::difference_type    difference_type;
     typedef typename std::iterator_traits<iterator>::value_type         value_type;
 
-    std::size_t left_len = (std::size_t)difference_type(mid - first);
+    std::size_t left_len = (std::size_t)difference_type(middle - first);
     if (left_len == 0) return first;
 
-    std::size_t right_len = (std::size_t)difference_type(last - mid);
+    std::size_t right_len = (std::size_t)difference_type(last - middle);
     if (right_len == 0) return last;
 
     RandomAccessIterator result = first + right_len;
 
     do {
         if (left_len <= right_len) {
-            RandomAccessIterator read = mid;
+            RandomAccessIterator read = middle;
             RandomAccessIterator write = first;
             if (left_len != 1) {
                 while (read != last) {
@@ -218,7 +249,7 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
 #endif
                 first = write;
                 left_len -= right_len;
-                mid = last - right_len;
+                middle = last - right_len;
                 if (right_len == 0 || left_len == 0)
                     break;
             }
@@ -234,7 +265,7 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
             }
         }
         else {
-            RandomAccessIterator read = mid;
+            RandomAccessIterator read = middle;
             RandomAccessIterator write = last;
             if (right_len != 1) {
                 while (read != first) {
@@ -249,7 +280,7 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
 #endif
                 last = write;
                 right_len -= left_len;
-                mid = first + left_len;
+                middle = first + left_len;
                 if (left_len == 0 || right_len == 0)
                     break;
             }
@@ -272,9 +303,35 @@ left_rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIt
 template <typename RandomAccessIterator>
 inline
 RandomAccessIterator
-rotate(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last)
+rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, std::random_access_iterator_tag)
 {
-    return left_rotate(first, mid, last);
+    return left_rotate(first, middle, last, std::random_access_iterator_tag());
+}
+
+} // namespace detail
+
+template <typename UnknownIterator>
+UnknownIterator // void until C++11
+right_rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+{
+    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    return detail::right_rotate(first, middle, last, iterator_category());
+}
+
+template <typename UnknownIterator>
+UnknownIterator // void until C++11
+left_rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+{
+    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    return detail::left_rotate(first, middle, last, iterator_category());
+}
+
+template <typename UnknownIterator>
+UnknownIterator // void until C++11
+rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+{
+    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    return detail::rotate(first, middle, last, iterator_category());
 }
 
 } // namespace jstd

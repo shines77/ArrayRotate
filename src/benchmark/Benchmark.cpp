@@ -155,6 +155,15 @@ void run_rotate_benchmark(Container & array)
 
     //////////////////////////////////////////////////////////////
 
+    sw.start();
+    jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
+    sw.stop();
+
+    elapsedTime = sw.getElapsedMillisec();
+    printf(" jstd::std_rotate(%u, %2u):          %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+
+    //////////////////////////////////////////////////////////////
+
 #if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
     sw.start();
