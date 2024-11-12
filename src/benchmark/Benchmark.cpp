@@ -72,6 +72,22 @@ void run_rotate_validate(Container & array_std, Container & array)
         array[i] = (int)i;
     }
 
+    jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
+
+    printf(" jstd::std_rotate(%u, %2u):          ", (uint32_t)length, (uint32_t)offset);
+    error_pos = verify_array(array, array_std);
+    if (error_pos == -1)
+        printf("Pass");
+    else
+        printf("Failed (pos = %d)", error_pos);
+    printf("\n");
+
+    //////////////////////////////////////////////////////////////
+
+    for (size_t i = 0; i < length; i++) {
+        array[i] = (int)i;
+    }
+
     jstd::rotate(array.begin(), array.begin() + offset, array.end());
 
     printf(" jstd::rotate(%u, %2u):              ", (uint32_t)length, (uint32_t)offset);
@@ -147,20 +163,20 @@ void run_rotate_benchmark(Container & array)
     //////////////////////////////////////////////////////////////
 
     sw.start();
-    jstd::rotate(array.begin(), array.begin() + offset, array.end());
-    sw.stop();
-
-    elapsedTime = sw.getElapsedMillisec();
-    printf(" jstd::rotate(%u, %2u):              %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
-
-    //////////////////////////////////////////////////////////////
-
-    sw.start();
     jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
     sw.stop();
 
     elapsedTime = sw.getElapsedMillisec();
     printf(" jstd::std_rotate(%u, %2u):          %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+
+    //////////////////////////////////////////////////////////////
+
+    sw.start();
+    jstd::rotate(array.begin(), array.begin() + offset, array.end());
+    sw.stop();
+
+    elapsedTime = sw.getElapsedMillisec();
+    printf(" jstd::rotate(%u, %2u):              %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
 
     //////////////////////////////////////////////////////////////
 
@@ -236,6 +252,17 @@ void rotate_benchmark()
     run_rotate_benchmark<int, test_length, 15>(array);
     run_rotate_benchmark<int, test_length, 32>(array);
     run_rotate_benchmark<int, test_length, 33>(array);
+    run_rotate_benchmark<int, test_length, 65>(array);
+    run_rotate_benchmark<int, test_length, 150>(array);
+    run_rotate_benchmark<int, test_length, 280>(array);
+    run_rotate_benchmark<int, test_length, 512>(array);
+    run_rotate_benchmark<int, test_length, 600>(array);
+    run_rotate_benchmark<int, test_length, 1000>(array);
+    run_rotate_benchmark<int, test_length, 1500>(array);
+    run_rotate_benchmark<int, test_length, 2000>(array);
+    run_rotate_benchmark<int, test_length, 2973>(array);
+    run_rotate_benchmark<int, test_length, 4908>(array);
+    run_rotate_benchmark<int, test_length, 9810>(array);
     run_rotate_benchmark<int, test_length, 33333333>(array);
     run_rotate_benchmark<int, test_length, 50000000>(array);
 
