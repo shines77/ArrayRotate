@@ -3645,8 +3645,8 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
         else
             srcAddrIsAligned = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
 
-        bool srcAddrIsAligned = (srcUnalignedBytes == 0);
-        if (srcAddrIsAligned && srcAddrIsAligned) {
+        bool srcAddrIsAligned2 = (srcUnalignedBytes == 0);
+        if (srcAddrIsAligned2 && srcAddrIsAligned) {
             // srcIsAligned = true, destIsAligned = true
             avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsAligned>(dest, src, limit, end);
         } else {
@@ -3680,8 +3680,8 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
             else
                 destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
-            bool destAddrIsAligned = (destUnalignedBytes == 0);
-            if (destAddrIsAligned && destAddrIsAligned) {
+            bool destAddrIsAligned2 = (destUnalignedBytes == 0);
+            if (destAddrIsAligned2 && destAddrIsAligned) {
                 // srcIsAligned = true, destIsAligned = true
                 avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsAligned>(dest, src, limit, end);
             } else {
@@ -3701,7 +3701,7 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
             else
                 destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
-            bool destAddrIsAligned = true;
+            bool destAddrIsAligned2 = true;
             if (!srcIsAligned && destAddrIsAligned) {
                 std::size_t srcPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
                 JSTD_ASSERT((srcPaddingBytes % kValueSize) == 0);
@@ -3712,7 +3712,7 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
                     srcPaddingBytes -= kValueSize;
                 }
 
-                destAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
+                destAddrIsAligned2 = (((std::size_t)dest & kAVXAlignMask) == 0);
             }
 
             if (srcIsAligned || destAddrIsAligned) {
