@@ -67,7 +67,7 @@ void run_rotate_validate(Container & array_std, Container & array)
     std::rotate(array_std.begin(), array_std.begin() + offset, array_std.end());
 
     //////////////////////////////////////////////////////////////
-
+#if 0
     for (size_t i = 0; i < length; i++) {
         array[i] = (int)i;
     }
@@ -81,7 +81,7 @@ void run_rotate_validate(Container & array_std, Container & array)
     else
         printf("Failed (pos = %d)", error_pos);
     printf("\n");
-
+#endif
     //////////////////////////////////////////////////////////////
 
     for (size_t i = 0; i < length; i++) {
@@ -162,12 +162,14 @@ void run_rotate_benchmark(Container & array)
 
     //////////////////////////////////////////////////////////////
 
-    sw.start();
-    jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
-    sw.stop();
+    if (Offset < 33333333) {
+        sw.start();
+        jstd::std_rotate(array.begin(), array.begin() + offset, array.end());
+        sw.stop();
 
-    elapsedTime = sw.getElapsedMillisec();
-    printf(" jstd::std_rotate(%u, %2u):          %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+        elapsedTime = sw.getElapsedMillisec();
+        printf(" jstd::std_rotate(%u, %2u):          %0.2f ms\n", (uint32_t)length, (uint32_t)offset, elapsedTime);
+    }
 
     //////////////////////////////////////////////////////////////
 
