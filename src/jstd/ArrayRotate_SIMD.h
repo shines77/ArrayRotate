@@ -1212,13 +1212,13 @@ void avx_move_forward_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
     static const std::size_t kSingleLoopBytes = _N * kAVXRegBytes;
 
     std::size_t srcUnalignedBytes = (std::size_t)mid & kAVXAlignMask;
-    bool srcAddrCanAlign;
+    bool srcAddrIsAligned;
     if (kValueSize < kAVXRegBytes)
-        srcAddrCanAlign = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
+        srcAddrIsAligned = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
     else
-        srcAddrCanAlign = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
+        srcAddrIsAligned = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && srcAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && srcAddrIsAligned)) {
         std::size_t srcPaddingBytes = (kAVXRegBytes - srcUnalignedBytes) & kAVXAlignMask;
         while (srcPaddingBytes != 0) {
             *first++ = *mid++;
@@ -1362,15 +1362,15 @@ void avx_move_forward_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
         }
     }
     else {
-        bool destAddrCanAlign = false;
+        bool destAddrIsAligned = false;
         if (kValueSizeIsDivisible) {
             std::size_t destUnalignedBytes = (std::size_t)first & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                destAddrCanAlign = ((destUnalignedBytes % kValueSize) == 0);
+                destAddrIsAligned = ((destUnalignedBytes % kValueSize) == 0);
             else
-                destAddrCanAlign = (destUnalignedBytes == 0);
+                destAddrIsAligned = (destUnalignedBytes == 0);
 
-            if (destAddrCanAlign) {
+            if (destAddrIsAligned) {
                 std::size_t destPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
                 while (destPaddingBytes != 0) {
                     *first++ = *mid++;
@@ -1387,7 +1387,7 @@ void avx_move_forward_N_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT 
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(destAddrCanAlign)) {
+        if (likely(destAddrIsAligned)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -1528,13 +1528,13 @@ void avx_move_forward_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
     static const std::size_t kSingleLoopBytes = _N * kAVXRegBytes;
 
     std::size_t destUnalignedBytes = (std::size_t)first & kAVXAlignMask;
-    bool destAddrCanAlign;
+    bool destAddrIsAligned;
     if (kValueSize < kAVXRegBytes)
-        destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+        destAddrIsAligned = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
     else
-        destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+        destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && destAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && destAddrIsAligned)) {
         std::size_t destPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
         while (destPaddingBytes != 0) {
             *first++ = *mid++;
@@ -1738,15 +1738,15 @@ void avx_move_forward_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
         }
     }
     else {
-        bool srcAddrCanAlign = false;
+        bool srcAddrIsAligned = false;
         if (kValueSizeIsDivisible) {
             std::size_t srcUnalignedBytes = (std::size_t)mid & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                srcAddrCanAlign = ((srcUnalignedBytes % kValueSize) == 0);
+                srcAddrIsAligned = ((srcUnalignedBytes % kValueSize) == 0);
             else
-                srcAddrCanAlign = (srcUnalignedBytes == 0);
+                srcAddrIsAligned = (srcUnalignedBytes == 0);
 
-            if (srcAddrCanAlign) {
+            if (srcAddrIsAligned) {
                 std::size_t srcPaddingBytes = (kAVXRegBytes - srcUnalignedBytes) & kAVXAlignMask;
                 while (srcPaddingBytes != 0) {
                     *first++ = *mid++;
@@ -1763,7 +1763,7 @@ void avx_move_forward_N_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRICT
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(srcAddrCanAlign)) {
+        if (likely(srcAddrIsAligned)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -1964,13 +1964,13 @@ void avx_move_forward_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
     static const std::size_t kSingleLoopBytes = _N * kAVXRegBytes;
 
     std::size_t destUnalignedBytes = (std::size_t)first & kAVXAlignMask;
-    bool destAddrCanAlign;
+    bool destAddrIsAligned;
     if (kValueSize < kAVXRegBytes)
-        destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+        destAddrIsAligned = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
     else
-        destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+        destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && destAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && destAddrIsAligned)) {
         std::size_t destPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
         while (destPaddingBytes != 0) {
             *first++ = *mid++;
@@ -2110,15 +2110,15 @@ void avx_move_forward_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
         }
     }
     else {
-        bool srcAddrCanAlign = false;
+        bool srcAddrIsAligned = false;
         if (kValueSizeIsDivisible) {
             std::size_t srcUnalignedBytes = (std::size_t)mid & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                srcAddrCanAlign = ((srcUnalignedBytes % kValueSize) == 0);
+                srcAddrIsAligned = ((srcUnalignedBytes % kValueSize) == 0);
             else
-                srcAddrCanAlign = (srcUnalignedBytes == 0);
+                srcAddrIsAligned = (srcUnalignedBytes == 0);
 
-            if (srcAddrCanAlign) {
+            if (srcAddrIsAligned) {
                 std::size_t srcPaddingBytes = (kAVXRegBytes - srcUnalignedBytes) & kAVXAlignMask;
                 while (srcPaddingBytes != 0) {
                     *first++ = *mid++;
@@ -2135,7 +2135,7 @@ void avx_move_forward_N_store_aligned_nt(T * JSTD_RESTRICT first, T * JSTD_RESTR
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(srcAddrCanAlign)) {
+        if (likely(srcAddrIsAligned)) {
             while (src < limit) {
                 __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
                 if (N >= 0)
@@ -2271,13 +2271,13 @@ void avx_move_forward_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
     static const std::size_t kSingleLoopBytes = kHalfLoopBytes * 2;
 
     std::size_t srcUnalignedBytes = (std::size_t)mid & kAVXAlignMask;
-    bool srcAddrCanAlign;
+    bool srcAddrIsAligned;
     if (kValueSize < kAVXRegBytes)
-        srcAddrCanAlign = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
+        srcAddrIsAligned = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
     else
-        srcAddrCanAlign = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
+        srcAddrIsAligned = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && srcAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && srcAddrIsAligned)) {
         std::size_t srcPaddingBytes = (kAVXRegBytes - srcUnalignedBytes) & kAVXAlignMask;
         while (srcPaddingBytes != 0) {
             *first++ = *mid++;
@@ -2535,15 +2535,15 @@ void avx_move_forward_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
         }
     }
     else {
-        bool destAddrCanAlign = false;
+        bool destAddrIsAligned = false;
         if (kValueSizeIsDivisible) {
             std::size_t destUnalignedBytes = (std::size_t)first & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                destAddrCanAlign = ((destUnalignedBytes % kValueSize) == 0);
+                destAddrIsAligned = ((destUnalignedBytes % kValueSize) == 0);
             else
-                destAddrCanAlign = (destUnalignedBytes == 0);
+                destAddrIsAligned = (destUnalignedBytes == 0);
 
-            if (destAddrCanAlign) {
+            if (destAddrIsAligned) {
                 std::size_t destPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
                 while (destPaddingBytes != 0) {
                     *first++ = *mid++;
@@ -2560,7 +2560,7 @@ void avx_move_forward_Nx2_load_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRIC
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(destAddrCanAlign)) {
+        if (likely(destAddrIsAligned)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -2813,13 +2813,13 @@ void avx_move_forward_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
     static const std::size_t kSingleLoopBytes = kHalfLoopBytes * 2;
 
     std::size_t destUnalignedBytes = (std::size_t)first & kAVXAlignMask;
-    bool destAddrCanAlign;
+    bool destAddrIsAligned;
     if (kValueSize < kAVXRegBytes)
-        destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+        destAddrIsAligned = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
     else
-        destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+        destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
-    if (likely(kValueSizeIsDivisible && destAddrCanAlign)) {
+    if (likely(kValueSizeIsDivisible && destAddrIsAligned)) {
         std::size_t destPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
         while (destPaddingBytes != 0) {
             *first++ = *mid++;
@@ -3074,15 +3074,15 @@ void avx_move_forward_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
         }
     }
     else {
-        bool srcAddrCanAlign = false;
+        bool srcAddrIsAligned = false;
         if (kValueSizeIsDivisible) {
             std::size_t srcUnalignedBytes = (std::size_t)mid & kAVXAlignMask;
             if (kValueSize < kAVXRegBytes)
-                srcAddrCanAlign = ((srcUnalignedBytes % kValueSize) == 0);
+                srcAddrIsAligned = ((srcUnalignedBytes % kValueSize) == 0);
             else
-                srcAddrCanAlign = (srcUnalignedBytes == 0);
+                srcAddrIsAligned = (srcUnalignedBytes == 0);
 
-            if (srcAddrCanAlign) {
+            if (srcAddrIsAligned) {
                 std::size_t srcPaddingBytes = (kAVXRegBytes - srcUnalignedBytes) & kAVXAlignMask;
                 while (srcPaddingBytes != 0) {
                     *first++ = *mid++;
@@ -3099,7 +3099,7 @@ void avx_move_forward_Nx2_store_aligned(T * JSTD_RESTRICT first, T * JSTD_RESTRI
         std::size_t unalignedMoveBytes = (std::size_t)totalMoveBytes % kSingleLoopBytes;
         const char * JSTD_RESTRICT limit = (totalMoveBytes >= kSingleLoopBytes) ? (end - unalignedMoveBytes) : src;
 
-        if (likely(srcAddrCanAlign)) {
+        if (likely(srcAddrIsAligned)) {
 #if defined(JSTD_IS_ICC)
 #pragma code_align(64)
 #endif
@@ -3639,14 +3639,14 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
                                           ? (end - unalignedCopyBytes) : src;
 
         std::size_t srcUnalignedBytes = (std::size_t)src & kAVXAlignMask;
-        bool srcAddrCanAlign;
+        bool srcAddrIsAligned;
         if (kValueSize < kAVXRegBytes)
-            srcAddrCanAlign = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
+            srcAddrIsAligned = (kValueSizeIsDivisible && ((srcUnalignedBytes % kValueSize) == 0));
         else
-            srcAddrCanAlign = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
+            srcAddrIsAligned = (kValueSizeIsDivisible && (srcUnalignedBytes == 0));
 
         bool srcAddrIsAligned = (srcUnalignedBytes == 0);
-        if (srcAddrIsAligned && srcAddrCanAlign) {
+        if (srcAddrIsAligned && srcAddrIsAligned) {
             // srcIsAligned = true, destIsAligned = true
             avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsAligned>(dest, src, limit, end);
         } else {
@@ -3674,14 +3674,14 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
                                               ? (end - unalignedCopyBytes) : src;
 
             std::size_t destUnalignedBytes = (std::size_t)dest & kAVXAlignMask;
-            bool destAddrCanAlign;
+            bool destAddrIsAligned;
             if (kValueSize < kAVXRegBytes)
-                destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+                destAddrIsAligned = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
             else
-                destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+                destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
             bool destAddrIsAligned = (destUnalignedBytes == 0);
-            if (destAddrIsAligned && destAddrCanAlign) {
+            if (destAddrIsAligned && destAddrIsAligned) {
                 // srcIsAligned = true, destIsAligned = true
                 avx_mem_copy_N_impl<T, _N, kSrcIsAligned, kDestIsAligned>(dest, src, limit, end);
             } else {
@@ -3695,14 +3695,14 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
             char * JSTD_RESTRICT end = (char * JSTD_RESTRICT)_end;
 
             std::size_t destUnalignedBytes = (std::size_t)dest & kAVXAlignMask;
-            bool destAddrCanAlign;
+            bool destAddrIsAligned;
             if (kValueSize < kAVXRegBytes)
-                destAddrCanAlign = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
+                destAddrIsAligned = (kValueSizeIsDivisible && ((destUnalignedBytes % kValueSize) == 0));
             else
-                destAddrCanAlign = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
+                destAddrIsAligned = (kValueSizeIsDivisible && (destUnalignedBytes == 0));
 
             bool destAddrIsAligned = true;
-            if (!srcIsAligned && destAddrCanAlign) {
+            if (!srcIsAligned && destAddrIsAligned) {
                 std::size_t srcPaddingBytes = (kAVXRegBytes - destUnalignedBytes) & kAVXAlignMask;
                 JSTD_ASSERT((srcPaddingBytes % kValueSize) == 0);
                 while (srcPaddingBytes != 0) {
@@ -3715,7 +3715,7 @@ void avx_mem_copy_N_store_aligned(void * JSTD_RESTRICT _dest, void * JSTD_RESTRI
                 destAddrIsAligned = (((std::size_t)dest & kAVXAlignMask) == 0);
             }
 
-            if (srcIsAligned || destAddrCanAlign) {
+            if (srcIsAligned || destAddrIsAligned) {
             }
         }
     }
