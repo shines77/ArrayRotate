@@ -67,11 +67,11 @@ std_rotate(BidirectionalIterator  first, BidirectionalIterator  middle, Bidirect
 
 } // namespace detail
 
-template <typename UnknownIterator>
-UnknownIterator // void until C++11
-std_rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+template <typename AnyIterator>
+AnyIterator // void until C++11
+std_rotate(AnyIterator first, AnyIterator middle, AnyIterator last)
 {
-    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<AnyIterator>::iterator_category iterator_category;
     return detail::std_rotate(first, middle, last, iterator_category());
 }
 
@@ -310,27 +310,27 @@ rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIter
 
 } // namespace detail
 
-template <typename UnknownIterator>
-UnknownIterator // void until C++11
-right_rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+template <typename AnyIterator>
+AnyIterator // void until C++11
+right_rotate(AnyIterator first, AnyIterator middle, AnyIterator last)
 {
-    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<AnyIterator>::iterator_category iterator_category;
     return detail::right_rotate(first, middle, last, iterator_category());
 }
 
-template <typename UnknownIterator>
-UnknownIterator // void until C++11
-left_rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+template <typename AnyIterator>
+AnyIterator // void until C++11
+left_rotate(AnyIterator first, AnyIterator middle, AnyIterator last)
 {
-    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<AnyIterator>::iterator_category iterator_category;
     return detail::left_rotate(first, middle, last, iterator_category());
 }
 
-template <typename UnknownIterator>
-UnknownIterator // void until C++11
-rotate(UnknownIterator first, UnknownIterator middle, UnknownIterator last)
+template <typename AnyIterator>
+AnyIterator // void until C++11
+rotate(AnyIterator first, AnyIterator middle, AnyIterator last)
 {
-    typedef typename std::iterator_traits<UnknownIterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<AnyIterator>::iterator_category iterator_category;
     return detail::rotate(first, middle, last, iterator_category());
 }
 
