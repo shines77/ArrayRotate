@@ -30,7 +30,7 @@ extern void print_marcos();
 
 #if USE_KERBAL_ROTATE
 #if !defined(_MSC_VER) || (defined(_MSC_VER) && (_MSC_VER >= 2000))
-#include "kerbal/algorithm/modifier.hpp"
+#include <kerbal/algorithm/modifier.hpp>
 #endif
 #endif // USE_KERBAL_ROTATE
 
