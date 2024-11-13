@@ -29,7 +29,7 @@ namespace detail {
 //
 template <typename ForwardIterator>
 ForwardIterator // void until C++11
-std_rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last, std::forward_iterator_tag)
+std_rotate_recur(ForwardIterator first, ForwardIterator middle, ForwardIterator last, std::forward_iterator_tag)
 {
     if (first == middle) return last;
     if (middle == last) return first;
@@ -47,7 +47,88 @@ std_rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last, 
     }
 
     // Rotate the remaining sequence into place
-    (detail::std_rotate)(write, next_read, last, std::forward_iterator_tag());
+    std_rotate_recur(write, next_read, last, std::forward_iterator_tag());
+    return write;
+}
+
+//
+// See: https://blog.csdn.net/Ryansior/article/details/127018141
+//
+template <typename ForwardIterator>
+ForwardIterator // void until C++11
+std_rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last, std::forward_iterator_tag)
+{
+    if (first == middle) return middle;
+    if (middle == last) return middle;
+
+    // (first) | -- Left Part -- (middle) | -- Right Part -- | (last)
+
+    ForwardIterator read = middle;
+    ForwardIterator write = first;
+
+    for (;;) {
+        std::iter_swap(write++, read++);
+        if (write == middle) {      // The left part is shorter: (middle - first) <= (last - middle)
+            if (read == last)       // The left part and right part is same size.
+                return write;
+            middle = read;          // Rotate the remaining sequence into place
+        }
+        else if (read == last) {    // The right part is shorter: (middle - first) > (last - middle)
+            read = middle;          // Rotate the remaining sequence into place
+        }
+    }
+}
+
+//
+// See: https://blog.csdn.net/Ryansior/article/details/127018141
+//
+template <typename BidirectionalIterator>
+BidirectionalIterator
+std_rotate(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, std::bidirectional_iterator_tag)
+{
+    if (first == middle) return middle;
+    if (middle == last) return middle;
+
+    std::reverse(first, middle);
+    std::reverse(middle, last);
+    std::reverse(first, last);
+
+    return middle;
+}
+
+template <typename IntegralType>
+inline
+IntegralType std_gcd(IntegralType __m, IntegralType __n)
+{
+    while (__n != 0) {
+        IntegralType __t = __m % __n;
+        __m = __n;
+        __n = __t;
+    }
+    return __m;
+}
+
+template <typename RandomAccessIterator, typename DistanceType>
+inline RandomAccessIterator
+std_rotate_cycle(RandomAccessIterator start, RandomAccessIterator first, RandomAccessIterator last, DistanceType shift)
+{
+    typedef RandomAccessIterator iterator;
+    typedef typename std::iterator_traits<iterator>::difference_type   difference_type;
+    typedef typename std::iterator_traits<iterator>::value_type        value_type;
+
+    value_type value(std::move(*start));
+    iterator write = start;
+    iterator read = start + shift;
+    while (read != start) {
+        *write = std::move(*read);
+        write = read;
+        if ((last - read) > shift)
+            read += shift;
+        else
+            read = first + (shift - (last - read));
+    }
+
+    *write = std::move(value);
     return write;
 }
 
@@ -55,14 +136,26 @@ template <typename RandomAccessIterator>
 RandomAccessIterator
 std_rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, std::random_access_iterator_tag)
 {
-    return detail::std_rotate(first, middle, last, std::forward_iterator_tag());
-}
+    typedef RandomAccessIterator iterator;
+    typedef typename std::iterator_traits<iterator>::difference_type   difference_type;
+    typedef typename std::iterator_traits<iterator>::value_type        value_type;
 
-template <typename BidirectionalIterator >
-BidirectionalIterator
-std_rotate(BidirectionalIterator  first, BidirectionalIterator  middle, BidirectionalIterator  last, std::bidirectional_iterator_tag)
-{
-    return detail::std_rotate(first, middle, last, std::forward_iterator_tag());
+    if (first == middle) return middle;
+    if (middle == last) return middle;
+
+    const difference_type left_len  = middle - first;
+    const difference_type right_len = last - middle;
+    if (left_len == right_len) {
+        std::swap_ranges(first, middle, middle);
+        return middle;
+    }
+
+    difference_type cycle = std_gcd(left_len, right_len);
+    iterator result;
+    while (cycle--) {
+         result = std_rotate_cycle(first + cycle, first, last, left_len);
+    }
+    return result;
 }
 
 } // namespace detail
