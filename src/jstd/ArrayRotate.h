@@ -113,8 +113,7 @@ inline RandomAccessIterator
 std_rotate_cycle(RandomAccessIterator start, RandomAccessIterator first, RandomAccessIterator last, DistanceType shift)
 {
     typedef RandomAccessIterator iterator;
-    typedef typename std::iterator_traits<iterator>::difference_type   difference_type;
-    typedef typename std::iterator_traits<iterator>::value_type        value_type;
+    typedef typename std::iterator_traits<iterator>::value_type value_type;
 
     value_type value(std::move(*start));
     iterator write = start;
@@ -137,8 +136,7 @@ RandomAccessIterator
 std_rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, std::random_access_iterator_tag)
 {
     typedef RandomAccessIterator iterator;
-    typedef typename std::iterator_traits<iterator>::difference_type   difference_type;
-    typedef typename std::iterator_traits<iterator>::value_type        value_type;
+    typedef typename std::iterator_traits<iterator>::difference_type difference_type;
 
     if (first == middle) return middle;
     if (middle == last) return middle;
