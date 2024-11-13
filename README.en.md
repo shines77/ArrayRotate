@@ -1,38 +1,25 @@
 # ArrayRotate
 
-#### Description
+| [中文版](./README.md) | [English Version](./README.en.md) |
 
-Deeply research and optimization about std::rotate(first, mid, last)
+## Introduction
 
-#### Software Architecture
+Deeply research and optimization about C++ standard library std::rotate(first, mid, last) function.
 
-Software architecture description
+## Cause
 
-#### Installation
+One day, I accidentally came across a post on Zhihu.com: [Is there a faster way to rotate left in an array?](https://www.zhihu.com/question/499819224).
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+It's quite unremarkable, isn't it? Indeed, after reading some people's answers, I found out that the C++ standard library also has the std::rotate() function. I guess you may not have heard of it either. Its function is to rotate elements in STL containers, which is generally rare and not well known to most people. Actually, I personally think it's a bit similar to the idea of functions like memmove(). If the std::rotate() function is not used much, but the memmove() function is still used in application scenarios. The technique of memmove() comes from how to handle overlapping target and source regions. Of course, if std::rotate() is applied to non POD (Plain old data structure) types, it is still different from memmove(), but the idea can be borrowed. The main problem is Cache Friendly, which is not cache friendly for operations such as copy, duplicate, and swap, and sometimes the performance may be much worse.
 
-#### Instructions
+## Optimization approach
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+11111111111
 
-#### Contribution
+## GitHub stats
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+[![shines77's GitHub stats](https://github-readme-stats.vercel.app/api?username=shines77&show_icons=true&theme=radical)](https://github.com/anuraghazra/github-readme-stats)
 
+## Top Languages
 
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+[![shines77's Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=shines77&theme=radical)](https://github.com/anuraghazra/github-readme-stats)
