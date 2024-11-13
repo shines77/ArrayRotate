@@ -97,7 +97,7 @@ std_rotate(BidirectionalIterator first, BidirectionalIterator middle, Bidirectio
     std::reverse(middle, last);
     std::reverse(first, last);
 
-    return middle;
+    return (first + (last - middle));
 }
 
 template <typename IntegralType>
@@ -135,6 +135,9 @@ std_rotate_cycle(RandomAccessIterator start, RandomAccessIterator first, RandomA
     return write;
 }
 
+//
+// See: https://blog.csdn.net/Ryansior/article/details/127018141
+//
 template <typename RandomAccessIterator>
 RandomAccessIterator
 std_rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, std::random_access_iterator_tag)
