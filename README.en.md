@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Deeply research and optimization about C++ standard library std::rotate(first, mid, last) function.
+Deeply optimization of std:: rotate() function in C++ standard library using SIMD instruction.
 
 ## Cause
 

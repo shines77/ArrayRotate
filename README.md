@@ -4,7 +4,7 @@
 
 ## 介绍
 
-对于 C++ 标准库的 std::rotate(first, mid, last) 函数的深度研究和优化
+使用 SIMD 指令对 C++ 标准库的 std::rotate() 函数的深度优化。
 
 ## 起因
 
