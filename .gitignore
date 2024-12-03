@@ -89,8 +89,8 @@ Icon?
 *.tlog
 
 # Ignore folders create by Visual Studio 2015
-/.vs/
-/ipch/
+/.vs
+/ipch
 
 # Ignore intellisense files by Visual Studio 2015 Update 3
 *.VC.db
